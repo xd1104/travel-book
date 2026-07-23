@@ -7,10 +7,14 @@ start: "2026-08-29"
 days: 3
 budget: 0
 createdAt: "2026-07-23T15:51:59.575Z"
-updatedAt: "2026-07-23T15:51:59.576Z"
+updatedAt: "2026-07-23T15:54:11.181Z"
 ---
 
 ## 行程
+
+### Day 1
+
+- {"id":"xmrxoysmk21v8","title":"職責","time":"23:53","cat":"sight"}
 
 ## 花費
 
