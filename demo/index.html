@@ -28,8 +28,9 @@ ul{padding:0; list-style:none;}
 .home-eyebrow{font-size:12px; letter-spacing:.22em; color:var(--muted); font-weight:700;}
 .home-head h1{font-size:30px; font-weight:800; margin-top:6px;}
 .home-head p{color:var(--muted); margin-top:6px; font-size:15px;}
-.home-list{padding:8px 16px 120px; display:flex; flex-direction:column; gap:16px;}
+.home-list{padding:8px 16px 4px; display:flex; flex-direction:column; gap:16px;}
 .trip-card{background:var(--card); border-radius:20px; overflow:hidden; box-shadow:var(--shadow); text-align:left; width:100%;}
+.trip-card.past-card{filter:grayscale(.55); opacity:.82;}
 .cover{min-height:110px; padding:18px; display:flex; align-items:flex-end; gap:12px; position:relative; color:#fff;}
 .cover-emoji{font-size:44px; line-height:1; filter:drop-shadow(0 2px 6px rgba(0,0,0,.25));}
 .cover-txt h2{font-size:22px; font-weight:800; text-shadow:0 1px 8px rgba(0,0,0,.28);}
@@ -40,7 +41,11 @@ ul{padding:0; list-style:none;}
 .count-chip.past{background:#f0ece4; color:var(--muted);}
 .add-trip{border:2px dashed #d8cfbf; border-radius:20px; min-height:64px; color:var(--muted);
   font-size:16px; font-weight:600; width:100%; display:flex; align-items:center; justify-content:center; gap:8px; background:transparent;}
-.home-foot{text-align:center; color:#b3a996; font-size:12.5px; padding:0 16px 40px;}
+.ended-sec{padding:6px 16px 0;}
+.ended-toggle{width:100%; min-height:48px; display:flex; align-items:center; justify-content:space-between;
+  color:var(--muted); font-size:14px; font-weight:700; padding:0 6px;}
+.ended-list{display:flex; flex-direction:column; gap:16px; margin-top:4px;}
+.home-foot{text-align:center; color:#b3a996; font-size:12.5px; padding:24px 16px 40px;}
 .home-foot button{color:#a4988a; text-decoration:underline; font-size:12.5px; min-height:44px; padding:0 8px;}
 
 /* ---------- 旅程頁 ---------- */
@@ -98,6 +103,7 @@ ul{padding:0; list-style:none;}
 .empty .big{font-size:44px;}
 .empty p{margin-top:12px; font-size:15px; line-height:1.6;}
 .empty .btn-primary{margin-top:18px; width:auto; padding:0 26px; display:inline-flex;}
+.empty.slim{padding:26px 20px 10px;}
 
 /* 行程點詳細（sheet） */
 .d-meta{display:flex; align-items:center; gap:8px; margin:0 0 12px; flex-wrap:wrap;}
@@ -150,6 +156,9 @@ ul{padding:0; list-style:none;}
 .pack-add input{flex:1; min-width:0; font-size:16px; padding:12px 14px; border:1.5px solid var(--line); border-radius:14px; background:var(--card); font-family:inherit; color:var(--ink);}
 .pack-add input:focus{outline:none; border-color:var(--acc);}
 .pack-add button{flex:0 0 auto; min-height:50px; padding:0 18px; border-radius:14px; background:var(--ink); color:#fff; font-size:15px; font-weight:700;}
+.tpl-row{display:flex; gap:8px; justify-content:flex-end; margin:10px 2px 0;}
+.tpl-row button{min-height:44px; padding:0 14px; border-radius:12px; background:var(--card); box-shadow:var(--shadow);
+  font-size:13px; font-weight:700; color:#6b6154;}
 .pack-item{background:var(--card); border-radius:16px; box-shadow:var(--shadow); margin-bottom:10px;
   display:flex; align-items:center; padding-right:2px;}
 .pack-main{flex:1; display:flex; align-items:center; gap:12px; padding:6px 0 6px 14px; min-height:56px; text-align:left; min-width:0;}
@@ -158,6 +167,29 @@ ul{padding:0; list-style:none;}
 .pack-item.done .pk-box{background:var(--acc); border-color:var(--acc);}
 .pack-item .txt{font-size:16px; overflow-wrap:anywhere;}
 .pack-item.done .txt{color:#b8ad9c; text-decoration:line-through;}
+
+/* 模板 sheet */
+.tpl-card{display:flex; align-items:center; gap:10px; padding:12px 4px; border-bottom:1px solid #f2ecdf;}
+.tpl-info{flex:1; min-width:0;}
+.tpl-info b{font-size:16px; display:block; overflow-wrap:anywhere;}
+.tpl-info span{font-size:12.5px; color:var(--muted); margin-top:3px; display:block;}
+.tpl-acts{display:flex; gap:8px; flex:0 0 auto;}
+.tpl-acts button,.tpl-apply{min-height:44px; padding:0 14px; border-radius:12px; background:#f3eee4; font-size:14px; font-weight:700; color:#6b6154; flex:0 0 auto;}
+.tpl-apply{background:var(--acc); color:#fff;}
+.tpl-acts .danger{color:var(--bad); background:#fbeeee;}
+.tpl-sec-h{font-size:13px; font-weight:800; color:var(--muted); margin:14px 2px 4px;}
+.tpl-item{display:flex; align-items:center; gap:8px; padding:2px 0 2px 4px; border-bottom:1px solid #f7f2e7;}
+.tpl-item .tx{flex:1; font-size:15.5px; overflow-wrap:anywhere;}
+.tpl-none{color:#b8ad9c; font-size:13.5px; padding:6px 4px;}
+
+/* 勾選列（24 小時等） */
+.check-row{display:flex; align-items:center; gap:10px; min-height:48px; margin:-2px 0 8px; cursor:pointer; position:relative;}
+.check-row input{position:absolute; opacity:0; width:1px; height:1px;}
+.ck-box{width:26px; height:26px; border-radius:8px; border:2px solid #d6cbb8; background:#fbfaf6; flex:0 0 auto;
+  display:flex; align-items:center; justify-content:center; color:#fff; font-size:14px;}
+.check-row input:checked + .ck-box{background:var(--acc); border-color:var(--acc);}
+.check-row input:checked + .ck-box::after{content:"✓";}
+.ck-lb{font-size:15.5px; font-weight:600;}
 
 /* 備註 */
 .notes-hint{display:flex; justify-content:space-between; align-items:center; font-size:13px; color:var(--muted); margin:2px 4px 10px;}
@@ -199,6 +231,7 @@ ul{padding:0; list-style:none;}
 .field select{background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238f8578' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat:no-repeat; background-position:right 14px center;}
 .field input:focus,.field select:focus,.field textarea:focus{outline:none; border-color:var(--acc);}
+.field input:disabled{opacity:.45;}
 .f-row2{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
 .hint{font-size:12.5px; color:var(--muted); margin:-4px 2px 13px; line-height:1.5;}
 .pick-row{display:flex; gap:8px; flex-wrap:wrap;}
@@ -244,12 +277,48 @@ var ZONES = [
   {key:"carry",   emoji:"🎒", label:"隨身", sub:"隨身包"}
 ];
 var WD = ["日","一","二","三","四","五","六"];
-var LS_KEY = "travel-demo-v2";
-var LS_KEY_V1 = "travel-demo-v1";
+var LS_KEY = "travel-demo-v3";
+var LS_OLD_KEYS = ["travel-demo-v2","travel-demo-v1"];
 
 /* ============ 假資料 ============ */
+function seedTemplates(){
+  return [
+    {id:"tpl-intl", name:"出國基本款", items:[
+      {text:"護照＋影本", zone:"carry"},
+      {text:"外幣現金＋信用卡", zone:"carry"},
+      {text:"eSIM／網卡設定好", zone:"carry"},
+      {text:"行動電源＋充電線", zone:"carry"},
+      {text:"原子筆（入境表）", zone:"carry"},
+      {text:"換洗衣物", zone:"checked"},
+      {text:"盥洗包", zone:"checked"},
+      {text:"常備藥", zone:"checked"},
+      {text:"摺疊傘", zone:"checked"},
+      {text:"萬用轉接頭", zone:"checked"},
+      {text:"裝髒衣的袋子", zone:"checked"}
+    ]},
+    {id:"tpl-local", name:"國內小旅行", items:[
+      {text:"身分證／健保卡", zone:"carry"},
+      {text:"悠遊卡", zone:"carry"},
+      {text:"行動電源", zone:"carry"},
+      {text:"水壺", zone:"carry"},
+      {text:"換洗衣物", zone:"checked"},
+      {text:"盥洗包", zone:"checked"},
+      {text:"摺疊傘", zone:"checked"}
+    ]},
+    {id:"tpl-beach", name:"海邊／溫泉", items:[
+      {text:"防曬乳", zone:"carry"},
+      {text:"墨鏡", zone:"carry"},
+      {text:"帽子", zone:"carry"},
+      {text:"泳衣", zone:"checked"},
+      {text:"快乾毛巾", zone:"checked"},
+      {text:"拖鞋", zone:"checked"},
+      {text:"防水袋", zone:"checked"},
+      {text:"溫泉小包（髮圈/髮夾）", zone:"checked"}
+    ]}
+  ];
+}
 function seed(){
-  return { trips:[
+  return { templates: seedTemplates(), trips:[
     {
       id:"t-tokyo", name:"東京 5 日", dest:"日本・東京", emoji:"🗼", theme:"sunset",
       start:"2026-08-20", days:5, budget:60000,
@@ -280,7 +349,7 @@ function seed(){
           {id:"s12", time:"10:00", title:"明治神宮", cat:"sight", place:"原宿", note:""},
           {id:"s13", time:"12:30", title:"竹下通・可麗餅", cat:"shop", place:"原宿", note:""},
           {id:"s14", time:"16:00", title:"SHIBUYA SKY 展望台", cat:"sight", place:"澀谷", note:"夕陽場次，17:30 前上去",
-            url:"https://www.shibuya-scramble-square.com/sky/", cost:490, hours:"10:00–22:30"}
+            url:"https://www.shibuya-scramble-square.com/sky/", cost:490, hoursOpen:"10:00", hoursClose:"22:30"}
         ],
         "5":[
           {id:"s15", time:"10:00", title:"上野公園散步", cat:"sight", place:"上野", note:""},
@@ -318,6 +387,17 @@ function seed(){
       expenses:[ {id:"e21", amount:2680, cat:"transport", desc:"高鐵來回 ×2"} ],
       packing:[ {id:"p21", text:"防曬乳", done:false, zone:"carry"}, {id:"p22", text:"墨鏡", done:false, zone:"carry"} ],
       notes:"🚄 高鐵\n去程 9/12 10:30　回程 9/13 19:45\n（第二天行程還沒排，先去玩再說）"
+    },
+    {
+      id:"t-kyoto", name:"京都紅葉 4 日", dest:"日本・京都", emoji:"⛩️", theme:"night",
+      start:"2025-11-20", days:4, budget:45000,
+      itinerary:{
+        "1":[ {id:"s31", time:"15:00", title:"清水寺夜楓", cat:"sight", place:"清水寺", note:""} ],
+        "2":[ {id:"s32", time:"10:00", title:"嵐山竹林", cat:"sight", place:"嵐山", note:""} ]
+      },
+      expenses:[ {id:"e31", amount:41200, cat:"other", desc:"整趟總結（機＋宿＋吃）"} ],
+      packing:[],
+      notes:"紅葉季人爆多，下次避開週末。\n想住一晚嵐山的溫泉旅館。"
     }
   ]};
 }
@@ -330,15 +410,17 @@ function migrate(d){
       if(p.zone!=="carry" && p.zone!=="checked") p.zone="carry"; /* v1 沒分區 → 歸隨身 */
     });
   });
+  if(!d.templates || !d.templates.length) d.templates = seedTemplates(); /* v1/v2 沒模板 → 補內建 */
   return d;
 }
 var db;
 function loadDb(){
   try{
-    var raw = localStorage.getItem(LS_KEY);
-    if(raw){ var d = JSON.parse(raw); if(d && d.trips) return migrate(d); }
-    var old = localStorage.getItem(LS_KEY_V1);
-    if(old){ var od = JSON.parse(old); if(od && od.trips) return migrate(od); }
+    var keys=[LS_KEY].concat(LS_OLD_KEYS);
+    for(var i=0;i<keys.length;i++){
+      var raw = localStorage.getItem(keys[i]);
+      if(raw){ var d = JSON.parse(raw); if(d && d.trips) return migrate(d); }
+    }
   }catch(e){}
   return null;
 }
@@ -349,7 +431,7 @@ db = loadDb() || seed();
 save();
 
 /* ============ UI 狀態 ============ */
-var ui = { screen:"home", tripId:null, tab:"plan", day:1, edit:false, packZone:"carry" };
+var ui = { screen:"home", tripId:null, tab:"plan", day:1, edit:false, packZone:"carry", showEnded:false };
 function curTrip(){
   for(var i=0;i<db.trips.length;i++) if(db.trips[i].id===ui.tripId) return db.trips[i];
   return null;
@@ -375,13 +457,19 @@ function mapLink(sp){
   if(sp.place) return "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(sp.place);
   return "";
 }
+function hoursText(sp){
+  if(sp.hours24) return "24 小時營業";
+  if(sp.hoursOpen || sp.hoursClose) return (sp.hoursOpen||"？")+"–"+(sp.hoursClose||"？");
+  return sp.hours || ""; /* 舊版自由文字相容 */
+}
+function tripEnd(t){ return addDays(parseDate(t.start), t.days-1); }
 function tripRange(t){
-  var s=parseDate(t.start), e=addDays(s,t.days-1);
+  var s=parseDate(t.start), e=tripEnd(t);
   return fmtMD(s)+"（"+WD[s.getDay()]+"）– "+fmtMD(e)+"（"+WD[e.getDay()]+"）";
 }
 function tripStatus(t){
   var today=new Date(); today.setHours(0,0,0,0);
-  var s=parseDate(t.start), e=addDays(s,t.days-1);
+  var s=parseDate(t.start), e=tripEnd(t);
   var diff=Math.round((s-today)/86400000);
   if(diff>0) return {text:"還有 "+diff+" 天出發", cls:""};
   if(today<=e) return {text:"旅程進行中 ✨", cls:"now"};
@@ -389,6 +477,9 @@ function tripStatus(t){
 }
 function spentOf(t){
   var s=0; for(var i=0;i<t.expenses.length;i++) s+=Number(t.expenses[i].amount)||0; return s;
+}
+function zoneCount(items, z){
+  return items.filter(function(i){return i.zone===z;}).length;
 }
 
 /* ============ Render ============ */
@@ -399,30 +490,52 @@ function render(keepScroll){
   window.scrollTo(0, y);
 }
 
-/* ---- 首頁 ---- */
+/* ---- 首頁（未完成 / 已結束 分區） ---- */
+function tripCard(t, isPast){
+  var st = tripStatus(t);
+  return '<button class="trip-card'+(isPast?" past-card":"")+'" onclick="openTrip(\''+t.id+'\')">'
+    + '<div class="cover" style="background:'+(THEMES[t.theme]||THEMES.sunset)+'">'
+    +   '<span class="cover-emoji">'+esc(t.emoji)+'</span>'
+    +   '<div class="cover-txt"><h2>'+esc(t.name)+'</h2><div>'+esc(t.dest)+'</div></div>'
+    + '</div>'
+    + '<div class="trip-meta"><span>'+tripRange(t)+'・'+t.days+' 天</span>'
+    + '<span class="count-chip '+st.cls+'">'+st.text+'</span></div>'
+    + '</button>';
+}
 function viewHome(){
-  var cards = db.trips.map(function(t){
-    var st = tripStatus(t);
-    return '<button class="trip-card" onclick="openTrip(\''+t.id+'\')">'
-      + '<div class="cover" style="background:'+(THEMES[t.theme]||THEMES.sunset)+'">'
-      +   '<span class="cover-emoji">'+esc(t.emoji)+'</span>'
-      +   '<div class="cover-txt"><h2>'+esc(t.name)+'</h2><div>'+esc(t.dest)+'</div></div>'
-      + '</div>'
-      + '<div class="trip-meta"><span>'+tripRange(t)+'・'+t.days+' 天</span>'
-      + '<span class="count-chip '+st.cls+'">'+st.text+'</span></div>'
-      + '</button>';
-  }).join("");
+  var today=new Date(); today.setHours(0,0,0,0);
+  var act=[], past=[];
+  db.trips.forEach(function(t){ (tripEnd(t)<today ? past : act).push(t); });
+  act.sort(function(a,b){ return a.start<b.start?-1:1; });   /* 快出發的在上 */
+  past.sort(function(a,b){ return a.start>b.start?-1:1; });  /* 最近結束的在上 */
+  var actHtml;
+  if(act.length){
+    actHtml = act.map(function(t){return tripCard(t,false);}).join("");
+  }else{
+    actHtml = '<div class="empty slim"><div class="big">🌱</div>'
+      + '<p>'+(past.length?"目前沒有進行中或即將出發的旅程，<br>來規劃下一趟吧":"還沒有任何旅程，<br>從下面開始規劃第一趟吧")+'</p></div>';
+  }
+  var endedHtml = "";
+  if(past.length){
+    endedHtml = '<section class="ended-sec">'
+      + '<button class="ended-toggle" onclick="toggleEnded()">'
+      +   '<span>已結束的旅程（'+past.length+'）</span><span>'+(ui.showEnded?"▲":"▼")+'</span></button>'
+      + (ui.showEnded ? '<div class="ended-list">'+past.map(function(t){return tripCard(t,true);}).join("")+'</div>' : "")
+      + '</section>';
+  }
   return ''
     + '<header class="home-head">'
     +   '<div class="home-eyebrow">TRAVEL PLANNER</div>'
     +   '<h1>旅途手帳</h1><p>把每一趟旅行，收進口袋 🧳</p>'
     + '</header>'
-    + '<main class="home-list">'+cards
+    + '<main class="home-list">'+actHtml
     +   '<button class="add-trip" onclick="openTripSheet()">＋ 規劃新旅程</button>'
     + '</main>'
+    + endedHtml
     + '<footer class="home-foot">Demo 版・資料只存在這支手機的瀏覽器　'
     +   '<button onclick="resetDemo()">重設範例資料</button></footer>';
 }
+function toggleEnded(){ ui.showEnded=!ui.showEnded; render(true); }
 
 /* ---- 旅程頁骨架 ---- */
 function viewTrip(){
@@ -579,7 +692,8 @@ function openStopDetail(idx){
   if(sp.bookingRef) rows += row("🎫","訂位／票券代號","<code>"+esc(sp.bookingRef)+"</code>");
   if(sp.phone) rows += row("📞","電話",'<a href="tel:'+esc(String(sp.phone).replace(/[^+\d]/g,""))+'">'+esc(sp.phone)+"</a>");
   if(sp.url)   rows += row("🔗","官網／參考",'<a href="'+esc(extUrl(sp.url))+'" target="_blank" rel="noopener">'+esc(sp.url)+"</a>");
-  if(sp.hours) rows += row("🕘","營業時間",esc(sp.hours));
+  var ht = hoursText(sp);
+  if(ht) rows += row("🕘","營業時間",esc(ht));
   if(sp.note)  rows += row("📝","備註",esc(sp.note).replace(/\n/g,"<br>"));
   if(!rows) rows = '<p class="d-empty">還沒有詳細資訊，點下面「編輯」補上</p>';
   var href = mapLink(sp);
@@ -593,11 +707,18 @@ function openStopDetail(idx){
     + '<button class="btn-primary" onclick="openStopEdit('+idx+')">✎ 編輯</button>'
     + '</div>');
 }
+function toggleHours24(cb){
+  var f = cb.form;
+  f.hoursOpen.disabled = cb.checked;
+  f.hoursClose.disabled = cb.checked;
+}
 function openStopEdit(idx){
   var list=curList()||[]; var sp=list[idx]; if(!sp) return;
   var opts = Object.keys(CATS).map(function(k){
     return '<option value="'+k+'"'+(sp.cat===k?" selected":"")+'>'+CATS[k].emoji+" "+CATS[k].label+"</option>";
   }).join("");
+  var legacyHours = (sp.hours && !sp.hoursOpen && !sp.hoursClose && !sp.hours24)
+    ? '<div class="hint">原本記的文字：「'+esc(sp.hours)+'」——下面選了時間就會取代它。</div>' : "";
   openSheet("編輯行程點",
     '<form onsubmit="submitStopEdit(event,'+idx+')">'
     + '<label class="field"><span class="fl">名稱 *</span><input name="title" required value="'+esc(sp.title)+'" autocomplete="off"></label>'
@@ -611,10 +732,13 @@ function openStopEdit(idx){
     +   '<label class="field"><span class="fl">預估費用（NT$）</span><input type="number" name="cost" min="0" step="1" inputmode="numeric" value="'+(sp.cost||"")+'"></label>'
     +   '<label class="field"><span class="fl">訂位／票券代號</span><input name="bookingRef" value="'+esc(sp.bookingRef||"")+'" autocomplete="off"></label>'
     + '</div>'
+    + '<label class="field"><span class="fl">聯絡電話</span><input type="tel" name="phone" value="'+esc(sp.phone||"")+'" autocomplete="off"></label>'
     + '<div class="f-row2">'
-    +   '<label class="field"><span class="fl">聯絡電話</span><input type="tel" name="phone" value="'+esc(sp.phone||"")+'" autocomplete="off"></label>'
-    +   '<label class="field"><span class="fl">營業時間</span><input name="hours" value="'+esc(sp.hours||"")+'" placeholder="例：10:00–22:30" autocomplete="off"></label>'
+    +   '<label class="field"><span class="fl">營業時間（開）</span><input type="time" name="hoursOpen" value="'+esc(sp.hoursOpen||"")+'"'+(sp.hours24?" disabled":"")+'></label>'
+    +   '<label class="field"><span class="fl">營業時間（關）</span><input type="time" name="hoursClose" value="'+esc(sp.hoursClose||"")+'"'+(sp.hours24?" disabled":"")+'></label>'
     + '</div>'
+    + '<label class="check-row"><input type="checkbox" name="hours24"'+(sp.hours24?" checked":"")+' onchange="toggleHours24(this)"><span class="ck-box"></span><span class="ck-lb">24 小時營業</span></label>'
+    + legacyHours
     + '<label class="field"><span class="fl">官網／參考連結</span><input name="url" inputmode="url" value="'+esc(sp.url||"")+'" autocomplete="off"></label>'
     + '<label class="field"><span class="fl">詳細備註</span><textarea name="note" rows="3">'+esc(sp.note||"")+'</textarea></label>'
     + '<button class="btn-primary" type="submit">儲存</button>'
@@ -631,7 +755,10 @@ function submitStopEdit(ev, idx){
   sp.cost = Number(f.cost.value)||0;
   sp.bookingRef = f.bookingRef.value.trim();
   sp.phone = f.phone.value.trim();
-  sp.hours = f.hours.value.trim();
+  sp.hours24 = !!f.hours24.checked;
+  sp.hoursOpen = sp.hours24 ? "" : f.hoursOpen.value;
+  sp.hoursClose = sp.hours24 ? "" : f.hoursClose.value;
+  if(sp.hours24 || sp.hoursOpen || sp.hoursClose) sp.hours = ""; /* 結構化資料取代舊自由文字 */
   sp.url = f.url.value.trim();
   sp.note = f.note.value.trim();
   save(); closeSheet(); render(true);
@@ -673,13 +800,18 @@ function viewBudget(t){
     + '<div class="sec-title">花費紀錄</div>' + rows;
 }
 
-/* ---- 打包（行李／隨身 兩區） ---- */
+/* ---- 打包（行李／隨身 兩區 + 模板） ---- */
 function viewPack(t){
   var zone = ZONES.filter(function(z){return z.key===ui.packZone;})[0] || ZONES[1];
   var seg = '<div class="seg">'+ZONES.map(function(z){
     return '<button type="button" class="'+(ui.packZone===z.key?"on":"")+'" onclick="setPackZone(\''+z.key+'\')">'
       + z.emoji+' '+z.label+'</button>';
   }).join("")+'</div>';
+  var tplRow = '<div class="tpl-row">'
+    + '<button onclick="openTplPicker()">📦 從模板帶入</button>'
+    + '<button onclick="openTplManager()">管理模板</button></div>';
+  var emptyCta = !t.packing.length
+    ? '<button class="btn-ghost" style="margin-top:14px" onclick="openTplPicker()">📦 清單空空的，從模板帶入一套</button>' : "";
   var secs = ZONES.map(function(z){
     var items = t.packing.filter(function(p){return p.zone===z.key;});
     var done = items.filter(function(p){return p.done;}).length;
@@ -704,7 +836,7 @@ function viewPack(t){
     + '<form class="pack-add" onsubmit="addPack(event)">'
     +   '<input id="pack-input" name="text" placeholder="要帶什麼？加到「'+zone.emoji+' '+zone.label+'」" autocomplete="off" required>'
     +   '<button type="submit">加入</button></form>'
-    + secs;
+    + tplRow + emptyCta + secs;
 }
 function setPackZone(z){
   var inp = document.getElementById("pack-input");
@@ -713,6 +845,108 @@ function setPackZone(z){
   render(true);
   var again = document.getElementById("pack-input");
   if(again) again.value = v;
+}
+
+/* ---- 打包模板：帶入 / 管理 / 編輯 ---- */
+function tplCounts(tp){
+  return "🧳 "+zoneCount(tp.items,"checked")+" ・ 🎒 "+zoneCount(tp.items,"carry");
+}
+function openTplPicker(){
+  var rows = db.templates.map(function(tp){
+    return '<div class="tpl-card"><div class="tpl-info"><b>'+esc(tp.name)+'</b><span>'+tplCounts(tp)+'</span></div>'
+      + '<button class="tpl-apply" onclick="applyTemplate(\''+tp.id+'\')">帶入</button></div>';
+  }).join("");
+  if(!rows) rows = '<p class="d-empty">還沒有模板，先去「管理模板」建一個</p>';
+  openSheet("從模板帶入",
+    rows
+    + '<div class="hint" style="margin-top:12px">帶入時會自動跳過清單裡已經有的同名項目。</div>'
+    + '<div class="d-acts"><button class="btn-ghost" onclick="openTplManager()">管理模板</button></div>');
+}
+function applyTemplate(id){
+  var t=curTrip(); if(!t) return;
+  var tp=null; db.templates.forEach(function(x){ if(x.id===id) tp=x; });
+  if(!tp) return;
+  var existing = {};
+  t.packing.forEach(function(p){ existing[p.text.trim()] = true; });
+  tp.items.forEach(function(it){
+    if(existing[it.text.trim()]) return;
+    t.packing.push({id:uid(), text:it.text, done:false, zone:(it.zone==="checked"?"checked":"carry")});
+  });
+  save(); closeSheet(); render(true);
+}
+function openTplManager(){
+  var rows = db.templates.map(function(tp){
+    return '<div class="tpl-card"><div class="tpl-info"><b>'+esc(tp.name)+'</b><span>'+tplCounts(tp)+'</span></div>'
+      + '<div class="tpl-acts"><button onclick="openTplEdit(\''+tp.id+'\')">編輯</button>'
+      + '<button class="danger" onclick="delTemplate(\''+tp.id+'\')">刪除</button></div></div>';
+  }).join("");
+  if(!rows) rows = '<p class="d-empty">還沒有任何模板</p>';
+  openSheet("管理模板",
+    rows + '<div class="d-acts"><button class="btn-primary" onclick="openTplEdit()">＋ 新增模板</button></div>');
+}
+function delTemplate(id){
+  if(!confirm("刪除這個模板？（不影響已帶入各旅程的項目）")) return;
+  db.templates = db.templates.filter(function(t){return t.id!==id;});
+  save(); openTplManager();
+}
+var tplDraft = null;
+function openTplEdit(id){
+  var src=null;
+  if(id){ db.templates.forEach(function(t){ if(t.id===id) src=t; }); }
+  tplDraft = src
+    ? {id:src.id, name:src.name, zone:"carry", pending:"", items:src.items.map(function(i){return {text:i.text, zone:i.zone};})}
+    : {id:null, name:"", zone:"carry", pending:"", items:[]};
+  renderTplEdit();
+}
+function syncTplDraft(){
+  var n=document.getElementById("tpl-name"); if(n) tplDraft.name=n.value;
+  var i=document.getElementById("tpl-item-input"); if(i) tplDraft.pending=i.value;
+}
+function renderTplEdit(){
+  var segHtml = '<div class="seg">'+ZONES.map(function(z){
+    return '<button type="button" class="'+(tplDraft.zone===z.key?"on":"")+'" onclick="setTplZone(\''+z.key+'\')">'
+      + z.emoji+' '+z.label+'</button>';
+  }).join("")+'</div>';
+  var lists = ZONES.map(function(z){
+    var rows = tplDraft.items.map(function(it,i){ return {it:it, i:i}; })
+      .filter(function(x){ return x.it.zone===z.key; })
+      .map(function(x){
+        return '<div class="tpl-item"><span>'+z.emoji+'</span><span class="tx">'+esc(x.it.text)+'</span>'
+          + '<button class="x-btn" onclick="delTplItem('+x.i+')" aria-label="刪除">✕</button></div>';
+      }).join("");
+    return '<div class="tpl-sec-h">'+z.emoji+' '+z.label+'（'+z.sub+'）</div>'
+      + (rows || '<div class="tpl-none">還沒有項目</div>');
+  }).join("");
+  openSheet(tplDraft.id ? "編輯模板" : "新增模板",
+    '<label class="field"><span class="fl">模板名稱 *</span><input id="tpl-name" value="'+esc(tplDraft.name)+'" placeholder="例：露營裝備" autocomplete="off"></label>'
+    + segHtml
+    + '<form class="pack-add" onsubmit="addTplItem(event)">'
+    +   '<input id="tpl-item-input" value="'+esc(tplDraft.pending)+'" placeholder="新增項目到「'+(tplDraft.zone==="checked"?"🧳 行李":"🎒 隨身")+'」" autocomplete="off" required>'
+    +   '<button type="submit">加入</button></form>'
+    + lists
+    + '<div class="d-acts"><button class="btn-primary" onclick="saveTpl()">儲存模板</button></div>');
+}
+function setTplZone(z){ syncTplDraft(); tplDraft.zone=z; renderTplEdit(); }
+function addTplItem(ev){
+  ev.preventDefault();
+  syncTplDraft();
+  var text=(tplDraft.pending||"").trim(); if(!text) return;
+  tplDraft.items.push({text:text, zone:tplDraft.zone});
+  tplDraft.pending="";
+  renderTplEdit();
+  var inp=document.getElementById("tpl-item-input");
+  if(inp) inp.focus({preventScroll:true});
+}
+function delTplItem(i){ syncTplDraft(); tplDraft.items.splice(i,1); renderTplEdit(); }
+function saveTpl(){
+  syncTplDraft();
+  var name=(tplDraft.name||"").trim() || "未命名模板";
+  if(tplDraft.id){
+    db.templates.forEach(function(t){ if(t.id===tplDraft.id){ t.name=name; t.items=tplDraft.items; } });
+  }else{
+    db.templates.push({id:uid(), name:name, items:tplDraft.items});
+  }
+  save(); tplDraft=null; openTplManager();
 }
 
 /* ---- 備註 ---- */
@@ -775,7 +1009,7 @@ function noteInput(val){
 function resetDemo(){
   if(!confirm("把資料重設回範例？你新增的內容會清掉。")) return;
   db = seed(); save();
-  ui={screen:"home",tripId:null,tab:"plan",day:1,edit:false,packZone:"carry"};
+  ui={screen:"home",tripId:null,tab:"plan",day:1,edit:false,packZone:"carry",showEnded:false};
   render();
 }
 
@@ -787,7 +1021,7 @@ function openSheet(title, bodyHtml){
     + '<button onclick="closeSheet()" aria-label="關閉">✕</button></div>'+bodyHtml+'</div>';
   sheetLayer.hidden = false;
 }
-function closeSheet(){ sheetLayer.hidden=true; sheetLayer.innerHTML=""; }
+function closeSheet(){ sheetLayer.hidden=true; sheetLayer.innerHTML=""; tplDraft=null; }
 
 function openStopSheet(){
   var opts = Object.keys(CATS).map(function(k){
@@ -802,7 +1036,7 @@ function openStopSheet(){
     + '<label class="field"><span class="fl">名稱 *</span><input name="title" required placeholder="例：淺草寺" autocomplete="off"></label>'
     + '<label class="field"><span class="fl">地點</span><input name="place" placeholder="例：東京・淺草" autocomplete="off"></label>'
     + '<label class="field"><span class="fl">備註</span><textarea name="note" rows="2" placeholder="訂位代號、注意事項…"></textarea></label>'
-    + '<div class="hint">加入後點卡片可補齊細節（地圖連結、費用、電話、訂位代號…）</div>'
+    + '<div class="hint">加入後點卡片可補齊細節（地圖連結、費用、電話、營業時間…）</div>'
     + '<button class="btn-primary" type="submit">加入 Day '+ui.day+'</button>'
     + '</form>');
 }
@@ -856,6 +1090,15 @@ function openTripSheet(editId){
     return '<label class="pick"><input type="radio" name="theme" value="'+k+'"'+(k===curTheme?" checked":"")+'>'
       + '<span class="swatch" style="background:'+THEMES[k]+'; border-color:transparent;"></span></label>';
   }).join("");
+  var tplField = "";
+  if(!trip){
+    var tplOpts = db.templates.map(function(tp){
+      return '<option value="'+tp.id+'">'+esc(tp.name)+'（'+tp.items.length+' 項）</option>';
+    }).join("");
+    tplField = '<label class="field"><span class="fl">打包模板</span>'
+      + '<select name="tpl"><option value="">不使用</option>'+tplOpts+'</select></label>'
+      + '<div class="hint">選一個模板，建立旅程時自動帶入打包清單。</div>';
+  }
   openSheet(trip ? "編輯旅程" : "規劃新旅程",
     '<form onsubmit="submitTrip(event)">'
     + '<input type="hidden" name="editId" value="'+(trip?esc(trip.id):"")+'">'
@@ -867,6 +1110,7 @@ function openTripSheet(editId){
     + '</div>'
     + (trip ? '<div class="hint">縮短天數不會刪掉行程點，把天數改回來就會再出現。</div>' : "")
     + '<label class="field"><span class="fl">預算（NT$）</span><input type="number" name="budget" min="0" step="1" inputmode="numeric" value="'+(trip?(trip.budget||""):"")+'" placeholder="0"></label>'
+    + tplField
     + '<div class="field"><span class="fl">封面 emoji</span><div class="pick-row">'+emojiPicks+'</div></div>'
     + '<div class="field"><span class="fl">封面色系</span><div class="pick-row">'+themePicks+'</div></div>'
     + '<button class="btn-primary" type="submit">'+(trip?"儲存":"建立旅程")+'</button>'
@@ -891,12 +1135,22 @@ function submitTrip(ev){
     save(); closeSheet(); render();
     return;
   }
+  var packing = [];
+  if(f.tpl && f.tpl.value){
+    db.templates.forEach(function(tp){
+      if(tp.id===f.tpl.value){
+        packing = tp.items.map(function(it){
+          return {id:uid(), text:it.text, done:false, zone:(it.zone==="checked"?"checked":"carry")};
+        });
+      }
+    });
+  }
   var nt = {
     id:uid(), name:f.name.value.trim(), dest:f.dest.value.trim(),
     emoji:f.emoji.value, theme:f.theme.value,
     start:f.start.value, days:Math.min(30, Math.max(1, Number(f.days.value)||1)),
     budget:Number(f.budget.value)||0,
-    itinerary:{}, expenses:[], packing:[], notes:""
+    itinerary:{}, expenses:[], packing:packing, notes:""
   };
   db.trips.push(nt);
   save(); closeSheet(); openTrip(nt.id);
