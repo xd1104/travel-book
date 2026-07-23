@@ -43,7 +43,14 @@ UI/UX 以 `demo/index.html`（UX demo v3.1，Benson 拍板）為準，**勿自�
 - 「刪除這趟旅程」在編輯旅程 sheet 內（demo 沒有、依需求範圍補的），有 confirm。
 - 唯讀模式（Pages 無 PAT）：所有寫入動作入口都有 `requireWrite()` 守門＋toast 提示。
 - icon 產生工具（sharp）在 scratchpad、**不進 repo**；server.js 保持零執行期依賴。
+- **id 字元集鐵律（QA B1 教訓）**：server 的 `safeName` 與前後端 `slugify` 必須是同一個字元集（`\p{L}\p{N}` ＋ `._-`）。不一致時，手機端建的假名/韓文 id 會在電腦端被 mangle 成另一個檔名 → 同一趟旅程跨裝置分裂成兩筆。改任何一邊都要三處一起改＋補 round-trip 測試。
+
+## 已審過、刻意不改的行為（PM 拍板，別當 bug 修）
+- DELETE 不存在的 id 回 200：**冪等刪除是刻意設計**（重送/重試不炸）。
+- payload 超過 5MB 直接斷線（不是優雅 413）：本機自用、正常資料量差三個數量級，接受。
+- 模板列表順序跟檔名走、偶有變動：接受。
 
 ## 啟動
-- 雙擊 `start.bat`（先 `node build.js` 再開 server，port 3618），或 tool-manager 面板「作品」分類。
+- 雙擊 `start.bat` 或 tool-manager 面板「作品」分類（都只跑 `node server.js`，port 3618）。
+- **server.js 啟動時自己執行 build 鏡射 docs/**（build.js 匯出 `build()`），所以從任何入口啟動 docs/ 都不會落後 public/；build 失敗只記 log 不擋服務。
 - AI 功能（生行程草稿等）＝ v2 待辦，本版刻意不做（Benson 拍板）。

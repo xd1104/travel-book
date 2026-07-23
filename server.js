@@ -91,8 +91,9 @@ function slugify(str) {
 }
 
 function safeName(name) {
-  // 只留 basename，擋 path traversal
-  return path.basename(String(name || '')).replace(/[^\w.\-一-鿿]+/g, '_');
+  // 只留 basename 擋 path traversal；字元集必須與前後端 slugify（\p{L}\p{N}）一致，
+  // 否則手機端建的假名/韓文檔名會被 mangle 成另一個 id → 同一趟旅程跨裝置分裂（QA B1）
+  return path.basename(String(name || '')).replace(/[^\p{L}\p{N}._\-]+/gu, '_');
 }
 
 // 原子寫入：先寫私有 temp 檔再 rename 蓋過目標（同磁碟 rename 是原子的）
@@ -497,7 +498,7 @@ async function serveStatic(req, res, url) {
   let rel = decodeURIComponent(url.pathname);
   if (rel === '/') rel = '/index.html';
   const file = path.normalize(path.join(PUBLIC_DIR, rel));
-  if (!file.startsWith(PUBLIC_DIR)) {
+  if (!file.startsWith(PUBLIC_DIR + path.sep)) {
     res.writeHead(403);
     return res.end('forbidden');
   }
@@ -541,6 +542,14 @@ const server = http.createServer(async (req, res) => {
     } else res.end();
   }
 });
+
+// 啟動先鏡射 docs/（保證從任何入口啟動——start.bat 或 tool-manager 面板——
+// docs/ 都不落後 public/）；build 失敗只記 log，不擋本機服務
+try {
+  require('./build.js').build();
+} catch (e) {
+  console.error('[build] failed (continuing):', e.message);
+}
 
 server.listen(PORT, async () => {
   console.log('Travel Book server running at http://localhost:' + PORT);
