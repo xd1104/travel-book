@@ -30,7 +30,6 @@ ul{padding:0; list-style:none;}
 .home-head p{color:var(--muted); margin-top:6px; font-size:15px;}
 .home-list{padding:8px 16px 4px; display:flex; flex-direction:column; gap:16px;}
 .trip-card{background:var(--card); border-radius:20px; overflow:hidden; box-shadow:var(--shadow); text-align:left; width:100%;}
-.trip-card.past-card{filter:grayscale(.55); opacity:.82;}
 .cover{min-height:110px; padding:18px; display:flex; align-items:flex-end; gap:12px; position:relative; color:#fff;}
 .cover-emoji{font-size:44px; line-height:1; filter:drop-shadow(0 2px 6px rgba(0,0,0,.25));}
 .cover-txt h2{font-size:22px; font-weight:800; text-shadow:0 1px 8px rgba(0,0,0,.28);}
@@ -41,10 +40,27 @@ ul{padding:0; list-style:none;}
 .count-chip.past{background:#f0ece4; color:var(--muted);}
 .add-trip{border:2px dashed #d8cfbf; border-radius:20px; min-height:64px; color:var(--muted);
   font-size:16px; font-weight:600; width:100%; display:flex; align-items:center; justify-content:center; gap:8px; background:transparent;}
-.ended-sec{padding:6px 16px 0;}
-.ended-toggle{width:100%; min-height:48px; display:flex; align-items:center; justify-content:space-between;
-  color:var(--muted); font-size:14px; font-weight:700; padding:0 6px;}
-.ended-list{display:flex; flex-direction:column; gap:16px; margin-top:4px;}
+.ended-sec{padding:10px 16px 0;}
+.mem-card{background:var(--card); border-radius:20px; box-shadow:var(--shadow); overflow:hidden;}
+.mem-head{width:100%; min-height:56px; display:flex; align-items:center; gap:8px; padding:0 16px;}
+.mem-title{font-size:14.5px; font-weight:800; color:#7a7265;}
+.mem-count{background:#f3eee4; color:#8f8578; font-size:12px; font-weight:800; padding:2px 9px; border-radius:99px;}
+.mem-chev{margin-left:auto; color:#c9beac; font-size:14px; transition:transform .25s;}
+.mem-chev.up{transform:rotate(180deg);}
+.ended-wrap{display:grid; grid-template-rows:0fr; transition:grid-template-rows .28s ease;}
+.ended-wrap.open{grid-template-rows:1fr;}
+.ended-inner{overflow:hidden;}
+.mem-row{width:100%; display:flex; align-items:center; gap:12px; padding:10px 16px; min-height:60px;
+  border-top:1px solid #f2ecdf; text-align:left;}
+.mem-row:active{background:#faf6ee;}
+.mem-emoji{width:42px; height:42px; border-radius:13px; display:flex; align-items:center; justify-content:center;
+  font-size:21px; flex:0 0 auto; filter:saturate(.85); color:#fff;}
+.mem-mid{flex:1; min-width:0;}
+.mem-mid b{display:block; font-size:15.5px; overflow-wrap:anywhere;}
+.mem-mid span{display:block; font-size:12.5px; color:var(--muted); margin-top:2px;}
+.mem-right{display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--muted);
+  font-variant-numeric:tabular-nums; flex:0 0 auto;}
+.mem-right i{font-style:normal; font-size:18px; color:#d6cbb8;}
 .home-foot{text-align:center; color:#b3a996; font-size:12.5px; padding:24px 16px 40px;}
 .home-foot button{color:#a4988a; text-decoration:underline; font-size:12.5px; min-height:44px; padding:0 8px;}
 
@@ -491,9 +507,9 @@ function render(keepScroll){
 }
 
 /* ---- 首頁（未完成 / 已結束 分區） ---- */
-function tripCard(t, isPast){
+function tripCard(t){
   var st = tripStatus(t);
-  return '<button class="trip-card'+(isPast?" past-card":"")+'" onclick="openTrip(\''+t.id+'\')">'
+  return '<button class="trip-card" onclick="openTrip(\''+t.id+'\')">'
     + '<div class="cover" style="background:'+(THEMES[t.theme]||THEMES.sunset)+'">'
     +   '<span class="cover-emoji">'+esc(t.emoji)+'</span>'
     +   '<div class="cover-txt"><h2>'+esc(t.name)+'</h2><div>'+esc(t.dest)+'</div></div>'
@@ -510,18 +526,21 @@ function viewHome(){
   past.sort(function(a,b){ return a.start>b.start?-1:1; });  /* 最近結束的在上 */
   var actHtml;
   if(act.length){
-    actHtml = act.map(function(t){return tripCard(t,false);}).join("");
+    actHtml = act.map(function(t){return tripCard(t);}).join("");
   }else{
     actHtml = '<div class="empty slim"><div class="big">🌱</div>'
       + '<p>'+(past.length?"目前沒有進行中或即將出發的旅程，<br>來規劃下一趟吧":"還沒有任何旅程，<br>從下面開始規劃第一趟吧")+'</p></div>';
   }
   var endedHtml = "";
   if(past.length){
-    endedHtml = '<section class="ended-sec">'
-      + '<button class="ended-toggle" onclick="toggleEnded()">'
-      +   '<span>已結束的旅程（'+past.length+'）</span><span>'+(ui.showEnded?"▲":"▼")+'</span></button>'
-      + (ui.showEnded ? '<div class="ended-list">'+past.map(function(t){return tripCard(t,true);}).join("")+'</div>' : "")
-      + '</section>';
+    endedHtml = '<section class="ended-sec"><div class="mem-card">'
+      + '<button class="mem-head" onclick="toggleEnded()" aria-expanded="'+(ui.showEnded?"true":"false")+'">'
+      +   '<span class="mem-title">📔 旅行回憶</span><span class="mem-count">'+past.length+'</span>'
+      +   '<span class="mem-chev'+(ui.showEnded?" up":"")+'" id="mem-chev">▾</span></button>'
+      + '<div class="ended-wrap'+(ui.showEnded?" open":"")+'" id="ended-wrap"><div class="ended-inner">'
+      +   past.map(memRow).join("")
+      + '</div></div>'
+      + '</div></section>';
   }
   return ''
     + '<header class="home-head">'
@@ -535,7 +554,28 @@ function viewHome(){
     + '<footer class="home-foot">Demo 版・資料只存在這支手機的瀏覽器　'
     +   '<button onclick="resetDemo()">重設範例資料</button></footer>';
 }
-function toggleEnded(){ ui.showEnded=!ui.showEnded; render(true); }
+function memRow(t){
+  var s = parseDate(t.start);
+  var spent = spentOf(t);
+  return '<button class="mem-row" onclick="openTrip(\''+t.id+'\')">'
+    + '<span class="mem-emoji" style="background:'+(THEMES[t.theme]||THEMES.sunset)+'">'+esc(t.emoji)+'</span>'
+    + '<span class="mem-mid"><b>'+esc(t.name)+'</b>'
+    +   '<span>'+s.getFullYear()+'/'+(s.getMonth()+1)+'/'+s.getDate()+'・'+t.days+' 天</span></span>'
+    + '<span class="mem-right">'+(spent?money(spent):"")+'<i>›</i></span>'
+    + '</button>';
+}
+function toggleEnded(){
+  ui.showEnded = !ui.showEnded;
+  /* 就地切 class 讓收合有過渡動畫；找不到節點才退回整頁重繪 */
+  var w = document.getElementById("ended-wrap");
+  var c = document.getElementById("mem-chev");
+  if(w && w.classList && typeof w.classList.toggle==="function"){
+    w.classList.toggle("open", ui.showEnded);
+    if(c) c.classList.toggle("up", ui.showEnded);
+  }else{
+    render(true);
+  }
+}
 
 /* ---- 旅程頁骨架 ---- */
 function viewTrip(){
