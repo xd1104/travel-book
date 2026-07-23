@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- 候選 4「夜航紙飛機」：夜空紫漸層＋奶油紙飛機＋虛線航跡，輕盈出發感 -->
+  <defs>
+    <linearGradient id="d-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5b63e8"/>
+      <stop offset="1" stop-color="#8e54c9"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#d-bg)"/>
+  <circle cx="170" cy="180" r="10" fill="#ffffff" opacity="0.8"/>
+  <circle cx="840" cy="150" r="9" fill="#ffffff" opacity="0.6"/>
+  <circle cx="120" cy="520" r="7" fill="#ffffff" opacity="0.5"/>
+  <circle cx="900" cy="430" r="11" fill="#ffffff" opacity="0.7"/>
+  <circle cx="760" cy="860" r="8" fill="#ffffff" opacity="0.5"/>
+  <circle cx="220" cy="320" r="6" fill="#ffffff" opacity="0.5"/>
+  <path d="M140 906 C 300 856 320 740 430 660" stroke="#ffffff" stroke-width="16" fill="none"
+        stroke-linecap="round" stroke-dasharray="2 56" opacity="0.7"/>
+  <path d="M300 618 L836 296 L646 792 L556 636 Z" fill="#fff7e8"/>
+  <path d="M300 618 L556 636 L836 296 Z" fill="#e6ddfb"/>
+</svg>

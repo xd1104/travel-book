@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- 候選 2「珊瑚手帳」：app 本體——珊瑚紅旅行手帳＋鬆緊帶＋紙飛機壓印 -->
+  <defs>
+    <linearGradient id="b-bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#faf3e3"/>
+      <stop offset="1" stop-color="#eee0c8"/>
+    </linearGradient>
+    <linearGradient id="b-book" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff8a70"/>
+      <stop offset="1" stop-color="#e2503f"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#b-bg)"/>
+  <rect x="222" y="168" width="580" height="688" rx="52" fill="#c93f36"/>
+  <rect x="238" y="152" width="580" height="688" rx="52" fill="url(#b-book)"/>
+  <path d="M238 204 a52 52 0 0 1 52 -52 h28 v688 h-28 a52 52 0 0 1 -52 -52 Z" fill="#ffffff" opacity="0.18"/>
+  <rect x="676" y="152" width="44" height="688" fill="#4a2b52"/>
+  <path d="M368 566 L666 428 L560 634 L512 556 Z" fill="#fff7e8"/>
+  <path d="M368 566 L512 556 L666 428 Z" fill="#ffd6c6"/>
+</svg>

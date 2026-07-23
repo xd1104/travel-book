@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- 候選 1「山海日落」：把 app 的 sunset 漸層變成一幅旅行風景 -->
+  <defs>
+    <linearGradient id="a-sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffc873"/>
+      <stop offset="0.52" stop-color="#ff7e67"/>
+      <stop offset="1" stop-color="#c94b9d"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#a-sky)"/>
+  <circle cx="512" cy="418" r="205" fill="#fff3d9"/>
+  <path d="M-40 812 L288 438 L520 706 L724 492 L1064 838 L1064 1024 L-40 1024 Z" fill="#a94b93"/>
+  <path d="M-40 1024 L252 630 L500 894 L688 668 L1064 1004 L1064 1024 Z" fill="#571e5e"/>
+</svg>

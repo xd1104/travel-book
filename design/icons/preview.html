@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>旅途手帳 · App Icon 候選</title>
+<style>
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+body{margin:0; background:#f7f4ee; color:#2b2620;
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;}
+.wrap{max-width:520px; margin:0 auto; padding:28px 18px 60px;}
+header h1{font-size:24px; font-weight:800; margin:0;}
+header p{color:#8f8578; font-size:14px; line-height:1.6; margin:8px 0 0;}
+.eyebrow{font-size:11px; letter-spacing:.22em; color:#8f8578; font-weight:700; margin-bottom:6px;}
+
+/* iOS icon 外觀模擬（母檔為方形，圓角是 iOS 遮罩） */
+.app-icon{display:block; border-radius:22.37%; overflow:hidden; box-shadow:0 4px 10px rgba(0,0,0,.22);}
+.app-icon svg{display:block; width:100%; height:100%;}
+.s60{width:60px; height:60px;}
+.s200{width:180px; height:180px; box-shadow:0 10px 26px rgba(60,45,20,.18);}
+
+/* 主畫面模擬 */
+h2{font-size:15px; font-weight:800; color:#8f8578; margin:30px 4px 10px;}
+.wall{border-radius:22px; padding:26px 10px 20px; display:flex; justify-content:space-around; gap:4px;}
+.wall.light{background:linear-gradient(160deg,#c8d9e8,#e8dcc8 60%,#d8bfa8);}
+.wall.dark{background:linear-gradient(160deg,#232b3f,#101522 65%,#1a1230);}
+.slot{display:flex; flex-direction:column; align-items:center; gap:7px; width:76px;}
+.slot label{font-size:11px; color:#fff; text-shadow:0 1px 3px rgba(0,0,0,.45); white-space:nowrap;}
+.slot em{font-style:normal; font-size:12px; font-weight:800; color:rgba(255,255,255,.75);
+  background:rgba(0,0,0,.28); border-radius:99px; padding:1px 8px;}
+
+/* 候選卡 */
+.card{background:#fff; border-radius:20px; box-shadow:0 2px 14px rgba(70,55,30,.08);
+  padding:20px; margin-top:16px; display:flex; gap:18px; align-items:center;}
+.card .txt{flex:1; min-width:0;}
+.card h3{font-size:17px; font-weight:800; margin:0;}
+.card h3 span{color:#ff6b5e; margin-right:6px;}
+.card p{font-size:13.5px; color:#6b6154; line-height:1.65; margin:8px 0 0;}
+.foot{color:#b3a996; font-size:12px; text-align:center; margin-top:34px; line-height:1.7;}
+@media(max-width:430px){ .card{flex-direction:column; text-align:center;} .card .txt{width:100%;} }
+</style>
+</head>
+<body>
+<!-- 四個候選的 SVG 母版（symbol 共用） -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<defs>
+<symbol id="ic1" viewBox="0 0 1024 1024">
+  <linearGradient id="a-sky" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#ffc873"/><stop offset="0.52" stop-color="#ff7e67"/><stop offset="1" stop-color="#c94b9d"/>
+  </linearGradient>
+  <rect width="1024" height="1024" fill="url(#a-sky)"/>
+  <circle cx="512" cy="418" r="205" fill="#fff3d9"/>
+  <path d="M-40 812 L288 438 L520 706 L724 492 L1064 838 L1064 1024 L-40 1024 Z" fill="#a94b93"/>
+  <path d="M-40 1024 L252 630 L500 894 L688 668 L1064 1004 L1064 1024 Z" fill="#571e5e"/>
+</symbol>
+<symbol id="ic2" viewBox="0 0 1024 1024">
+  <linearGradient id="b-bg" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#faf3e3"/><stop offset="1" stop-color="#eee0c8"/>
+  </linearGradient>
+  <linearGradient id="b-book" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#ff8a70"/><stop offset="1" stop-color="#e2503f"/>
+  </linearGradient>
+  <rect width="1024" height="1024" fill="url(#b-bg)"/>
+  <rect x="222" y="168" width="580" height="688" rx="52" fill="#c93f36"/>
+  <rect x="238" y="152" width="580" height="688" rx="52" fill="url(#b-book)"/>
+  <path d="M238 204 a52 52 0 0 1 52 -52 h28 v688 h-28 a52 52 0 0 1 -52 -52 Z" fill="#ffffff" opacity="0.18"/>
+  <rect x="676" y="152" width="44" height="688" fill="#4a2b52"/>
+  <path d="M368 566 L666 428 L560 634 L512 556 Z" fill="#fff7e8"/>
+  <path d="M368 566 L512 556 L666 428 Z" fill="#ffd6c6"/>
+</symbol>
+<symbol id="ic3" viewBox="0 0 1024 1024">
+  <linearGradient id="c-bg" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#3ec9a7"/><stop offset="1" stop-color="#2f80d6"/>
+  </linearGradient>
+  <rect width="1024" height="1024" fill="url(#c-bg)"/>
+  <path d="M110 908 C 340 860 220 640 512 690" stroke="#ffffff" stroke-width="16" fill="none"
+        stroke-linecap="round" stroke-dasharray="2 54" opacity="0.75"/>
+  <ellipse cx="512" cy="856" rx="170" ry="38" fill="#0c2a3a" opacity="0.18"/>
+  <path d="M512 828 C 388 664 262 566 262 430 A 250 250 0 1 1 762 430 C 762 566 636 664 512 828 Z" fill="#fff7e8"/>
+  <circle cx="512" cy="430" r="112" fill="#ff6b5e"/>
+</symbol>
+<symbol id="ic4" viewBox="0 0 1024 1024">
+  <linearGradient id="d-bg" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#5b63e8"/><stop offset="1" stop-color="#8e54c9"/>
+  </linearGradient>
+  <rect width="1024" height="1024" fill="url(#d-bg)"/>
+  <circle cx="170" cy="180" r="10" fill="#ffffff" opacity="0.8"/>
+  <circle cx="840" cy="150" r="9" fill="#ffffff" opacity="0.6"/>
+  <circle cx="120" cy="520" r="7" fill="#ffffff" opacity="0.5"/>
+  <circle cx="900" cy="430" r="11" fill="#ffffff" opacity="0.7"/>
+  <circle cx="760" cy="860" r="8" fill="#ffffff" opacity="0.5"/>
+  <circle cx="220" cy="320" r="6" fill="#ffffff" opacity="0.5"/>
+  <path d="M140 906 C 300 856 320 740 430 660" stroke="#ffffff" stroke-width="16" fill="none"
+        stroke-linecap="round" stroke-dasharray="2 56" opacity="0.7"/>
+  <path d="M300 618 L836 296 L646 792 L556 636 Z" fill="#fff7e8"/>
+  <path d="M300 618 L556 636 L836 296 Z" fill="#e6ddfb"/>
+</symbol>
+</defs>
+</svg>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">TRAVEL PLANNER · ICON</div>
+  <h1>App Icon 候選（4 選 1）</h1>
+  <p>下面兩排是 iPhone 主畫面實際大小（60px）的模擬，先瞇著眼挑「一眼認得」的那個，再看大圖。</p>
+</header>
+
+<h2>主畫面模擬・淺色桌布</h2>
+<div class="wall light">
+  <div class="slot"><span class="app-icon s60"><svg><use href="#ic1"/></svg></span><label>旅途手帳</label><em>①</em></div>
+  <div class="slot"><span class="app-icon s60"><svg><use href="#ic2"/></svg></span><label>旅途手帳</label><em>②</em></div>
+  <div class="slot"><span class="app-icon s60"><svg><use href="#ic3"/></svg></span><label>旅途手帳</label><em>③</em></div>
+  <div class="slot"><span class="app-icon s60"><svg><use href="#ic4"/></svg></span><label>旅途手帳</label><em>④</em></div>
+</div>
+
+<h2>主畫面模擬・深色桌布</h2>
+<div class="wall dark">
+  <div class="slot"><span class="app-icon s60"><svg><use href="#ic1"/></svg></span><label>旅途手帳</label><em>①</em></div>
+  <div class="slot"><span class="app-icon s60"><svg><use href="#ic2"/></svg></span><label>旅途手帳</label><em>②</em></div>
+  <div class="slot"><span class="app-icon s60"><svg><use href="#ic3"/></svg></span><label>旅途手帳</label><em>③</em></div>
+  <div class="slot"><span class="app-icon s60"><svg><use href="#ic4"/></svg></span><label>旅途手帳</label><em>④</em></div>
+</div>
+
+<h2>大圖與設計理念</h2>
+<div class="card">
+  <span class="app-icon s200"><svg><use href="#ic1"/></svg></span>
+  <div class="txt"><h3><span>①</span>山海日落</h3>
+  <p>把 app 裡旅程封面的 sunset 漸層放大成一幅風景：夕陽落在山稜線後。打開 app 前就先有「想出門」的情緒，跟 app 內視覺血緣最直接。</p></div>
+</div>
+<div class="card">
+  <span class="app-icon s200"><svg><use href="#ic2"/></svg></span>
+  <div class="txt"><h3><span>②</span>珊瑚手帳</h3>
+  <p>直接畫 app 本體——一本珊瑚紅旅行手帳、深色鬆緊帶、封面一枚紙飛機壓印。與「旅途手帳」的名字和主色最一致，主畫面上辨識度靠獨特的「物件感」。</p></div>
+</div>
+<div class="card">
+  <span class="app-icon s200"><svg><use href="#ic3"/></svg></span>
+  <div class="txt"><h3><span>③</span>海圖圖釘</h3>
+  <p>海色漸層上一枚奶油白大圖釘、身後一條虛線航跡。最通用的旅行符號，60px 下輪廓最強壯，缺點是與地圖類 app 撞型的風險略高。</p></div>
+</div>
+<div class="card">
+  <span class="app-icon s200"><svg><use href="#ic4"/></svg></span>
+  <div class="txt"><h3><span>④</span>夜航紙飛機</h3>
+  <p>夜空紫漸層、幾顆星、一架奶油紙飛機拉出虛線航跡。輕盈的「出發感」，在一排 app 中顏色最跳（紫色少見），走感性路線。</p></div>
+</div>
+
+<p class="foot">圓角為 iOS 自動遮罩之模擬，母檔為 1024×1024 方形滿版 SVG（design/icons/）。<br>選定後才會轉 PNG 換入 public/icons 與 manifest。</p>
+</div>
+</body>
+</html>

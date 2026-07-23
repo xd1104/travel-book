@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- 「山海日落」maskable 版：太陽與山峰收進中心 80% 安全區（r≈409），背景與山體延伸滿版 -->
+  <defs>
+    <linearGradient id="am-sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffc873"/>
+      <stop offset="0.52" stop-color="#ff7e67"/>
+      <stop offset="1" stop-color="#c94b9d"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#am-sky)"/>
+  <circle cx="512" cy="446" r="178" fill="#fff3d9"/>
+  <path d="M-40 830 L300 480 L520 726 L724 528 L1064 850 L1064 1024 L-40 1024 Z" fill="#a94b93"/>
+  <path d="M-40 1024 L262 662 L500 900 L692 700 L1064 1010 L1064 1024 Z" fill="#571e5e"/>
+</svg>
