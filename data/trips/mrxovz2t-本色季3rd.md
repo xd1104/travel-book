@@ -2,12 +2,12 @@
 name: "本色季3rd"
 dest: "桃園"
 emoji: "🧳"
-theme: "forest"
+theme: "night"
 start: "2026-08-29"
 days: 3
 budget: 0
 createdAt: "2026-07-23T15:51:59.575Z"
-updatedAt: "2026-07-23T15:54:35.670Z"
+updatedAt: "2026-07-23T15:54:50.491Z"
 ---
 
 ## 行程
