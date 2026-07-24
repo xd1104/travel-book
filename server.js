@@ -363,6 +363,78 @@ function parseTemplate(id, text) {
   return tp;
 }
 
+/* 行程點類別（categories）＝可管理的全域資源（v1.1）
+ * 刻意用「單一檔 data/categories.md」而非一類一檔：類別清單小、變動少，
+ * 手機端 Contents API 一次 PUT 一個 sha，整份覆蓋最不易分岔 */
+const CATEGORIES_FILE = path.join(DATA_DIR, 'categories.md');
+
+function defaultCategories() {
+  return [
+    { id: 'sight', label: '景點', emoji: '📍', color: '#0d9488' },
+    { id: 'food', label: '美食', emoji: '🍜', color: '#ea8600' },
+    { id: 'transport', label: '交通', emoji: '🚃', color: '#2f6fed' },
+    { id: 'stay', label: '住宿', emoji: '🏨', color: '#8b5cf6' },
+    { id: 'shop', label: '購物', emoji: '🛍️', color: '#e0447f' },
+    { id: 'other', label: '其他', emoji: '✨', color: '#7a7265' },
+  ];
+}
+function cleanCategory(c) {
+  const o = {
+    id: String((c && c.id) || '').trim(),
+    label: String((c && c.label) || '').trim() || '未命名',
+    emoji: String((c && c.emoji) || '✨'),
+    color: String((c && c.color) || ''),
+  };
+  if (!/^#[0-9a-fA-F]{3,8}$/.test(o.color)) o.color = '#7a7265';
+  if (!o.id) o.id = Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+  return o;
+}
+function normalizeCategories(list) {
+  const out = [];
+  const seen = {};
+  for (const c of Array.isArray(list) ? list : []) {
+    const o = cleanCategory(c);
+    if (seen[o.id]) continue;
+    seen[o.id] = true;
+    out.push(o);
+  }
+  // 「其他」是刪除類別後的 fallback，不可少（UI 也不給刪）
+  if (!out.some((c) => c.id === 'other')) out.push(defaultCategories()[5]);
+  return out;
+}
+function serializeCategories(list) {
+  const L = ['## 類別', ''];
+  for (const c of normalizeCategories(list)) {
+    L.push('- ' + JSON.stringify({ id: c.id, label: c.label, emoji: c.emoji, color: c.color }));
+  }
+  L.push('');
+  return L.join('\n');
+}
+function parseCategories(text) {
+  const out = [];
+  for (const line of String(text).replace(/\r\n/g, '\n').split('\n')) {
+    const im = /^-\s+(\{.*\})\s*$/.exec(line);
+    if (!im) continue;
+    try { out.push(JSON.parse(im[1])); } catch { /* 壞列跳過 */ }
+  }
+  return normalizeCategories(out);
+}
+async function readCategories() {
+  try {
+    return parseCategories(await fsp.readFile(CATEGORIES_FILE, 'utf8'));
+  } catch {
+    return defaultCategories(); // 檔案還沒建（或壞）：回內建六類，GET 不落地寫檔
+  }
+}
+async function seedCategoriesIfMissing() {
+  try { await fsp.access(CATEGORIES_FILE); return false; }
+  catch {
+    await atomicWrite(CATEGORIES_FILE, serializeCategories(defaultCategories()), 'utf8');
+    console.log('[seed] default categories created (6)');
+    return true;
+  }
+}
+
 async function listDir(dir, parseFn) {
   const files = (await fsp.readdir(dir)).filter((f) => f.endsWith('.md'));
   const out = [];
@@ -434,11 +506,21 @@ async function handleApi(req, res, url) {
   const p = url.pathname;
   const method = req.method;
 
-  // GET /api/data -> 一次拿全部（trips + templates），前端啟動只打一發
+  // GET /api/data -> 一次拿全部（trips + templates + categories），前端啟動只打一發
   if (p === '/api/data' && method === 'GET') {
     const trips = await listDir(TRIPS_DIR, parseTrip);
     const templates = await listDir(TEMPLATES_DIR, parseTemplate);
-    return sendJson(res, 200, { trips, templates });
+    const categories = await readCategories();
+    return sendJson(res, 200, { trips, templates, categories });
+  }
+
+  // POST /api/categories（整份清單覆蓋；server 保證「其他」存在＋id 去重）
+  if (p === '/api/categories' && method === 'POST') {
+    const body = await readJson(req);
+    const list = normalizeCategories(body.categories || body);
+    await atomicWrite(CATEGORIES_FILE, serializeCategories(list), 'utf8');
+    scheduleSync();
+    return sendJson(res, 200, { ok: true, categories: await readCategories() });
   }
 
   // POST /api/trips（新增或整份更新；body = 完整 trip 物件）
@@ -556,7 +638,9 @@ server.listen(PORT, async () => {
   console.log('Data dir: ' + DATA_DIR);
   await initSync(); // 先 pull（若手機端剛建了模板/旅程，避免重複種子）
   try {
-    if (await seedTemplatesIfEmpty()) scheduleSync();
+    const seededTpl = await seedTemplatesIfEmpty();
+    const seededCat = await seedCategoriesIfMissing();
+    if (seededTpl || seededCat) scheduleSync();
   } catch (e) {
     console.error('[seed] failed:', e.message);
   }

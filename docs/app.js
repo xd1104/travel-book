@@ -9,14 +9,27 @@
  */
 
 /* ============ 常數 ============ */
-var CATS = {
-  sight:    {label:"景點", emoji:"📍", color:"#0d9488"},
-  food:     {label:"美食", emoji:"🍜", color:"#ea8600"},
-  transport:{label:"交通", emoji:"🚃", color:"#2f6fed"},
-  stay:     {label:"住宿", emoji:"🏨", color:"#8b5cf6"},
-  shop:     {label:"購物", emoji:"🛍️", color:"#e0447f"},
-  other:    {label:"其他", emoji:"✨", color:"#7a7265"}
-};
+/* 行程點類別（v1.1 起）＝可管理的全域資源：清單存 db.categories（同步 data/categories.md），
+ * CATS 是 id->物件 的索引（rebuildCats 重建）。「其他」永遠存在＝刪類別後的 fallback。 */
+function defaultCategories(){
+  return [
+    {id:"sight",     label:"景點", emoji:"📍", color:"#0d9488"},
+    {id:"food",      label:"美食", emoji:"🍜", color:"#ea8600"},
+    {id:"transport", label:"交通", emoji:"🚃", color:"#2f6fed"},
+    {id:"stay",      label:"住宿", emoji:"🏨", color:"#8b5cf6"},
+    {id:"shop",      label:"購物", emoji:"🛍️", color:"#e0447f"},
+    {id:"other",     label:"其他", emoji:"✨", color:"#7a7265"}
+  ];
+}
+var CATS = {};
+function rebuildCats(){
+  CATS = {};
+  (db.categories||[]).forEach(function(c){ CATS[c.id]=c; });
+  if(!CATS.other) CATS.other = {id:"other", label:"其他", emoji:"✨", color:"#7a7265"};
+}
+/* 自訂類別可選的顏色盤（含內建六色） */
+var CAT_COLORS = ["#0d9488","#ea8600","#2f6fed","#8b5cf6","#e0447f","#7a7265",
+                  "#d64545","#2fa87a","#b8860b","#0e7490","#6d28d9","#475569"];
 var ECATS = {
   food:{label:"餐飲", emoji:"🍽️"}, transport:{label:"交通", emoji:"🚃"},
   stay:{label:"住宿", emoji:"🏨"}, ticket:{label:"門票", emoji:"🎫"},
@@ -41,6 +54,19 @@ function esc(s){
     .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
 }
 function uid(){ return "x"+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+/* 取第一個 grapheme（emoji 可能是多 code point，如 👨‍👩‍👧；Segmenter 不支援時退回 code point） */
+function firstGrapheme(s){
+  s = String(s==null?"":s).trim();
+  if(!s) return "";
+  try{
+    if(typeof Intl!=="undefined" && Intl.Segmenter){
+      var seg = new Intl.Segmenter("zh-Hant",{granularity:"grapheme"}).segment(s);
+      var it = seg[Symbol.iterator]().next();
+      if(!it.done) return it.value.segment;
+    }
+  }catch(e){}
+  return Array.from(s)[0] || "";
+}
 function slugify(str){
   var base = String(str||"").trim().toLowerCase()
     .replace(/[^\p{L}\p{N}]+/gu,"-").replace(/^-+|-+$/g,"").slice(0,40);
@@ -237,6 +263,45 @@ function parseTemplate(id, text){
   });
   return tp;
 }
+/* 類別清單序列化（server.js mirror；單一檔 data/categories.md） */
+function cleanCategory(c){
+  var o = {
+    id:String((c&&c.id)||"").trim(),
+    label:String((c&&c.label)||"").trim()||"未命名",
+    emoji:String((c&&c.emoji)||"✨"),
+    color:String((c&&c.color)||"")
+  };
+  if(!/^#[0-9a-fA-F]{3,8}$/.test(o.color)) o.color="#7a7265";
+  if(!o.id) o.id = Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+  return o;
+}
+function normalizeCategories(list){
+  var out=[], seen={};
+  (Array.isArray(list)?list:[]).forEach(function(c){
+    var o=cleanCategory(c);
+    if(seen[o.id]) return;
+    seen[o.id]=true; out.push(o);
+  });
+  if(!out.some(function(c){return c.id==="other";})) out.push(defaultCategories()[5]);
+  return out;
+}
+function serializeCategories(list){
+  var L=["## 類別",""];
+  normalizeCategories(list).forEach(function(c){
+    L.push("- "+JSON.stringify({id:c.id, label:c.label, emoji:c.emoji, color:c.color}));
+  });
+  L.push("");
+  return L.join("\n");
+}
+function parseCategories(text){
+  var out=[];
+  String(text).replace(/\r\n/g,"\n").split("\n").forEach(function(line){
+    var im=/^-\s+(\{.*\})\s*$/.exec(line);
+    if(!im) return;
+    try{ out.push(JSON.parse(im[1])); }catch(e){}
+  });
+  return normalizeCategories(out);
+}
 function b64EncodeUtf8(str){
   var bytes=new TextEncoder().encode(str);
   var bin="";
@@ -288,7 +353,8 @@ var LocalStore = {
     return fetch("api/templates/"+encodeURIComponent(id),{method:"DELETE"}).then(function(r){
       if(!r.ok) throw uiError("刪除模板失敗");
     });
-  }
+  },
+  saveCategories:function(list){ return this._post("api/categories", {categories:list}, "類別儲存失敗"); }
 };
 
 var GitHubStore = {
@@ -359,8 +425,25 @@ var GitHubStore = {
     var self=this;
     return Promise.all([
       self._listDir("data/trips", parseTrip),
-      self._listDir("data/templates", parseTemplate)
-    ]).then(function(r){ return { trips:r[0], templates:r[1] }; });
+      self._listDir("data/templates", parseTemplate),
+      self._loadCategories()
+    ]).then(function(r){ return { trips:r[0], templates:r[1], categories:r[2] }; });
+  },
+  _loadCategories:function(){
+    /* 單一檔：有金鑰走認證 API（即時＋拿 sha）；無金鑰走 raw + 時間 cache-buster（唯讀、可容忍略舊） */
+    var self=this;
+    if(this.canWrite()){
+      return this._getFile("data/categories.md")
+        .then(function(f){ return f ? parseCategories(f.text) : null; })
+        .catch(function(){ return null; });
+    }
+    return fetch(this.rawBase+"/data/categories.md?t="+Date.now())
+      .then(function(r){ if(!r.ok) return null; return r.text().then(parseCategories); })
+      .catch(function(){ return null; });
+  },
+  saveCategories:function(list){
+    var pathRel="data/categories.md";
+    return this._putFile(pathRel, b64EncodeUtf8(serializeCategories(list)), "mobile: update categories", this._sha[pathRel]||null);
   },
   _getFile:function(pathRel){
     var self=this;
@@ -444,6 +527,9 @@ function persistTemplate(tp){
   if(!tp) return Promise.resolve();
   return chainPersist("tpl:"+tp.id, function(){ return STORE.saveTemplate(tp); });
 }
+function persistCategories(){
+  return chainPersist("cats", function(){ return STORE.saveCategories(db.categories); });
+}
 
 /* 唯讀守門（Pages 無金鑰） */
 function requireWrite(){
@@ -453,11 +539,14 @@ function requireWrite(){
 }
 
 /* ============ 資料 + 舊資料遷移（冪等） ============ */
-var db = { trips:[], templates:[] };
+var db = { trips:[], templates:[], categories:defaultCategories() };
 function migrate(d){
   if(!d) d={};
   if(!Array.isArray(d.trips)) d.trips=[];
   if(!Array.isArray(d.templates)) d.templates=[];
+  /* 類別：來源沒有（舊資料/Pages 上檔案還沒建）就用內建六類；並保證「其他」存在 */
+  d.categories = (Array.isArray(d.categories) && d.categories.length)
+    ? normalizeCategories(d.categories) : defaultCategories();
   d.trips.forEach(function(t){
     if(!t.itinerary) t.itinerary={};
     if(!Array.isArray(t.expenses)) t.expenses=[];
@@ -745,7 +834,7 @@ function openStopDetail(idx){
   var rows = "";
   if(sp.place) rows += row("📍","地點",esc(sp.place));
   if(sp.cost)  rows += row("💰","預估費用",money(sp.cost));
-  if(sp.bookingRef) rows += row("🎫","訂位／票券代號","<code>"+esc(sp.bookingRef)+"</code>");
+  /* 訂位／票券代號欄位 v1.1 起不顯示（資料仍保留在檔案裡） */
   if(sp.phone) rows += row("📞","電話",'<a href="tel:'+esc(String(sp.phone).replace(/[^+\d]/g,""))+'">'+esc(sp.phone)+"</a>");
   if(sp.url)   rows += row("🔗","官網／參考",'<a href="'+esc(extUrl(sp.url))+'" target="_blank" rel="noopener">'+esc(sp.url)+"</a>");
   var ht = hoursText(sp);
@@ -771,9 +860,7 @@ function toggleHours24(cb){
 function openStopEdit(idx){
   if(!requireWrite()) return;
   var list=curList()||[]; var sp=list[idx]; if(!sp) return;
-  var opts = Object.keys(CATS).map(function(k){
-    return '<option value="'+k+'"'+(sp.cat===k?" selected":"")+'>'+CATS[k].emoji+" "+CATS[k].label+"</option>";
-  }).join("");
+  var curCat = CATS[sp.cat] ? sp.cat : "other"; /* 類別被刪掉的舊行程點 fallback 到「其他」 */
   var legacyHours = (sp.hours && !sp.hoursOpen && !sp.hoursClose && !sp.hours24)
     ? '<div class="hint">原本記的文字：「'+esc(sp.hours)+'」——下面選了時間就會取代它。</div>' : "";
   openSheet("編輯行程點",
@@ -781,15 +868,14 @@ function openStopEdit(idx){
     + '<label class="field"><span class="fl">名稱 *</span><input name="title" required value="'+esc(sp.title)+'" autocomplete="off"></label>'
     + '<div class="f-row2">'
     +   '<label class="field"><span class="fl">時間</span><input type="time" name="time" value="'+esc(sp.time)+'"></label>'
-    +   '<label class="field"><span class="fl">類別</span><select name="cat">'+opts+'</select></label>'
+    +   '<label class="field">'+catFieldLabel()+'<select name="cat">'+catOptions(curCat)+'</select></label>'
     + '</div>'
     + '<label class="field"><span class="fl">地點</span><input name="place" value="'+esc(sp.place)+'" autocomplete="off"></label>'
     + '<label class="field"><span class="fl">Google Maps 連結</span><input name="mapUrl" inputmode="url" value="'+esc(sp.mapUrl||"")+'" placeholder="貼上地圖分享連結（沒填就用地點文字搜尋）" autocomplete="off"></label>'
     + '<div class="f-row2">'
     +   '<label class="field"><span class="fl">預估費用（NT$）</span><input type="number" name="cost" min="0" step="1" inputmode="numeric" value="'+(sp.cost||"")+'"></label>'
-    +   '<label class="field"><span class="fl">訂位／票券代號</span><input name="bookingRef" value="'+esc(sp.bookingRef||"")+'" autocomplete="off"></label>'
+    +   '<label class="field"><span class="fl">聯絡電話</span><input type="tel" name="phone" value="'+esc(sp.phone||"")+'" autocomplete="off"></label>'
     + '</div>'
-    + '<label class="field"><span class="fl">聯絡電話</span><input type="tel" name="phone" value="'+esc(sp.phone||"")+'" autocomplete="off"></label>'
     + '<div class="f-row2">'
     +   '<label class="field"><span class="fl">營業時間（開）</span><input type="time" name="hoursOpen" value="'+esc(sp.hoursOpen||"")+'"'+(sp.hours24?" disabled":"")+'></label>'
     +   '<label class="field"><span class="fl">營業時間（關）</span><input type="time" name="hoursClose" value="'+esc(sp.hoursClose||"")+'"'+(sp.hours24?" disabled":"")+'></label>'
@@ -811,7 +897,7 @@ function submitStopEdit(ev, idx){
   sp.place = f.place.value.trim();
   sp.mapUrl = f.mapUrl.value.trim();
   sp.cost = Number(f.cost.value)||0;
-  sp.bookingRef = f.bookingRef.value.trim();
+  /* bookingRef（訂位代號）欄位 v1.1 起 UI 不再提供，但既有值刻意不動（round-trip 保留） */
   sp.phone = f.phone.value.trim();
   sp.hours24 = !!f.hours24.checked;
   sp.hoursOpen = sp.hours24 ? "" : f.hoursOpen.value;
@@ -1015,6 +1101,73 @@ function saveTpl(){
   tplDraft=null; openTplManager();
 }
 
+/* ---- 類別管理（v1.1：可自訂的全域資源） ---- */
+function openCatManager(){
+  var rows = (db.categories||[]).map(function(c){
+    return '<div class="tpl-card">'
+      + '<div class="tpl-info"><span class="cat-pill" style="color:'+c.color+'; background:'+c.color+'1a">'+esc(c.emoji)+' '+esc(c.label)+'</span></div>'
+      + '<div class="tpl-acts"><button onclick="openCatEdit(\''+esc(c.id)+'\')">編輯</button>'
+      + (c.id!=="other" ? '<button class="danger" onclick="delCat(\''+esc(c.id)+'\')">刪除</button>' : '')
+      + '</div></div>';
+  }).join("");
+  openSheet("管理類別",
+    rows
+    + '<div class="hint" style="margin-top:12px">刪掉類別後，用到它的行程點會顯示成「其他」；「其他」不可刪。</div>'
+    + '<div class="d-acts"><button class="btn-primary" onclick="openCatEdit()">＋ 新增類別</button></div>');
+}
+function openCatEdit(id){
+  if(!requireWrite()) return;
+  var src=null;
+  if(id){ (db.categories||[]).forEach(function(c){ if(c.id===id) src=c; }); }
+  var draft = src ? {id:src.id, label:src.label, emoji:src.emoji, color:src.color}
+                  : {id:"", label:"", emoji:"", color:CAT_COLORS[0]};
+  var colors = CAT_COLORS.slice();
+  if(draft.color && colors.indexOf(draft.color)<0) colors.unshift(draft.color);
+  var colorPicks = colors.map(function(col){
+    return '<label class="pick"><input type="radio" name="color" value="'+col+'"'+(col===draft.color?" checked":"")+'>'
+      + '<span class="swatch" style="background:'+col+'"></span></label>';
+  }).join("");
+  openSheet(src ? "編輯類別" : "新增類別",
+    '<form onsubmit="saveCat(event,\''+esc(draft.id)+'\')">'
+    + '<label class="field"><span class="fl">名稱 *</span><input name="label" required value="'+esc(draft.label)+'" placeholder="例：咖啡廳" autocomplete="off"></label>'
+    + '<label class="field"><span class="fl">emoji</span><input name="emoji" value="'+esc(draft.emoji)+'" placeholder="貼一個 emoji，例：☕" autocomplete="off" autocapitalize="off"></label>'
+    + '<div class="field"><span class="fl">顏色</span><div class="pick-row">'+colorPicks+'</div></div>'
+    + '<button class="btn-primary" type="submit">儲存</button>'
+    + '</form>');
+}
+function saveCat(ev, id){
+  ev.preventDefault();
+  if(!requireWrite()) return;
+  var f=ev.target;
+  var label=f.label.value.trim()||"未命名";
+  var emoji=firstGrapheme(f.emoji.value)||"✨";
+  var color=f.color.value;
+  if(id){
+    (db.categories||[]).forEach(function(c){
+      if(c.id===id){ c.label=label; c.emoji=emoji; c.color=color; }
+    });
+  }else{
+    db.categories.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,5), label:label, emoji:emoji, color:color});
+  }
+  db.categories = normalizeCategories(db.categories);
+  rebuildCats();
+  persistCategories();
+  openCatManager();
+  render(true); /* 行程卡的類別膠囊即時換色 */
+}
+function delCat(id){
+  if(!requireWrite()) return;
+  if(id==="other") return; /* fallback 類別不可刪 */
+  var c=CATS[id];
+  if(!confirm("刪除類別「"+(c?c.label:id)+"」？用到它的行程點會顯示成「其他」。")) return;
+  db.categories = db.categories.filter(function(x){return x.id!==id;});
+  db.categories = normalizeCategories(db.categories);
+  rebuildCats();
+  persistCategories();
+  openCatManager();
+  render(true);
+}
+
 /* ---- 備註 ---- */
 function viewNotes(t){
   var ro = !STORE.canWrite();
@@ -1093,21 +1246,33 @@ function openSheet(title, bodyHtml){
 }
 function closeSheet(){ sheetLayer.hidden=true; sheetLayer.innerHTML=""; tplDraft=null; }
 
+function catOptions(selectedId){
+  return (db.categories||[]).map(function(c){
+    return '<option value="'+esc(c.id)+'"'+(c.id===selectedId?" selected":"")+'>'+esc(c.emoji)+' '+esc(c.label)+'</option>';
+  }).join("");
+}
+/* 類別欄標籤＋「管理」入口（開管理會取代目前表單 sheet，屬已知取捨） */
+function catFieldLabel(){
+  return '<span class="fl">類別<button type="button" class="fl-mini" onclick="openCatManager()">管理</button></span>';
+}
 function openStopSheet(){
   if(!requireWrite()) return;
-  var opts = Object.keys(CATS).map(function(k){
-    return '<option value="'+k+'">'+CATS[k].emoji+' '+CATS[k].label+'</option>';
-  }).join("");
   openSheet("新增行程點・Day "+ui.day,
     '<form onsubmit="submitStop(event)">'
     + '<div class="f-row2">'
     +   '<label class="field"><span class="fl">時間</span><input type="time" name="time"></label>'
-    +   '<label class="field"><span class="fl">類別</span><select name="cat">'+opts+'</select></label>'
+    +   '<label class="field">'+catFieldLabel()+'<select name="cat">'+catOptions()+'</select></label>'
     + '</div>'
     + '<label class="field"><span class="fl">名稱 *</span><input name="title" required placeholder="例：淺草寺" autocomplete="off"></label>'
     + '<label class="field"><span class="fl">地點</span><input name="place" placeholder="例：東京・淺草" autocomplete="off"></label>'
-    + '<label class="field"><span class="fl">備註</span><textarea name="note" rows="2" placeholder="訂位代號、注意事項…"></textarea></label>'
-    + '<div class="hint">加入後點卡片可補齊細節（地圖連結、費用、電話、營業時間…）</div>'
+    + '<label class="field"><span class="fl">Google Maps 連結</span><input name="mapUrl" inputmode="url" placeholder="貼上地圖分享連結（沒填就用地點文字搜尋）" autocomplete="off"></label>'
+    + '<div class="f-row2">'
+    +   '<label class="field"><span class="fl">營業時間（開）</span><input type="time" name="hoursOpen"></label>'
+    +   '<label class="field"><span class="fl">營業時間（關）</span><input type="time" name="hoursClose"></label>'
+    + '</div>'
+    + '<label class="check-row"><input type="checkbox" name="hours24" onchange="toggleHours24(this)"><span class="ck-box"></span><span class="ck-lb">24 小時營業</span></label>'
+    + '<label class="field"><span class="fl">備註</span><textarea name="note" rows="2" placeholder="注意事項、想吃什麼…"></textarea></label>'
+    + '<div class="hint">加入後點卡片可補齊更多細節（費用、電話、官網…）</div>'
     + '<button class="btn-primary" type="submit">加入 Day '+ui.day+'</button>'
     + '</form>');
 }
@@ -1117,9 +1282,15 @@ function submitStop(ev){
   var f = ev.target, t = curTrip();
   var key = String(ui.day);
   if(!t.itinerary[key]) t.itinerary[key]=[];
+  var h24 = !!f.hours24.checked;
   t.itinerary[key].push({
     id:uid(), time:f.time.value, title:f.title.value.trim(),
-    cat:f.cat.value, place:f.place.value.trim(), note:f.note.value.trim()
+    cat:f.cat.value, place:f.place.value.trim(),
+    mapUrl:f.mapUrl.value.trim(),
+    hours24:h24,
+    hoursOpen:h24?"":f.hoursOpen.value,
+    hoursClose:h24?"":f.hoursClose.value,
+    note:f.note.value.trim()
   });
   persistTrip(t); closeSheet(); render();
 }
@@ -1161,9 +1332,11 @@ function openTripSheet(editId){
   var emojiPicks = emojis.map(function(e){
     return '<label class="pick"><input type="radio" name="emoji" value="'+e+'"'+(e===curEmoji?" checked":"")+'><span>'+e+'</span></label>';
   }).join("");
+  /* v1.1：不再用 inline border-color:transparent（會蓋掉選中框，看不出選了哪個），
+   * 選中態改由 CSS ring＋勾勾呈現 */
   var themePicks = Object.keys(THEMES).map(function(k){
     return '<label class="pick"><input type="radio" name="theme" value="'+k+'"'+(k===curTheme?" checked":"")+'>'
-      + '<span class="swatch" style="background:'+THEMES[k]+'; border-color:transparent;"></span></label>';
+      + '<span class="swatch" style="background:'+THEMES[k]+'"></span></label>';
   }).join("");
   var tplField = "";
   if(!trip){
@@ -1189,7 +1362,8 @@ function openTripSheet(editId){
     + (trip ? '<div class="hint">縮短天數不會刪掉行程點，把天數改回來就會再出現。</div>' : "")
     + '<label class="field"><span class="fl">預算（NT$）</span><input type="number" name="budget" min="0" step="1" inputmode="numeric" value="'+(trip?(trip.budget||""):"")+'" placeholder="0"></label>'
     + tplField
-    + '<div class="field"><span class="fl">封面 emoji</span><div class="pick-row">'+emojiPicks+'</div></div>'
+    + '<div class="field"><span class="fl">封面 emoji</span><div class="pick-row">'+emojiPicks+'</div>'
+    +   '<input name="emojiCustom" class="emoji-custom" value="" placeholder="或自己打一個 emoji（會取代上面選的）" autocomplete="off" autocapitalize="off"></div>'
     + '<div class="field"><span class="fl">封面色系</span><div class="pick-row">'+themePicks+'</div></div>'
     + '<button class="btn-primary" type="submit">'+(trip?"儲存":"建立旅程")+'</button>'
     + delBtn
@@ -1206,7 +1380,7 @@ function submitTrip(ev){
     if(!t) return;
     t.name = f.name.value.trim();
     t.dest = f.dest.value.trim();
-    t.emoji = f.emoji.value;
+    t.emoji = firstGrapheme(f.emojiCustom.value) || f.emoji.value || "🧳"; /* 自由輸入優先，只取第一個 grapheme */
     t.theme = f.theme.value;
     t.start = f.start.value;
     t.days = Math.min(30, Math.max(1, Number(f.days.value)||1));
@@ -1229,7 +1403,7 @@ function submitTrip(ev){
   var nt = {
     id:Date.now().toString(36)+"-"+slugify(name), /* 檔名 = <ts36>-<slug>.md */
     name:name, dest:f.dest.value.trim(),
-    emoji:f.emoji.value, theme:f.theme.value,
+    emoji:firstGrapheme(f.emojiCustom.value) || f.emoji.value || "🧳", theme:f.theme.value,
     start:f.start.value, days:Math.min(30, Math.max(1, Number(f.days.value)||1)),
     budget:Number(f.budget.value)||0,
     createdAt:new Date().toISOString(),
@@ -1301,6 +1475,7 @@ function bootLoad(){
   renderBoot();
   STORE.loadAll().then(function(d){
     db = migrate(d);
+    rebuildCats();
     render();
   }).catch(function(e){
     renderBootError(e);

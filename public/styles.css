@@ -274,3 +274,21 @@ ul{padding:0; list-style:none;}
 /* 刪除旅程（編輯 sheet 內的危險動作） */
 .btn-danger{width:100%; min-height:52px; border-radius:15px; background:#fbeeee; color:var(--bad);
   font-size:16px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:6px; margin-top:10px;}
+
+/* ---------- v1.1 新增 ---------- */
+
+/* 色票選中態：ring＋勾勾（淺深底都看得清；swatch 本身 font-size:0，勾用 ::after 給大小） */
+.pick .swatch{border-color:transparent;}
+.pick input:checked + .swatch{border-color:#fff; box-shadow:0 0 0 2.5px var(--acc), 0 2px 8px rgba(226,80,63,.35);}
+.pick input:checked + .swatch::after{content:"✓"; font-size:19px; font-weight:800; color:#fff;
+  text-shadow:0 1px 4px rgba(0,0,0,.45);}
+
+/* 封面 emoji 自由輸入（快選之外的「自己打」） */
+.emoji-custom{width:100%; font-size:16px; font-family:inherit; color:var(--ink); margin-top:10px;
+  padding:12px 13px; border:1.5px solid var(--line); border-radius:13px; background:#fbfaf6;
+  appearance:none; -webkit-appearance:none;}
+.emoji-custom:focus{outline:none; border-color:var(--acc);}
+
+/* 欄位標籤旁的小入口（例：類別「管理」）——負 margin 維持視覺緊湊、觸控區仍 ≥44px */
+.fl-mini{display:inline-flex; align-items:center; min-height:44px; margin:-15px 0 -15px 2px;
+  padding:0 10px; font-size:12.5px; font-weight:700; color:var(--acc-deep); text-decoration:underline;}
