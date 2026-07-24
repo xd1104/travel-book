@@ -292,3 +292,14 @@ ul{padding:0; list-style:none;}
 /* 欄位標籤旁的小入口（例：類別「管理」）——負 margin 維持視覺緊湊、觸控區仍 ≥44px */
 .fl-mini{display:inline-flex; align-items:center; min-height:44px; margin:-15px 0 -15px 2px;
   padding:0 10px; font-size:12.5px; font-weight:700; color:var(--acc-deep); text-decoration:underline;}
+
+/* ---------- v1.2 新增 ---------- */
+
+/* timeline 卡片上的「停 X」淡字（跟在時間旁） */
+.stop-stay{font-size:12.5px; color:var(--muted); font-weight:600; white-space:nowrap;}
+
+/* 預計停留快選 chips（點選＝填入分鐘數；再點一次取消；自訂輸入會同步高亮） */
+.stay-chips{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;}
+.stay-chip{min-height:44px; padding:0 13px; border-radius:12px; background:#fbfaf6;
+  border:1.5px solid var(--line); font-size:14px; font-weight:700; color:var(--muted);}
+.stay-chip.on{background:var(--ink); border-color:var(--ink); color:#fff;}

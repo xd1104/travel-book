@@ -5,8 +5,8 @@
  * - 跨網域（GitHub API / raw）一律放行不攔（Pages 版資料不經 SW cache）
  * 鐵律：skipWaiting + activate 清舊快取 + clients.claim，已安裝 PWA 才吃得到新版
  */
-const SHELL_CACHE = 'travel-shell-v2';
-const DATA_CACHE = 'travel-data-v2';
+const SHELL_CACHE = 'travel-shell-v3';
+const DATA_CACHE = 'travel-data-v3';
 const KEEP = [SHELL_CACHE, DATA_CACHE];
 
 // 相對於 SW scope 解析（localhost 根目錄或 Pages 子路徑 /travel-book/ 都對）

@@ -87,6 +87,15 @@ function hoursText(sp){
   if(sp.hoursOpen || sp.hoursClose) return (sp.hoursOpen||"？")+"–"+(sp.hoursClose||"？");
   return sp.hours || ""; /* 舊版自由文字相容 */
 }
+/* 預計停留時間顯示規則（v1.2，定案見 CLAUDE.md）：
+ * <60 分 →「45 分」；整點 →「2 小時」；.5 →「1.5 小時」；其餘 →「2 小時 20 分」 */
+function formatStay(min){
+  min = Math.round(Number(min)||0);
+  if(min<=0) return "";
+  if(min<60) return min+" 分";
+  if(min%30===0) return (min/60)+" 小時"; /* 60→1、90→1.5、120→2、150→2.5 */
+  return Math.floor(min/60)+" 小時 "+(min%60)+" 分";
+}
 function tripEnd(t){ return addDays(parseDate(t.start), t.days-1); }
 function tripRange(t){
   var s=parseDate(t.start), e=tripEnd(t);
@@ -127,6 +136,7 @@ function cleanStop(s){
   if(s.note) o.note = String(s.note);
   if(s.mapUrl) o.mapUrl = String(s.mapUrl);
   if(Number(s.cost)) o.cost = Number(s.cost);
+  if(Number(s.stayMinutes)) o.stayMinutes = Math.round(Number(s.stayMinutes)); /* v1.2 預計停留（分鐘） */
   if(s.bookingRef) o.bookingRef = String(s.bookingRef);
   if(s.phone) o.phone = String(s.phone);
   if(s.url) o.url = String(s.url);
@@ -726,6 +736,7 @@ function viewPlan(t){
         + '<div class="rail"><span class="dot" style="background:'+c.color+'"></span><span class="ln"></span></div>'
         + '<div class="stop-card'+(ui.edit?"":" tappable")+'"'+tap+'>'
         +   '<div class="stop-top"><span class="stop-time">'+(sp.time?esc(sp.time):"—")+'</span>'
+        +     (sp.stayMinutes ? '<span class="stop-stay">'+(sp.time?"・":"")+'停 '+formatStay(sp.stayMinutes)+'</span>' : '')
         +     '<span class="cat-pill" style="color:'+c.color+'; background:'+c.color+'1a">'+c.emoji+' '+c.label+'</span>'
         +     right + '</div>'
         +   '<div class="stop-name">'+esc(sp.title)+'</div>'
@@ -833,6 +844,7 @@ function openStopDetail(idx){
   }
   var rows = "";
   if(sp.place) rows += row("📍","地點",esc(sp.place));
+  if(sp.stayMinutes) rows += row("⏱️","預計停留",esc(formatStay(sp.stayMinutes)));
   if(sp.cost)  rows += row("💰","預估費用",money(sp.cost));
   /* 訂位／票券代號欄位 v1.1 起不顯示（資料仍保留在檔案裡） */
   if(sp.phone) rows += row("📞","電話",'<a href="tel:'+esc(String(sp.phone).replace(/[^+\d]/g,""))+'">'+esc(sp.phone)+"</a>");
@@ -872,6 +884,7 @@ function openStopEdit(idx){
     + '</div>'
     + '<label class="field"><span class="fl">地點</span><input name="place" value="'+esc(sp.place)+'" autocomplete="off"></label>'
     + '<label class="field"><span class="fl">Google Maps 連結</span><input name="mapUrl" inputmode="url" value="'+esc(sp.mapUrl||"")+'" placeholder="貼上地圖分享連結（沒填就用地點文字搜尋）" autocomplete="off"></label>'
+    + stayField(sp.stayMinutes)
     + '<div class="f-row2">'
     +   '<label class="field"><span class="fl">預估費用（NT$）</span><input type="number" name="cost" min="0" step="1" inputmode="numeric" value="'+(sp.cost||"")+'"></label>'
     +   '<label class="field"><span class="fl">聯絡電話</span><input type="tel" name="phone" value="'+esc(sp.phone||"")+'" autocomplete="off"></label>'
@@ -897,6 +910,7 @@ function submitStopEdit(ev, idx){
   sp.place = f.place.value.trim();
   sp.mapUrl = f.mapUrl.value.trim();
   sp.cost = Number(f.cost.value)||0;
+  sp.stayMinutes = readStay(f); /* 0＝清空（serializer 不寫空值） */
   /* bookingRef（訂位代號）欄位 v1.1 起 UI 不再提供，但既有值刻意不動（round-trip 保留） */
   sp.phone = f.phone.value.trim();
   sp.hours24 = !!f.hours24.checked;
@@ -1255,6 +1269,41 @@ function catOptions(selectedId){
 function catFieldLabel(){
   return '<span class="fl">類別<button type="button" class="fl-mini" onclick="openCatManager()">管理</button></span>';
 }
+/* 預計停留欄（v1.2）：快選 chips ＋ 自訂分鐘數，同一個 input（name=stayMinutes）為準 */
+var STAY_CHIPS = [
+  {v:30, t:"30 分"}, {v:60, t:"1 小時"}, {v:90, t:"1.5 小時"},
+  {v:120, t:"2 小時"}, {v:180, t:"3 小時"}, {v:240, t:"半天"}
+];
+function stayField(cur){
+  cur = Number(cur)||0;
+  return '<div class="field"><span class="fl">預計停留（選填）</span>'
+    + '<div class="stay-chips">'
+    + STAY_CHIPS.map(function(c){
+        return '<button type="button" class="stay-chip'+(cur===c.v?" on":"")+'" data-v="'+c.v+'"'
+          + ' onclick="setStay(this,'+c.v+')">'+c.t+'</button>';
+      }).join("")
+    + '</div>'
+    + '<input type="number" name="stayMinutes" min="0" step="5" inputmode="numeric"'
+    + ' placeholder="或自訂分鐘數" value="'+(cur||"")+'" oninput="stayInputChanged(this)">'
+    + '</div>';
+}
+function setStay(btn, v){
+  var f = btn.form;
+  var already = btn.classList.contains("on");
+  if(f && f.stayMinutes) f.stayMinutes.value = already ? "" : v; /* 再點一次＝取消 */
+  var chips = document.querySelectorAll ? document.querySelectorAll(".stay-chip") : [];
+  [].slice.call(chips).forEach(function(b){ b.classList.toggle("on", b===btn && !already); });
+}
+function stayInputChanged(inp){
+  var v = Number(inp.value)||0;
+  var chips = document.querySelectorAll ? document.querySelectorAll(".stay-chip") : [];
+  [].slice.call(chips).forEach(function(b){
+    b.classList.toggle("on", v>0 && Number(b.getAttribute("data-v"))===v);
+  });
+}
+function readStay(f){
+  return Math.max(0, Math.round(Number(f.stayMinutes && f.stayMinutes.value)||0));
+}
 function openStopSheet(){
   if(!requireWrite()) return;
   openSheet("新增行程點・Day "+ui.day,
@@ -1266,6 +1315,7 @@ function openStopSheet(){
     + '<label class="field"><span class="fl">名稱 *</span><input name="title" required placeholder="例：淺草寺" autocomplete="off"></label>'
     + '<label class="field"><span class="fl">地點</span><input name="place" placeholder="例：東京・淺草" autocomplete="off"></label>'
     + '<label class="field"><span class="fl">Google Maps 連結</span><input name="mapUrl" inputmode="url" placeholder="貼上地圖分享連結（沒填就用地點文字搜尋）" autocomplete="off"></label>'
+    + stayField(0)
     + '<div class="f-row2">'
     +   '<label class="field"><span class="fl">營業時間（開）</span><input type="time" name="hoursOpen"></label>'
     +   '<label class="field"><span class="fl">營業時間（關）</span><input type="time" name="hoursClose"></label>'
@@ -1287,6 +1337,7 @@ function submitStop(ev){
     id:uid(), time:f.time.value, title:f.title.value.trim(),
     cat:f.cat.value, place:f.place.value.trim(),
     mapUrl:f.mapUrl.value.trim(),
+    stayMinutes:readStay(f),
     hours24:h24,
     hoursOpen:h24?"":f.hoursOpen.value,
     hoursClose:h24?"":f.hoursClose.value,
