@@ -307,7 +307,11 @@ ul{padding:0; list-style:none;}
 .tr-ico{font-size:14px; flex:0 0 auto; opacity:.75;}
 .tr-txt{flex:1; min-width:0; font-size:13px; color:#7a7265; overflow-wrap:anywhere; line-height:1.4;}
 .transit-bar .stop-tools{margin-left:auto;}
-.transit-bar .tool-btn,.transit-bar .drag-handle{width:38px; height:38px; font-size:16px; background:#e4ddcf;}
+/* 灰條上的工具鈕視覺縮到 38px（灰條不搶版面是核心需求），
+ * 命中區用偽元素外擴回 44px——視覺高度不可跟著變大 */
+.transit-bar .tool-btn,.transit-bar .drag-handle{width:38px; height:38px; font-size:16px; background:#e4ddcf;
+  position:relative;}
+.transit-bar .tool-btn::before,.transit-bar .drag-handle::before{content:""; position:absolute; inset:-3px;}
 /* rail：小空心點＋虛線＝「路上」不是站點 */
 .stop.transit .rail .dot{width:7px; height:7px; margin-top:16px; background:transparent;
   border:1.5px solid #cdc3b2; box-shadow:none;}

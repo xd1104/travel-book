@@ -791,9 +791,16 @@ function dragStart(ev, idx){
     gap = Math.max(0, b.top - a.bottom);
   }
   var sy = window.scrollY;
-  var centers = items.map(function(it){ var r=it.getBoundingClientRect(); return r.top + r.height/2 + sy; });
+  var rects = items.map(function(it){ return it.getBoundingClientRect(); });
+  /* 每項「實際佔用高度」（到下一項頂端的距離，含間距）——stop 白卡與 transit 灰條高度差很多，
+   * 讓位動畫若統一用被拖項高度會過衝，所以逐項記錄、dragUpdate 依重排後位置算位移 */
+  var sizes = rects.map(function(r,i){
+    return (i < rects.length-1) ? (rects[i+1].top - r.top) : (r.height + gap);
+  });
+  var tops = [], acc = 0;
+  sizes.forEach(function(h){ tops.push(acc); acc += h; });
   drag = { idx:idx, cur:idx, pageY0:ev.clientY+sy, lastClientY:ev.clientY, el:el, items:items,
-           centers:centers, h: el.getBoundingClientRect().height + gap, raf:0 };
+           sizes:sizes, tops:tops, raf:0 };
   el.classList.add("dragging");
   items.forEach(function(it,i){ if(i!==idx) it.classList.add("drag-anim"); });
 }
@@ -801,18 +808,27 @@ function dragUpdate(){
   if(!drag) return;
   var dy = (drag.lastClientY + window.scrollY) - drag.pageY0;
   drag.el.style.transform = "translateY("+dy+"px)";
-  var center = drag.centers[drag.idx] + dy;
-  var newIdx = 0;
-  for(var i=0;i<drag.centers.length;i++){
-    if(i===drag.idx) continue;
-    if(drag.centers[i] < center) newIdx++;
+  /* 落點判定：把「被拖項目前的頂端」對到「插入第 j 格時該有的頂端」，取最接近的 j。
+   * 高度混合（白卡 vs 灰條）時，用原始中心點比較會晚一步交換＝視覺過衝，這裡用實際高度累加就準 */
+  var others = [];
+  for(var k=0;k<drag.items.length;k++) if(k!==drag.idx) others.push(k);
+  var prefix = [0];
+  for(var m=0;m<others.length;m++) prefix.push(prefix[m] + drag.sizes[others[m]]);
+  var curTop = drag.tops[drag.idx] + dy;
+  var newIdx = 0, bestD = Infinity;
+  for(var j=0;j<prefix.length;j++){
+    var dd = Math.abs(prefix[j] - curTop);
+    if(dd < bestD){ bestD = dd; newIdx = j; }
   }
   drag.cur = newIdx;
+  /* 依「被拖項插到 newIdx 之後」的重排順序，算每一項的目標位置 - 原位置＝該項位移 */
+  var order = others.slice();
+  order.splice(newIdx, 0, drag.idx);
+  var newTop = {}, acc2 = 0;
+  for(var n=0;n<order.length;n++){ newTop[order[n]] = acc2; acc2 += drag.sizes[order[n]]; }
   drag.items.forEach(function(it,i){
     if(i===drag.idx) return;
-    var tr = 0;
-    if(i>drag.idx && i<=newIdx) tr = -drag.h;
-    if(i<drag.idx && i>=newIdx) tr = drag.h;
+    var tr = newTop[i] - drag.tops[i];
     it.style.transform = tr ? "translateY("+tr+"px)" : "";
   });
 }
