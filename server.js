@@ -190,7 +190,16 @@ function fmString(v) { return JSON.stringify(String(v == null ? '' : v)); }
 function fmNumber(v) { const n = Number(v); return String(isFinite(n) ? n : 0); }
 
 // 行程點：固定 key 順序、空值不寫，讓 md 檔乾淨且 diff 穩定
+function isTransit(s) { return s && s.type === 'transit'; } // 缺 type＝行程點（舊資料無痛）
 function cleanStop(s) {
+  // v1.3 移動（transit）：刻意只留 note＋stayMinutes（＝移動時間），
+  // 不寫 title/cat/place 等站點欄位，讓「路上」不佔版面也不佔資料
+  if (isTransit(s)) {
+    const m = { id: String(s.id || ''), type: 'transit' };
+    if (s.note) m.note = String(s.note);
+    if (Number(s.stayMinutes) > 0) m.stayMinutes = Math.round(Number(s.stayMinutes));
+    return m;
+  }
   const o = { id: String(s.id || '') };
   o.title = String(s.title || '');
   if (s.time) o.time = String(s.time);

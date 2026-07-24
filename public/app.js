@@ -127,7 +127,16 @@ function toast(msg, isErr){
 }
 
 /* ============ md 序列化（server.js 的 mirror，改要一起改） ============ */
+function isTransit(s){ return s && s.type==="transit"; } /* 缺 type＝行程點（舊資料無痛） */
 function cleanStop(s){
+  /* v1.3 移動（transit）：刻意只留 note＋stayMinutes（＝移動時間），
+   * 不寫 title/cat/place 等站點欄位，讓「路上」不佔版面也不佔資料 */
+  if(isTransit(s)){
+    var m = { id:String(s.id||""), type:"transit" };
+    if(s.note) m.note = String(s.note);
+    if(Number(s.stayMinutes) > 0) m.stayMinutes = Math.round(Number(s.stayMinutes));
+    return m;
+  }
   var o = { id:String(s.id||"") };
   o.title = String(s.title||"");
   if(s.time) o.time = String(s.time);
@@ -677,7 +686,7 @@ function viewTrip(){
            : ui.tab==="pack" ? viewPack(t)
            : viewNotes(t);
   var fab = "";
-  if(ui.tab==="plan")   fab = '<button class="fab" onclick="openStopSheet()" aria-label="新增行程點">＋</button>';
+  if(ui.tab==="plan")   fab = '<button class="fab" onclick="openAddPicker()" aria-label="新增行程點或移動">＋</button>';
   if(ui.tab==="budget") fab = '<button class="fab" onclick="openExpenseSheet()" aria-label="記一筆花費">＋</button>';
   function tabBtn(id, ico, label){
     return '<button class="'+(ui.tab===id?"on":"")+'" onclick="setTab(\''+id+'\')">'
@@ -726,7 +735,22 @@ function viewPlan(t){
           + ' onpointerdown="dragStart(event,'+idx+')" onpointermove="dragMove(event)"'
           + ' onpointerup="dragEnd(event)" onpointercancel="dragCancel(event)">☰</button>'
           + '</span>';
-      }else{
+      }
+      /* v1.3 移動：灰色輕薄一條，內容只有備註＋時間；rail 用小空心點＋虛線＝「路上」不是站點 */
+      if(isTransit(sp)){
+        var parts = [];
+        if(sp.note) parts.push(esc(sp.note));
+        if(sp.stayMinutes) parts.push(formatStay(sp.stayMinutes));
+        var txt = parts.join("・") || "移動";
+        return '<div class="stop transit">'
+          + '<div class="rail"><span class="dot mini"></span><span class="ln dash"></span></div>'
+          + '<div class="transit-bar'+(ui.edit?"":" tappable")+'"'
+          +   (ui.edit?"":' onclick="openTransitEdit('+idx+')"')+'>'
+          +   '<span class="tr-ico">🚶</span><span class="tr-txt">'+txt+'</span>'
+          +   (ui.edit ? right : '')
+          + '</div></div>';
+      }
+      if(!ui.edit){
         var href = mapLink(sp);
         right = href ? '<a class="map-btn" href="'+esc(href)+'" target="_blank" rel="noopener"'
           + ' onclick="event.stopPropagation()" aria-label="開啟地圖">🗺️</a>' : "";
@@ -1274,9 +1298,9 @@ var STAY_CHIPS = [
   {v:30, t:"30 分"}, {v:60, t:"1 小時"}, {v:90, t:"1.5 小時"},
   {v:120, t:"2 小時"}, {v:180, t:"3 小時"}, {v:240, t:"半天"}
 ];
-function stayField(cur){
+function stayField(cur, label){
   cur = Number(cur)||0;
-  return '<div class="field"><span class="fl">預計停留（選填）</span>'
+  return '<div class="field"><span class="fl">'+(label||"預計停留")+'（選填）</span>'
     + '<div class="stay-chips">'
     + STAY_CHIPS.map(function(c){
         return '<button type="button" class="stay-chip'+(cur===c.v?" on":"")+'" data-v="'+c.v+'"'
@@ -1303,6 +1327,58 @@ function stayInputChanged(inp){
 }
 function readStay(f){
   return Math.max(0, Math.round(Number(f.stayMinutes && f.stayMinutes.value)||0));
+}
+/* v1.3：FAB 先問要加哪一種（站點 vs 路上），避免把兩種塞進同一張長表單 */
+function openAddPicker(){
+  if(!requireWrite()) return;
+  openSheet("加到 Day "+ui.day,
+    '<div class="add-pick">'
+    + '<button class="add-opt" onclick="openStopSheet()">'
+    +   '<span class="ao-ico">📍</span>'
+    +   '<span class="ao-bd"><b>行程點</b><span>要去的地方：景點、餐廳、住宿…</span></span></button>'
+    + '<button class="add-opt" onclick="openTransitSheet()">'
+    +   '<span class="ao-ico">🚶</span>'
+    +   '<span class="ao-bd"><b>移動</b><span>兩個地點之間的路上：搭車、走路…</span></span></button>'
+    + '</div>');
+}
+/* 移動：只有備註＋移動時間（沿用 stayMinutes 元件） */
+function openTransitSheet(){
+  if(!requireWrite()) return;
+  openSheet("新增移動・Day "+ui.day,
+    '<form onsubmit="submitTransit(event)">'
+    + '<label class="field"><span class="fl">怎麼移動</span>'
+    +   '<input name="note" placeholder="例：地鐵銀座線、走路、計程車" autocomplete="off"></label>'
+    + stayField(0, "移動時間")
+    + '<button class="btn-primary" type="submit">加入 Day '+ui.day+'</button>'
+    + '</form>');
+}
+function submitTransit(ev){
+  ev.preventDefault();
+  if(!requireWrite()) return;
+  var f=ev.target, t=curTrip();
+  var key=String(ui.day);
+  if(!t.itinerary[key]) t.itinerary[key]=[];
+  t.itinerary[key].push({ id:uid(), type:"transit", note:f.note.value.trim(), stayMinutes:readStay(f) });
+  persistTrip(t); closeSheet(); render();
+}
+function openTransitEdit(idx){
+  if(!requireWrite()) return;
+  var list=curList()||[]; var sp=list[idx]; if(!sp) return;
+  openSheet("編輯移動",
+    '<form onsubmit="submitTransitEdit(event,'+idx+')">'
+    + '<label class="field"><span class="fl">怎麼移動</span>'
+    +   '<input name="note" value="'+esc(sp.note||"")+'" placeholder="例：地鐵銀座線、走路、計程車" autocomplete="off"></label>'
+    + stayField(sp.stayMinutes, "移動時間")
+    + '<button class="btn-primary" type="submit">儲存</button>'
+    + '</form>');
+}
+function submitTransitEdit(ev, idx){
+  ev.preventDefault();
+  if(!requireWrite()) return;
+  var f=ev.target; var list=curList()||[]; var sp=list[idx]; if(!sp) return;
+  sp.note = f.note.value.trim();
+  sp.stayMinutes = readStay(f);
+  persistTrip(curTrip()); closeSheet(); render(true);
 }
 function openStopSheet(){
   if(!requireWrite()) return;

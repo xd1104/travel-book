@@ -298,6 +298,33 @@ ul{padding:0; list-style:none;}
 /* timeline 卡片上的「停 X」淡字（跟在時間旁） */
 .stop-stay{font-size:12.5px; color:var(--muted); font-weight:600; white-space:nowrap;}
 
+/* ---------- v1.3：移動（transit） ---------- */
+
+/* 灰色輕薄一條：不搶白卡版面（無陰影、矮、灰字、小字級） */
+.transit-bar{flex:1; display:flex; align-items:center; gap:8px; min-width:0;
+  background:#f1ece2; border-radius:11px; padding:7px 12px; margin-bottom:12px; min-height:38px;}
+.transit-bar.tappable:active{background:#e9e3d6;}
+.tr-ico{font-size:14px; flex:0 0 auto; opacity:.75;}
+.tr-txt{flex:1; min-width:0; font-size:13px; color:#7a7265; overflow-wrap:anywhere; line-height:1.4;}
+.transit-bar .stop-tools{margin-left:auto;}
+.transit-bar .tool-btn,.transit-bar .drag-handle{width:38px; height:38px; font-size:16px; background:#e4ddcf;}
+/* rail：小空心點＋虛線＝「路上」不是站點 */
+.stop.transit .rail .dot{width:7px; height:7px; margin-top:16px; background:transparent;
+  border:1.5px solid #cdc3b2; box-shadow:none;}
+.stop.transit .rail .ln{background:none;
+  background-image:linear-gradient(#d8cfbf 55%, transparent 0);
+  background-size:2px 7px; background-repeat:repeat-y;}
+
+/* 新增選單（FAB → 行程點 / 移動） */
+.add-pick{display:flex; flex-direction:column; gap:10px; margin-top:2px;}
+.add-opt{display:flex; align-items:center; gap:13px; width:100%; min-height:70px; padding:12px 14px;
+  border-radius:16px; border:1.5px solid var(--line); background:#fbfaf6; text-align:left;}
+.add-opt:active{background:#f5efe4;}
+.ao-ico{font-size:26px; flex:0 0 auto;}
+.ao-bd{min-width:0;}
+.ao-bd b{display:block; font-size:16.5px; font-weight:700;}
+.ao-bd span{display:block; font-size:12.5px; color:var(--muted); margin-top:2px;}
+
 /* 預計停留快選 chips（點選＝填入分鐘數；再點一次取消；自訂輸入會同步高亮） */
 .stay-chips{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;}
 .stay-chip{min-height:44px; padding:0 13px; border-radius:12px; background:#fbfaf6;
