@@ -7,7 +7,7 @@ start: "2026-08-29"
 days: 3
 budget: 0
 createdAt: "2026-07-23T15:51:59.575Z"
-updatedAt: "2026-07-24T02:05:16.281Z"
+updatedAt: "2026-07-24T02:05:54.100Z"
 ---
 
 ## 行程
@@ -15,7 +15,7 @@ updatedAt: "2026-07-24T02:05:16.281Z"
 ### Day 1
 
 - {"id":"xmryarowkj1pc","title":"出發","time":"05:00","cat":"other"}
-- {"id":"xmrxp38ze7yh5","title":"秀水湯包","time":"08:00","cat":"food","mapUrl":"https://maps.app.goo.gl/27E6ut2M7AB92huj6?g_st=ic","hoursOpen":"08:46","hoursClose":"08:49"}
+- {"id":"xmrxp38ze7yh5","title":"秀水湯包","time":"08:00","cat":"food","note":"08:00 ～ 08:40","mapUrl":"https://maps.app.goo.gl/27E6ut2M7AB92huj6?g_st=ic","hoursOpen":"08:46","hoursClose":"08:49"}
 
 ## 花費
 
