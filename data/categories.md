@@ -6,4 +6,4 @@
 - {"id":"stay","label":"住宿","emoji":"🏨","color":"#8b5cf6"}
 - {"id":"shop","label":"購物","emoji":"🛍️","color":"#e0447f"}
 - {"id":"other","label":"其他","emoji":"✨","color":"#7a7265"}
-- {"id":"mryaackbky3","label":"移動","emoji":"🚗","color":"#7a7265"}
+- {"id":"mryaackbky3","label":"移動","emoji":"🚗","color":"#475569"}
