@@ -136,7 +136,7 @@ function cleanStop(s){
   if(s.note) o.note = String(s.note);
   if(s.mapUrl) o.mapUrl = String(s.mapUrl);
   if(Number(s.cost)) o.cost = Number(s.cost);
-  if(Number(s.stayMinutes)) o.stayMinutes = Math.round(Number(s.stayMinutes)); /* v1.2 預計停留（分鐘） */
+  if(Number(s.stayMinutes) > 0) o.stayMinutes = Math.round(Number(s.stayMinutes)); /* v1.2 預計停留（分鐘；負值不落檔） */
   if(s.bookingRef) o.bookingRef = String(s.bookingRef);
   if(s.phone) o.phone = String(s.phone);
   if(s.url) o.url = String(s.url);
