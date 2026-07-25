@@ -1,6 +1,6 @@
 "use strict";
 /*
- * 熱量手帳 — AI 熱量估算（直接打 Anthropic Messages API）
+ * 減重助手 — AI 熱量估算（直接打 Anthropic Messages API）
  *
  * 為什麼前端直連而不經自己的 server：
  *   本 app 的 PWA 跑在 GitHub Pages（純靜態、沒有後端），手機在外面吃飯要即時判讀，
@@ -12,8 +12,8 @@
  *   → key 絕不寫進程式、絕不 commit（同 GitHub PAT 的規矩）。
  */
 
-var AI_KEY = "cal_anthropic_key";
-var AI_USAGE_KEY = "cal_ai_usage";
+var AI_KEY = "lwh_anthropic_key";
+var AI_USAGE_KEY = "lwh_ai_usage";
 var USD_TWD = 32; /* 粗估用，不需要精準匯率 */
 
 /* 價格 USD / 每百萬 token（input, output）。改模型記得一起改，這只影響「花費估算」顯示。 */

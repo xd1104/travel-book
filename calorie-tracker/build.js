@@ -7,7 +7,7 @@
  *
  * GitHub Pages「Deploy from a branch」只能選 repo root 或 /docs，
  * 不能直接服務 public/，所以鏡射一份。前端全部用相對路徑，
- * 同一份檔案在 localhost 根目錄與 Pages 子路徑（/calorie-tracker/）都能跑。
+ * 同一份檔案在 localhost 根目錄與 Pages 子路徑（/lose-weight-helper/）都能跑。
  */
 const fs = require('fs');
 const path = require('path');

@@ -1,12 +1,14 @@
 'use strict';
 
 /*
- * 熱量手帳（Calorie Book）— 本機 Node server（零執行期依賴）
+ * 減重助手（lose-weight-helper）— 本機 Node server（零執行期依賴）
  * - 服務 ./public 的 PWA 前端
- * - 資料存 markdown + frontmatter：
- *     每天一個 ./data/days/YYYY-MM-DD.md
- *     個人資料 ./data/profile.md
- *     常吃食物 ./data/foods.md
+ * - 多使用者：Benson 與女友各自獨立，資料完全不共用
+ *     使用者名冊 ./data/users.md
+ *     每人一個資料夾 ./data/users/<uid>/
+ *       ├─ profile.md          身體資料／目標／模型
+ *       ├─ foods.md            常吃清單
+ *       └─ days/YYYY-MM-DD.md  每天一個檔
  * - 寫入成功後自動 git add/commit -> pull(-X ours) -> push（GitHub 為同步中樞）
  * 架構比照 travel-book（port 3618）；本專案 port 3619。
  */
@@ -20,15 +22,20 @@ const { execFile } = require('child_process');
 const ROOT = __dirname;
 const PUBLIC_DIR = path.join(ROOT, 'public');
 const DATA_DIR = path.join(ROOT, 'data');
-const DAYS_DIR = path.join(DATA_DIR, 'days');
-const PROFILE_FILE = path.join(DATA_DIR, 'profile.md');
-const FOODS_FILE = path.join(DATA_DIR, 'foods.md');
+const USERS_FILE = path.join(DATA_DIR, 'users.md');
+const USERS_DIR = path.join(DATA_DIR, 'users');
 
 const PORT = process.env.PORT || 3619;
 
-for (const d of [DATA_DIR, DAYS_DIR]) {
+for (const d of [DATA_DIR, USERS_DIR]) {
   fs.mkdirSync(d, { recursive: true });
 }
+
+/* 每位使用者的檔案位置 */
+function userDir(uid) { return path.join(USERS_DIR, uid); }
+function profileFile(uid) { return path.join(userDir(uid), 'profile.md'); }
+function foodsFile(uid) { return path.join(userDir(uid), 'foods.md'); }
+function daysDir(uid) { return path.join(userDir(uid), 'days'); }
 
 /* ------------------------------------------------------------------ */
 /* helpers                                                             */
@@ -88,8 +95,25 @@ function safeDate(s) {
   return m ? m[0] : '';
 }
 
+// 使用者資料夾名。字元集必須與前端 slugify（\p{L}\p{N} ＋ ._-）完全一致，
+// 否則手機端建的中文／日文名字會在電腦端被 mangle 成另一個資料夾
+// → 同一個人跨裝置分裂成兩份資料（travel-book QA B1 的教訓）
+function safeName(name) {
+  return path.basename(String(name || '')).replace(/[^\p{L}\p{N}._\-]+/gu, '_');
+}
+function slugify(str) {
+  const base = String(str || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 40);
+  return base || 'user';
+}
+
 // 原子寫入：先寫私有 temp 檔再 rename 蓋過目標（同磁碟 rename 是原子的）
 async function atomicWrite(file, data, encoding) {
+  await fsp.mkdir(path.dirname(file), { recursive: true });
   const tmp = file + '.tmp~' + process.pid + '-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
   try {
     await fsp.writeFile(tmp, data, encoding || 'utf8');
@@ -144,7 +168,7 @@ async function runSync() {
     await gitCmd(['add', '-A']);
     const status = await gitCmd(['status', '--porcelain']);
     if (status.trim()) {
-      await gitCmd(['commit', '-m', 'auto: sync calorie data ' + new Date().toISOString()]);
+      await gitCmd(['commit', '-m', 'auto: sync data ' + new Date().toISOString()]);
     }
     await pullRemote('pre-push');
     await gitCmd(['push', 'origin', 'HEAD']);
@@ -192,7 +216,56 @@ function round(v) { return Math.round(num(v)); }
 
 const MEALS = ['breakfast', 'lunch', 'dinner', 'snack'];
 
-// 飲食：固定 key 順序、空值不寫，讓 md 檔乾淨且 diff 穩定
+/* ---- 使用者名冊 ---- */
+const USER_COLORS = ['#2fa86a', '#3b82f6', '#e0952c', '#a855f7', '#e0447f', '#0e7490'];
+
+function cleanUser(u) {
+  const o = {
+    id: safeName((u && u.id) || ''),
+    name: String((u && u.name) || '').trim().slice(0, 20) || '未命名',
+    emoji: String((u && u.emoji) || '🙂').slice(0, 8),
+    color: String((u && u.color) || ''),
+    createdAt: String((u && u.createdAt) || new Date().toISOString()),
+  };
+  if (!/^#[0-9a-fA-F]{3,8}$/.test(o.color)) o.color = USER_COLORS[0];
+  if (!o.id) o.id = Date.now().toString(36) + '-' + slugify(o.name);
+  return o;
+}
+function normalizeUsers(list) {
+  const out = [];
+  const seen = {};
+  for (const u of Array.isArray(list) ? list : []) {
+    const o = cleanUser(u);
+    if (seen[o.id]) continue; // id 重複只留第一個，避免兩個人指到同一個資料夾
+    seen[o.id] = true;
+    out.push(o);
+  }
+  return out;
+}
+function serializeUsers(list) {
+  const L = ['## 使用者', ''];
+  for (const u of normalizeUsers(list)) {
+    L.push('- ' + JSON.stringify({ id: u.id, name: u.name, emoji: u.emoji, color: u.color, createdAt: u.createdAt }));
+  }
+  L.push('');
+  return L.join('\n');
+}
+function parseUsers(text) {
+  const out = [];
+  for (const line of String(text).replace(/\r\n/g, '\n').split('\n')) {
+    const im = /^-\s+(\{.*\})\s*$/.exec(line);
+    if (!im) continue;
+    try { out.push(JSON.parse(im[1])); } catch { /* 壞列跳過 */ }
+  }
+  return normalizeUsers(out);
+}
+async function readUsers() {
+  try { return parseUsers(await fsp.readFile(USERS_FILE, 'utf8')); }
+  catch { return []; } // 還沒有任何使用者：前端會顯示「新增第一位使用者」
+}
+
+/* ---- 飲食 / 運動 / 常吃 ---- */
+// 固定 key 順序、空值不寫，讓 md 檔乾淨且 diff 穩定
 function cleanEntry(e) {
   const o = { id: String((e && e.id) || '') };
   o.time = String((e && e.time) || '');
@@ -376,79 +449,150 @@ function parseFoods(text) {
   return out;
 }
 
-async function readProfile() {
-  try { return parseProfile(await fsp.readFile(PROFILE_FILE, 'utf8')); }
-  catch { return defaultProfile(); } // 檔案還沒建：回預設，GET 不落地寫檔
+/* ---- 讀取（缺檔一律回安全預設，不落地寫檔） ---- */
+async function readProfile(uid) {
+  try { return parseProfile(await fsp.readFile(profileFile(uid), 'utf8')); }
+  catch { return defaultProfile(); }
 }
-async function readFoods() {
-  try { return parseFoods(await fsp.readFile(FOODS_FILE, 'utf8')); }
+async function readFoods(uid) {
+  try { return parseFoods(await fsp.readFile(foodsFile(uid), 'utf8')); }
   catch { return []; }
 }
-async function readDay(date) {
-  try { return parseDay(date, await fsp.readFile(path.join(DAYS_DIR, date + '.md'), 'utf8')); }
-  catch { return emptyDay(date); } // 沒記錄的日子 = 空的一天（不落地寫檔）
+async function readDay(uid, date) {
+  try { return parseDay(date, await fsp.readFile(path.join(daysDir(uid), date + '.md'), 'utf8')); }
+  catch { return emptyDay(date); } // 沒記錄的日子 = 空的一天
+}
+
+/* ------------------------------------------------------------------ */
+/* v1 -> v2 遷移：單人版的 data/profile.md 等搬進第一位使用者資料夾       */
+/* 冪等：users.md 已存在就完全不動                                       */
+/* ------------------------------------------------------------------ */
+async function migrateSingleUserIfNeeded() {
+  if (fs.existsSync(USERS_FILE)) return false;
+  const oldProfile = path.join(DATA_DIR, 'profile.md');
+  const oldFoods = path.join(DATA_DIR, 'foods.md');
+  const oldDays = path.join(DATA_DIR, 'days');
+  const hasOld = fs.existsSync(oldProfile) || fs.existsSync(oldFoods)
+    || (fs.existsSync(oldDays) && fs.readdirSync(oldDays).some((f) => f.endsWith('.md')));
+  if (!hasOld) return false;
+
+  const u = cleanUser({ name: '我', emoji: '🙂', color: USER_COLORS[0] });
+  await fsp.mkdir(daysDir(u.id), { recursive: true });
+  if (fs.existsSync(oldProfile)) await fsp.rename(oldProfile, profileFile(u.id));
+  if (fs.existsSync(oldFoods)) await fsp.rename(oldFoods, foodsFile(u.id));
+  if (fs.existsSync(oldDays)) {
+    for (const f of await fsp.readdir(oldDays)) {
+      if (f.endsWith('.md')) await fsp.rename(path.join(oldDays, f), path.join(daysDir(u.id), f));
+    }
+    try { await fsp.rm(oldDays, { recursive: true, force: true }); } catch { /* 還有別的檔就留著 */ }
+  }
+  await atomicWrite(USERS_FILE, serializeUsers([u]), 'utf8');
+  console.log('[migrate] 單人版資料已搬進使用者 "' + u.name + '" (' + u.id + ')');
+  return true;
 }
 
 /* ------------------------------------------------------------------ */
 /* API                                                                 */
 /* ------------------------------------------------------------------ */
 
+// 每個涉及個人資料的端點都必須指定 u=<uid>，避免寫錯人
+function uidOf(url) { return safeName(url.searchParams.get('u') || ''); }
+
 async function handleApi(req, res, url) {
   const p = url.pathname;
   const method = req.method;
 
-  // GET /api/core -> profile + foods（前端啟動先拿這包）
-  if (p === '/api/core' && method === 'GET') {
-    return sendJson(res, 200, { profile: await readProfile(), foods: await readFoods() });
+  // GET /api/users -> 使用者名冊（Netflix 式切換畫面用）
+  if (p === '/api/users' && method === 'GET') {
+    return sendJson(res, 200, { users: await readUsers() });
   }
 
-  // GET /api/days?dates=2026-07-25,2026-07-24 -> 指定日期的紀錄（缺的回空）
+  // POST /api/users（整份名冊覆蓋：新增／改名／換頭像都走這支）
+  if (p === '/api/users' && method === 'POST') {
+    const body = await readJson(req);
+    const list = normalizeUsers(body.users || body);
+    await atomicWrite(USERS_FILE, serializeUsers(list), 'utf8');
+    for (const u of list) await fsp.mkdir(daysDir(u.id), { recursive: true });
+    scheduleSync();
+    return sendJson(res, 200, { ok: true, users: await readUsers() });
+  }
+
+  // DELETE /api/users/:id（連同該使用者的所有紀錄一起刪）
+  const userSingle = /^\/api\/users\/([^/]+)$/.exec(p);
+  if (userSingle && method === 'DELETE') {
+    const uid = safeName(decodeURIComponent(userSingle[1]));
+    if (!uid) return sendJson(res, 400, { ok: false, message: '缺少使用者 id。' });
+    const list = (await readUsers()).filter((u) => u.id !== uid);
+    await atomicWrite(USERS_FILE, serializeUsers(list), 'utf8');
+    try { await fsp.rm(userDir(uid), { recursive: true, force: true }); } catch { /* 已不存在 */ }
+    scheduleSync();
+    return sendJson(res, 200, { ok: true, users: await readUsers() });
+  }
+
+  // 以下都是「某一位使用者」的資料
+  const uid = uidOf(url);
+
+  // GET /api/core?u=<uid> -> profile + foods（前端切換使用者後先拿這包）
+  if (p === '/api/core' && method === 'GET') {
+    if (!uid) return sendJson(res, 400, { ok: false, message: '缺少使用者 id。' });
+    return sendJson(res, 200, { profile: await readProfile(uid), foods: await readFoods(uid) });
+  }
+
+  // GET /api/days?u=<uid>&dates=2026-07-25,2026-07-24
   // 刻意「按日期取」而不是列整個資料夾：GitHubStore 那邊一天一個 API 請求，
   // 列全部會隨著使用月數線性變慢。
   if (p === '/api/days' && method === 'GET') {
+    if (!uid) return sendJson(res, 400, { ok: false, message: '缺少使用者 id。' });
     const dates = String(url.searchParams.get('dates') || '')
       .split(',').map(safeDate).filter(Boolean).slice(0, 400);
     const days = [];
-    for (const d of dates) days.push(await readDay(d));
+    for (const d of dates) days.push(await readDay(uid, d));
     return sendJson(res, 200, { days });
   }
 
-  // GET /api/days/index -> 有記錄的日期清單（歷史頁用）
+  // GET /api/days/index?u=<uid> -> 有記錄的日期清單（歷史頁用）
   if (p === '/api/days/index' && method === 'GET') {
+    if (!uid) return sendJson(res, 400, { ok: false, message: '缺少使用者 id。' });
     let files = [];
-    try { files = await fsp.readdir(DAYS_DIR); } catch { /* 資料夾還沒建 */ }
+    try { files = await fsp.readdir(daysDir(uid)); } catch { /* 資料夾還沒建 */ }
     const dates = files.filter((f) => f.endsWith('.md'))
       .map((f) => safeDate(f.replace(/\.md$/, ''))).filter(Boolean).sort();
     return sendJson(res, 200, { dates });
   }
 
-  // POST /api/profile
+  // POST /api/profile  { u, profile }
   if (p === '/api/profile' && method === 'POST') {
     const body = await readJson(req);
+    const id = safeName(body.u || uid);
+    if (!id) return sendJson(res, 400, { ok: false, message: '缺少使用者 id。' });
     const prof = cleanProfile(body.profile || body);
-    await atomicWrite(PROFILE_FILE, serializeProfile(prof), 'utf8');
+    await atomicWrite(profileFile(id), serializeProfile(prof), 'utf8');
     scheduleSync();
     return sendJson(res, 200, { ok: true, profile: prof });
   }
 
-  // POST /api/foods（整份清單覆蓋）
+  // POST /api/foods  { u, foods }（整份清單覆蓋）
   if (p === '/api/foods' && method === 'POST') {
     const body = await readJson(req);
+    const id = safeName(body.u || uid);
+    if (!id) return sendJson(res, 400, { ok: false, message: '缺少使用者 id。' });
     const list = (Array.isArray(body.foods) ? body.foods : []).map(cleanFood);
-    await atomicWrite(FOODS_FILE, serializeFoods(list), 'utf8');
+    await atomicWrite(foodsFile(id), serializeFoods(list), 'utf8');
     scheduleSync();
     return sendJson(res, 200, { ok: true, foods: list });
   }
 
-  // POST /api/days（單日整份更新；body = 完整 day 物件）
+  // POST /api/days  { u, ...day }（單日整份更新）
   if (p === '/api/days' && method === 'POST') {
     const body = await readJson(req);
+    const id = safeName(body.u || uid);
+    if (!id) return sendJson(res, 400, { ok: false, message: '缺少使用者 id。' });
     const date = safeDate(body.date);
     if (!date) return sendJson(res, 400, { ok: false, message: '日期格式錯誤（需 YYYY-MM-DD）。' });
     const day = Object.assign(emptyDay(date), body, { date, updatedAt: new Date().toISOString() });
     const isEmpty = !(day.entries || []).length && !(day.moves || []).length
       && !String(day.notes || '').trim() && !num(day.weight);
-    const file = path.join(DAYS_DIR, date + '.md');
+    const file = path.join(daysDir(id), date + '.md');
     if (isEmpty) {
       // 一整天被清空就把檔案刪掉，不要留一堆空殼 md
       try { await fsp.unlink(file); } catch { /* 本來就不存在 */ }
@@ -456,7 +600,7 @@ async function handleApi(req, res, url) {
       await atomicWrite(file, serializeDay(day), 'utf8');
     }
     scheduleSync();
-    return sendJson(res, 200, { ok: true, day: await readDay(date) });
+    return sendJson(res, 200, { ok: true, day: await readDay(id, date) });
   }
 
   return sendJson(res, 404, { error: 'unknown endpoint' });
@@ -522,13 +666,19 @@ if (require.main === module) {
   }
 
   server.listen(PORT, async () => {
-    console.log('Calorie Book server running at http://localhost:' + PORT);
+    console.log('Lose Weight Helper server running at http://localhost:' + PORT);
     console.log('Data dir: ' + DATA_DIR);
-    await initSync();
+    await initSync(); // 先 pull（若手機端剛建了使用者，避免遷移邏輯誤判）
+    try {
+      if (await migrateSingleUserIfNeeded()) scheduleSync();
+    } catch (e) {
+      console.error('[migrate] failed:', e.message);
+    }
   });
 }
 
 module.exports = {
   serializeDay, parseDay, serializeProfile, parseProfile,
-  serializeFoods, parseFoods, defaultProfile, cleanEntry, safeDate,
+  serializeFoods, parseFoods, serializeUsers, parseUsers,
+  defaultProfile, cleanEntry, cleanUser, normalizeUsers, safeDate, safeName, slugify,
 };

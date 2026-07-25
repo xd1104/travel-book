@@ -1,12 +1,15 @@
-# 熱量手帳（calorie-tracker）
+# 減重助手（lose-weight-helper）
 
 手機優先的每日熱量記錄 PWA。吃完用講的或拍一張照，Claude 幫你估熱量，一眼看出今天有沒有超過 TDEE。
+
+**兩個人共用一份 app**：進來像 Netflix 一樣先選人，紀錄、TDEE、目標、常吃清單完全獨立、互不干擾。
 
 - 📝 **文字**：「排骨便當加飯」「南瓜湯頭的麵疙瘩」「大杯半糖珍奶」直接打進去
 - 📷 **拍照**：整桌、便當盒都可以，會自動拆成多筆
 - ⭐ **常吃**：AI 算過一次就記起來，下次一鍵加入（不用再花 API 錢）
 - ✏️ **手動**：沒有 API key 也能用
 - 📈 TDEE 自動計算（Mifflin-St Jeor）、每日目標、三大營養素、7 日／30 日趨勢
+- 👥 多使用者：點右上頭像即可切換，這台裝置會記住上次是誰
 
 AI 估算一律先給**可編輯的預覽**——每筆都會寫出份量假設（例如「便當盒、白飯約 1.5 碗」），
 你確認或改完數字才寫進紀錄。
@@ -22,14 +25,14 @@ node server.js       # 或雙擊 start.bat
 ## 手機
 
 推到 GitHub 後開啟 Pages（Settings → Pages → Deploy from a branch → `main` / `/docs`），
-用手機開 `https://<你的帳號>.github.io/calorie-tracker/`，加到主畫面即可當 App 用。
+用手機開 `https://<你的帳號>.github.io/lose-weight-helper/`，加到主畫面即可當 App 用。
 
 手機端要能**記錄**需要兩把金鑰，都只存在該裝置的瀏覽器裡（不會上傳、不會進 repo）：
 
 | 金鑰 | 用途 | 去哪拿 |
 |---|---|---|
 | Anthropic API key | AI 判讀熱量 | <https://console.anthropic.com> → API keys（記得在 Billing 設每月上限） |
-| GitHub fine-grained PAT | 讀寫紀錄 | GitHub → Settings → Developer settings → Fine-grained tokens，只授權 `calorie-tracker` 這一個 repo，Contents 設 **Read and write** |
+| GitHub fine-grained PAT | 讀寫紀錄 | GitHub → Settings → Developer settings → Fine-grained tokens，只授權 `lose-weight-helper` 這一個 repo，Contents 設 **Read and write** |
 
 沒有 GitHub 金鑰＝唯讀（看得到，記不了）。沒有 Anthropic key＝AI 判讀不能用，但「手動」與「常吃」照常。
 
@@ -54,12 +57,13 @@ docs/       build.js 從 public/ 鏡射，給 GitHub Pages 當手機 PWA（產�
 ## 資料格式
 
 ```
-data/days/2026-07-25.md    每天一個檔
-data/profile.md            身高體重、活動量、目標、模型
-data/foods.md              常吃清單
+data/users.md                          使用者名冊
+data/users/<uid>/profile.md            身高體重、活動量、目標、模型
+data/users/<uid>/foods.md              常吃清單
+data/users/<uid>/days/2026-07-25.md    每天一個檔
 ```
 
-`data/days/YYYY-MM-DD.md` 長這樣，人看得懂、git diff 也乾淨：
+每天的檔案長這樣，人看得懂、git diff 也乾淨：
 
 ```markdown
 ---

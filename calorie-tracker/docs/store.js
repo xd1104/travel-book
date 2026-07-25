@@ -1,10 +1,11 @@
 "use strict";
 /*
- * 熱量手帳 — 資料層
+ * 減重助手 — 資料層
  * DataStore 依 location.hostname 自動切：
  *   localhost -> LocalStore：打本機 Node /api（全功能）
  *   其他(GitHub Pages) -> GitHubStore：直接讀寫 GitHub repo
  *     有 PAT -> 認證 Contents API 讀寫（即時）；無 PAT -> 唯讀走 raw + cache-buster
+ * 多使用者：每個人一個資料夾 data/users/<uid>/，資料完全獨立。
  * md 序列化與 server.js 是同一套 mirror，改格式要兩邊一起改（見 CLAUDE.md）
  */
 
@@ -18,6 +19,15 @@ function dateKey(d){ d=d||new Date(); return d.getFullYear()+"-"+pad2(d.getMonth
 function parseDateKey(s){ var p=String(s).split("-"); return new Date(+p[0], +p[1]-1, +p[2]); }
 function shiftDate(key, n){ var d=parseDateKey(key); d.setDate(d.getDate()+n); return dateKey(d); }
 function nowHM(){ var d=new Date(); return pad2(d.getHours())+":"+pad2(d.getMinutes()); }
+
+/* 使用者資料夾名。字元集必須與 server.js 的 safeName（\p{L}\p{N} ＋ ._-）一致，
+ * 否則手機端建的中文名字會在電腦端被 mangle 成另一個資料夾 → 同一個人分裂成兩份資料 */
+function slugify(str){
+  var base=String(str||"").trim().toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu,"-").replace(/^-+|-+$/g,"").slice(0,40);
+  return base || "user";
+}
+function safeName(s){ return String(s||"").replace(/[^\p{L}\p{N}._\-]+/gu,"_"); }
 
 function b64EncodeUtf8(str){
   var bytes=new TextEncoder().encode(str), bin="";
@@ -36,10 +46,54 @@ var MEAL_INFO = {
   dinner:   {label:"晚餐", emoji:"🌙"},
   snack:    {label:"點心", emoji:"🍪"}
 };
+var USER_COLORS = ["#2fa86a","#3b82f6","#e0952c","#a855f7","#e0447f","#0e7490"];
+var USER_EMOJIS = ["🙂","🐻","🐰","🦊","🐱","🐶","🌸","⭐","🍀","🔥","🥑","🐧"];
 
 function fmString(v){ return JSON.stringify(String(v==null?"":v)); }
 function fmNumber(v){ var n=Number(v); return String(isFinite(n)?n:0); }
 
+/* ---- 使用者名冊 ---- */
+function cleanUser(u){
+  var o={
+    id: safeName((u&&u.id)||""),
+    name: String((u&&u.name)||"").trim().slice(0,20) || "未命名",
+    emoji: String((u&&u.emoji)||"🙂").slice(0,8),
+    color: String((u&&u.color)||""),
+    createdAt: String((u&&u.createdAt)||new Date().toISOString())
+  };
+  if(!/^#[0-9a-fA-F]{3,8}$/.test(o.color)) o.color=USER_COLORS[0];
+  if(!o.id) o.id=Date.now().toString(36)+"-"+slugify(o.name);
+  return o;
+}
+function normalizeUsers(list){
+  var out=[], seen={};
+  (Array.isArray(list)?list:[]).forEach(function(u){
+    var o=cleanUser(u);
+    if(seen[o.id]) return; /* id 重複只留第一個，避免兩個人指到同一個資料夾 */
+    seen[o.id]=true;
+    out.push(o);
+  });
+  return out;
+}
+function serializeUsers(list){
+  var L=["## 使用者",""];
+  normalizeUsers(list).forEach(function(u){
+    L.push("- "+JSON.stringify({id:u.id, name:u.name, emoji:u.emoji, color:u.color, createdAt:u.createdAt}));
+  });
+  L.push("");
+  return L.join("\n");
+}
+function parseUsers(text){
+  var out=[];
+  String(text).replace(/\r\n/g,"\n").split("\n").forEach(function(line){
+    var im=/^-\s+(\{.*\})\s*$/.exec(line);
+    if(!im) return;
+    try{ out.push(JSON.parse(im[1])); }catch(e){}
+  });
+  return normalizeUsers(out);
+}
+
+/* ---- 飲食 / 運動 / 常吃 ---- */
 function cleanEntry(e){
   var o={ id:String((e&&e.id)||"") };
   o.time=String((e&&e.time)||"");
@@ -223,15 +277,27 @@ function macrosOf(day){
 function netOf(day){ return sumKcal(day.entries) - sumKcal(day.moves); }
 
 /* ============ DataStore ============ */
-var GH = { owner:"xd1104", repo:"calorie-tracker", branch:"main" };
+var GH = { owner:"xd1104", repo:"lose-weight-helper", branch:"main" };
 var IS_LOCAL = ["localhost","127.0.0.1","::1",""].indexOf(location.hostname)>=0;
 var FORCE_GH = /[?&]store=github\b/.test(location.search);
-var TOKEN_KEY = "cal_gh_pat";
+var TOKEN_KEY = "lwh_gh_pat";
 function getToken(){ try{ return localStorage.getItem(TOKEN_KEY)||""; }catch(e){ return ""; } }
 function setToken(t){ try{ localStorage.setItem(TOKEN_KEY,t); }catch(e){} }
 function clearToken(){ try{ localStorage.removeItem(TOKEN_KEY); }catch(e){} }
 
+/* 目前是誰在用（Netflix 式切換；只記在這台裝置） */
+var CUR_USER_KEY = "lwh_user";
+function getCurUserId(){ try{ return localStorage.getItem(CUR_USER_KEY)||""; }catch(e){ return ""; } }
+function setCurUserId(id){ try{ localStorage.setItem(CUR_USER_KEY, id||""); }catch(e){} }
+function clearCurUserId(){ try{ localStorage.removeItem(CUR_USER_KEY); }catch(e){} }
+
 function uiError(message){ var e=new Error(message); e.userMessage=message; return e; }
+
+/* 每位使用者的檔案位置（兩個 store 共用） */
+function pathProfile(u){ return "data/users/"+u+"/profile.md"; }
+function pathFoods(u){ return "data/users/"+u+"/foods.md"; }
+function pathDay(u, dk){ return "data/users/"+u+"/days/"+dk+".md"; }
+var PATH_USERS = "data/users.md";
 
 var LocalStore = {
   local:true,
@@ -241,7 +307,7 @@ var LocalStore = {
       if(!r.ok) throw uiError(failMsg+"（"+r.status+"）");
       return r.json();
     }).catch(function(e){
-      throw (e&&e.userMessage) ? e : uiError("連不到熱量手帳伺服器（server.js 沒開？）");
+      throw (e&&e.userMessage) ? e : uiError("連不到伺服器（server.js 沒開？）");
     });
   },
   _post:function(path, payload, failMsg){
@@ -252,16 +318,26 @@ var LocalStore = {
         return x.data;
       },function(){ throw uiError("連不到伺服器，"+failMsg); });
   },
-  loadCore:function(){ return this._get("api/core","讀取設定失敗"); },
-  loadDays:function(dates){
+  loadUsers:function(){ return this._get("api/users","讀取使用者失敗").then(function(j){ return j.users||[]; }); },
+  saveUsers:function(list){ return this._post("api/users", {users:list}, "使用者儲存失敗"); },
+  deleteUser:function(id){
+    return fetch("api/users/"+encodeURIComponent(id),{method:"DELETE"}).then(function(r){
+      if(!r.ok) throw uiError("刪除使用者失敗");
+    });
+  },
+  loadCore:function(u){ return this._get("api/core?u="+encodeURIComponent(u),"讀取設定失敗"); },
+  loadDays:function(u, dates){
     if(!dates.length) return Promise.resolve([]);
-    return this._get("api/days?dates="+encodeURIComponent(dates.join(",")),"讀取紀錄失敗")
+    return this._get("api/days?u="+encodeURIComponent(u)+"&dates="+encodeURIComponent(dates.join(",")),"讀取紀錄失敗")
       .then(function(j){ return j.days||[]; });
   },
-  loadIndex:function(){ return this._get("api/days/index","讀取日期清單失敗").then(function(j){ return j.dates||[]; }); },
-  saveDay:function(d){ return this._post("api/days", d, "紀錄儲存失敗"); },
-  saveProfile:function(p){ return this._post("api/profile", {profile:p}, "設定儲存失敗"); },
-  saveFoods:function(l){ return this._post("api/foods", {foods:l}, "常吃清單儲存失敗"); }
+  loadIndex:function(u){
+    return this._get("api/days/index?u="+encodeURIComponent(u),"讀取日期清單失敗")
+      .then(function(j){ return j.dates||[]; });
+  },
+  saveDay:function(u, d){ return this._post("api/days", Object.assign({u:u}, d), "紀錄儲存失敗"); },
+  saveProfile:function(u, p){ return this._post("api/profile", {u:u, profile:p}, "設定儲存失敗"); },
+  saveFoods:function(u, l){ return this._post("api/foods", {u:u, foods:l}, "常吃清單儲存失敗"); }
 };
 
 var GitHubStore = {
@@ -291,7 +367,7 @@ var GitHubStore = {
   },
   _msgForStatus:function(status, body){
     if(status===401) return "GitHub 金鑰無效或已過期，請到「設定」重新貼上金鑰。";
-    if(status===403) return "GitHub 金鑰權限不足：需 fine-grained PAT，授權 calorie-tracker repo，Contents 設為 Read and write。";
+    if(status===403) return "GitHub 金鑰權限不足：需 fine-grained PAT，授權 lose-weight-helper repo，Contents 設為 Read and write。";
     if(status===404) return "找不到資源（可能路徑錯或金鑰未授權此 repo）。";
     if(status===409) return "資料版本衝突（有其他裝置剛改過），請重試。";
     if(status===422) return "GitHub 拒絕此次寫入（"+((body&&body.message)||"格式問題")+"）。";
@@ -351,28 +427,60 @@ var GitHubStore = {
     }
     return this._getFile(pathRel).then(function(cur){ return doDelete(cur?cur.sha:null); });
   },
-
-  loadCore:function(){
+  /* 遞迴刪一個資料夾底下所有檔案（刪除使用者用；Contents API 沒有刪資料夾這種東西） */
+  _deleteTree:function(dir, message){
     var self=this;
-    return Promise.all([ self._readText("data/profile.md"), self._readText("data/foods.md") ])
+    return this._ghFetch(this.apiBase+"/contents/"+dir+"?ref="+GH.branch, {}, true)
+      .then(function(res){ return res.json(); })
+      .catch(function(e){ if(e.status===404) return []; throw e; })
+      .then(function(items){
+        var list=Array.isArray(items)?items:[];
+        /* 逐一刪；子資料夾遞迴。刻意序列化執行：同一棵樹平行刪很容易撞 409 */
+        return list.reduce(function(chain, it){
+          return chain.then(function(){
+            if(it.type==="dir") return self._deleteTree(dir+"/"+it.name, message);
+            self._sha[dir+"/"+it.name]=it.sha;
+            return self._deleteFile(dir+"/"+it.name, message);
+          });
+        }, Promise.resolve());
+      });
+  },
+
+  loadUsers:function(){
+    return this._readText(PATH_USERS).then(function(txt){ return txt?parseUsers(txt):[]; });
+  },
+  saveUsers:function(list){
+    return this._putFile(PATH_USERS, b64EncodeUtf8(serializeUsers(list)), "mobile: update users", this._sha[PATH_USERS]||null);
+  },
+  deleteUser:function(id){
+    var self=this;
+    return this.loadUsers().then(function(list){
+      return self.saveUsers(list.filter(function(u){ return u.id!==id; }));
+    }).then(function(){
+      return self._deleteTree("data/users/"+id, "mobile: delete user "+id);
+    });
+  },
+  loadCore:function(u){
+    var self=this;
+    return Promise.all([ self._readText(pathProfile(u)), self._readText(pathFoods(u)) ])
       .then(function(r){
         return { profile: r[0]?parseProfile(r[0]):defaultProfile(),
                  foods:   r[1]?parseFoods(r[1]):[] };
       });
   },
-  loadDays:function(dates){
+  loadDays:function(u, dates){
     var self=this;
-    /* 一天一個請求、平行打。刻意不列整個 data/days 資料夾：
+    /* 一天一個請求、平行打。刻意不列整個 days 資料夾：
      * 那會隨著使用月數線性增加請求數，手機上會越用越慢。 */
     return Promise.all(dates.map(function(dk){
-      return self._readText("data/days/"+dk+".md")
+      return self._readText(pathDay(u, dk))
         .then(function(txt){ return txt ? parseDay(dk, txt) : emptyDay(dk); })
         .catch(function(){ return emptyDay(dk); });
     }));
   },
-  loadIndex:function(){
+  loadIndex:function(u){
     var hasKey=this.canWrite();
-    return this._ghFetch(this.apiBase+"/contents/data/days?ref="+GH.branch, {}, hasKey)
+    return this._ghFetch(this.apiBase+"/contents/data/users/"+u+"/days?ref="+GH.branch, {}, hasKey)
       .then(function(res){ return res.json(); })
       .catch(function(e){ if(e.status===404) return []; throw e; })
       .then(function(files){
@@ -382,20 +490,20 @@ var GitHubStore = {
       })
       .catch(function(){ return []; });
   },
-  saveDay:function(d){
-    var pathRel="data/days/"+d.date+".md";
+  saveDay:function(u, d){
+    var pathRel=pathDay(u, d.date);
     d.updatedAt=new Date().toISOString();
     var isEmpty=!(d.entries||[]).length && !(d.moves||[]).length
       && !String(d.notes||"").trim() && !num(d.weight);
     if(isEmpty) return this._deleteFile(pathRel, "mobile: clear "+d.date);
     return this._putFile(pathRel, b64EncodeUtf8(serializeDay(d)), "mobile: log "+d.date, this._sha[pathRel]||null);
   },
-  saveProfile:function(p){
-    var pathRel="data/profile.md";
+  saveProfile:function(u, p){
+    var pathRel=pathProfile(u);
     return this._putFile(pathRel, b64EncodeUtf8(serializeProfile(p)), "mobile: update profile", this._sha[pathRel]||null);
   },
-  saveFoods:function(l){
-    var pathRel="data/foods.md";
+  saveFoods:function(u, l){
+    var pathRel=pathFoods(u);
     return this._putFile(pathRel, b64EncodeUtf8(serializeFoods(l)), "mobile: update foods", this._sha[pathRel]||null);
   }
 };

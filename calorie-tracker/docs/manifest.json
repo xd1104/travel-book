@@ -1,7 +1,7 @@
 {
-  "name": "熱量手帳",
-  "short_name": "熱量手帳",
-  "description": "吃完拍一下就知道今天超過 TDEE 沒有",
+  "name": "減重助手",
+  "short_name": "減重助手",
+  "description": "兩個人各自記錄，拍一下就知道今天超過 TDEE 沒有",
   "start_url": ".",
   "scope": "./",
   "display": "standalone",

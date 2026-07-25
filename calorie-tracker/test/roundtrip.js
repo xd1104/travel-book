@@ -145,13 +145,51 @@ t('safeDate 擋掉 path traversal 與亂格式', () => {
   assert.strictEqual(S.safeDate(''), '');
 });
 
+console.log('使用者名冊');
+
+t('使用者 round-trip：id／名字／頭像／顏色都原樣回來', () => {
+  const list = [
+    { id: 'mabc-benson', name: 'Benson', emoji: '🐻', color: '#2fa86a', createdAt: '2026-07-25T00:00:00.000Z' },
+    { id: 'mabd-女友', name: '小美', emoji: '🌸', color: '#e0447f', createdAt: '2026-07-25T00:01:00.000Z' },
+  ];
+  const back = S.parseUsers(S.serializeUsers(list));
+  assert.strictEqual(back.length, 2);
+  assert.strictEqual(back[0].name, 'Benson');
+  assert.strictEqual(back[1].emoji, '🌸');
+  assert.strictEqual(back[1].id, 'mabd-女友', '中文 id 不可被 mangle');
+});
+
+t('id 重複只留第一個（兩個人不能指到同一個資料夾）', () => {
+  const back = S.normalizeUsers([{ id: 'same', name: 'A' }, { id: 'same', name: 'B' }]);
+  assert.strictEqual(back.length, 1);
+  assert.strictEqual(back[0].name, 'A');
+});
+
+t('沒給 id 會自動生成，且生成的 id 通得過 safeName', () => {
+  const u = S.cleanUser({ name: '小美' });
+  assert.ok(u.id, '要有 id');
+  assert.strictEqual(S.safeName(u.id), u.id, '生成的 id 不可被 safeName 改寫');
+});
+
+t('safeName 與 slugify 字元集一致（travel-book QA B1 的教訓）', () => {
+  for (const name of ['小美', 'ベンソン', '벤슨', 'Benson']) {
+    const id = Date.now().toString(36) + '-' + S.slugify(name);
+    assert.strictEqual(S.safeName(id), id, name + ' 的 id 被 mangle 了');
+  }
+});
+
+t('壞掉的名冊行跳過，不整檔炸掉', () => {
+  const md = ['## 使用者', '', '- {"id":"a","name":"A"}', '- {壞了', '- {"id":"b","name":"B"}', ''].join('\n');
+  assert.strictEqual(S.parseUsers(md).length, 2);
+});
+
 console.log('前後端 mirror 一致性');
 
 t('store.js 與 server.js 的區段標題／欄位順序一致', () => {
   const store = fs.readFileSync(path.join(__dirname, '..', 'public', 'store.js'), 'utf8');
   const server = fs.readFileSync(path.join(__dirname, '..', 'server.js'), 'utf8');
   // 這幾個字串一改就會兩邊分岔，資料在電腦端與手機端會長不一樣
-  for (const marker of ['## 飲食', '## 運動', '## 備註', '## 食物']) {
+  for (const marker of ['## 飲食', '## 運動', '## 備註', '## 食物', '## 使用者']) {
     assert.ok(store.indexOf(marker) >= 0, 'store.js 缺少區段 ' + marker);
     assert.ok(server.indexOf(marker) >= 0, 'server.js 缺少區段 ' + marker);
   }
@@ -172,7 +210,7 @@ t('前端 store.js 的 serializeDay 產出與 server.js 逐字相同', () => {
     fetch: () => Promise.reject(new Error('no network in test')),
     TextEncoder, TextDecoder, btoa: () => '', atob: () => '',
   };
-  const fn = new Function(...Object.keys(sandbox), src + '\n;return {serializeDay, serializeProfile, serializeFoods};');
+  const fn = new Function(...Object.keys(sandbox), src + '\n;return {serializeDay, serializeProfile, serializeFoods, serializeUsers};');
   const front = fn(...Object.values(sandbox));
 
   const day = {
@@ -186,6 +224,9 @@ t('前端 store.js 的 serializeDay 產出與 server.js 逐字相同', () => {
 
   const foods = [{ id: 'f1', name: '滷肉飯', kcal: 480, p: 12, c: 62, f: 19, portion: '小碗', n: 7 }];
   assert.strictEqual(front.serializeFoods(foods), S.serializeFoods(foods), 'foods 序列化兩邊必須逐字相同');
+
+  const roster = [{ id: 'mabc-benson', name: 'Benson', emoji: '🐻', color: '#2fa86a', createdAt: '2026-07-25T00:00:00.000Z' }];
+  assert.strictEqual(front.serializeUsers(roster), S.serializeUsers(roster), 'users 序列化兩邊必須逐字相同');
 
   // profile 的 updatedAt 每次都是 now，比對時剔掉那一行
   const strip = (s) => s.replace(/^updatedAt: .*$/m, 'updatedAt: "X"');

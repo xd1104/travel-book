@@ -1,8 +1,11 @@
 "use strict";
 /*
- * 熱量手帳 — 前端主程式
+ * 減重助手 — 前端主程式
  * 資料層在 store.js（LocalStore / GitHubStore 自動切）、AI 在 ai.js。
  * 這支只管畫面與互動。
+ *
+ * 多使用者：Benson 與女友各自獨立（紀錄／TDEE／目標／常吃清單都不共用），
+ * 進 app 先選人（Netflix 式），選過之後這台裝置會記住，點右上頭像可切換。
  */
 
 /* ============ 小工具 ============ */
@@ -32,10 +35,13 @@ function toast(msg, isErr){
 }
 
 /* ============ 狀態 ============ */
+var users=[];                   /* 使用者名冊 */
+var me=null;                    /* 目前是誰在用 */
 var db={ profile:defaultProfile(), foods:[], days:{} };
-var view="today";              /* today | history | settings */
-var curDate=dateKey();          /* 目前檢視的日期 */
-var histDates=[];               /* 有記錄的日期（歷史頁用） */
+var view="today";               /* today | history | settings（picker 是獨立全螢幕） */
+var picking=false;              /* 是否停在「誰在用？」畫面 */
+var curDate=dateKey();
+var histDates=[];
 var histLoaded=false;
 var booted=false;
 
@@ -52,16 +58,25 @@ function chainPersist(key, job){
   persistChains[key]=(persistChains[key]||Promise.resolve()).then(run);
   return persistChains[key];
 }
+/* chain key 一律帶 uid：切換使用者後不會跟前一個人的寫入排在同一條鏈上 */
 function persistDay(key){
   var d=db.days[key];
-  if(!d) return Promise.resolve();
-  return chainPersist("day:"+key, function(){ return STORE.saveDay(d); });
+  if(!d || !me) return Promise.resolve();
+  var u=me.id;
+  return chainPersist(u+":day:"+key, function(){ return STORE.saveDay(u, d); });
 }
 function persistProfile(){
-  return chainPersist("profile", function(){ return STORE.saveProfile(db.profile); });
+  if(!me) return Promise.resolve();
+  var u=me.id, p=db.profile;
+  return chainPersist(u+":profile", function(){ return STORE.saveProfile(u, p); });
 }
 function persistFoods(){
-  return chainPersist("foods", function(){ return STORE.saveFoods(db.foods); });
+  if(!me) return Promise.resolve();
+  var u=me.id, l=db.foods;
+  return chainPersist(u+":foods", function(){ return STORE.saveFoods(u, l); });
+}
+function persistUsers(){
+  return chainPersist("users", function(){ return STORE.saveUsers(users); });
 }
 
 /* 唯讀守門（Pages 沒貼 GitHub 金鑰時） */
@@ -72,7 +87,8 @@ function requireWrite(){
 }
 
 /* ============ 常吃食物 ============ */
-/* AI 算過一次就記起來，下次同一樣東西直接從「常吃」點，不用再花錢問 AI */
+/* AI 算過一次就記起來，下次同一樣東西直接從「常吃」點，不用再花錢問 AI。
+ * 兩個人的清單是分開的（各自獨立是拍板的決定）。 */
 function rememberFood(item){
   var key=String(item.name||"").trim();
   if(!key) return;
@@ -95,6 +111,7 @@ function rememberFood(item){
 
 /* ============ 畫面 ============ */
 function render(){
+  if(picking){ $app.innerHTML=viewPicker(); wire(); window.scrollTo(0,0); return; }
   if(view==="today") $app.innerHTML=viewToday();
   else if(view==="history") $app.innerHTML=viewHistory();
   else $app.innerHTML=viewSettings();
@@ -110,7 +127,36 @@ function navHtml(){
   return '<nav class="nav">'+t("today","🍽","今天")+t("history","📈","歷史")+t("settings","⚙","設定")+'</nav>';
 }
 
-/* ---------- 今天 ---------- */
+/* ---------- 誰在用？（Netflix 式） ---------- */
+function avatarHtml(u, cls){
+  return '<span class="avatar '+(cls||"")+'" style="background:'+esc(u.color)+'">'+esc(u.emoji)+'</span>';
+}
+function viewPicker(){
+  var first=!users.length;
+  var h='<div class="picker">';
+  h+='<div class="picker-head">'+
+      '<h1>'+(first?"歡迎使用減重助手":"誰在用？")+'</h1>'+
+      '<p>'+(first?"先建立第一位使用者。兩個人的紀錄、目標與常吃清單完全獨立。"
+                 :"每個人的紀錄與目標都是分開的。")+'</p>'+
+     '</div>';
+  h+='<div class="picker-grid">';
+  users.forEach(function(u){
+    h+='<button class="picker-tile" data-pick="'+esc(u.id)+'">'+
+        '<span class="picker-face" style="background:'+esc(u.color)+'">'+esc(u.emoji)+'</span>'+
+        '<b>'+esc(u.name)+'</b>'+
+       '</button>';
+  });
+  h+='<button class="picker-tile add" data-act="new-user">'+
+      '<span class="picker-face add">＋</span><b>新增使用者</b></button>';
+  h+='</div>';
+  if(!first){
+    h+='<button class="picker-manage" data-act="manage-users">管理使用者</button>';
+  }
+  h+='</div>';
+  return h;
+}
+
+/* ---------- 熱量環 ---------- */
 function ringHtml(eaten, target){
   var pct = target>0 ? eaten/target : 0;
   var shown = Math.max(0, Math.min(1, pct));
@@ -132,6 +178,14 @@ function ringHtml(eaten, target){
   '</div>';
 }
 
+function headHtml(title){
+  return '<header class="head"><h1>'+esc(title)+'</h1>'+
+    (STORE.canWrite()?"":'<span class="sub">唯讀</span>')+
+    '<button class="me-btn" data-act="switch-user" aria-label="切換使用者：'+esc(me.name)+'">'+
+      avatarHtml(me)+'</button>'+
+   '</header>';
+}
+
 function viewToday(){
   var d=dayOf(curDate);
   var eaten=sumKcal(d.entries), burn=sumKcal(d.moves);
@@ -145,9 +199,7 @@ function viewToday(){
   else if(target>0 && net/target>=0.85) tag='<div class="over-tag near">快到目標了，剩 '+kcal(target-net)+' 大卡</div>';
   else tag='<div class="over-tag ok">還在目標內，剩 '+kcal(target-net)+' 大卡</div>';
 
-  var h='';
-  h+='<header class="head"><h1>熱量手帳</h1>'+
-     (STORE.canWrite()?"":'<span class="sub">唯讀</span>')+'</header>';
+  var h=headHtml(me.name);
 
   h+='<div class="daynav">'+
       '<button data-act="prev-day" aria-label="前一天">‹</button>'+
@@ -184,9 +236,8 @@ function viewToday(){
          '<b style="color:var(--muted);font-weight:600">＋ 記一筆'+info.label+'</b></div></button>';
     }else{
       list.forEach(function(e){
-        var conf = e.src==="ai" ? "" : "";
         h+='<button class="row" data-act="edit-entry" data-id="'+esc(e.id)+'">'+
-            '<div class="row-mid"><b>'+esc(e.name)+conf+'</b>'+
+            '<div class="row-mid"><b>'+esc(e.name)+'</b>'+
               (e.portion||e.time ? '<span>'+esc([e.time,e.portion].filter(Boolean).join(" · "))+'</span>' : '')+
             '</div>'+
             '<div class="row-kcal num">'+kcal(e.kcal)+'<i>大卡</i></div>'+
@@ -256,7 +307,7 @@ function sparkHtml(target){
 function viewHistory(){
   var target=targetOf(db.profile);
   var keys=histDates.slice().sort().reverse().slice(0,60);
-  var h='<header class="head"><h1>歷史</h1></header>';
+  var h=headHtml("歷史");
 
   var loaded=keys.filter(function(k){ return db.days[k]; });
   var vals=loaded.map(function(k){ return netOf(db.days[k]); }).filter(function(v){ return v>0; });
@@ -315,11 +366,27 @@ var GOALS=[
 function viewSettings(){
   var p=db.profile;
   var bmr=bmrOf(p), tdee=tdeeOf(p), target=targetOf(p);
-  var h='<header class="head"><h1>設定</h1></header>';
+  var h=headHtml("設定");
+
+  /* 使用者 */
+  h+='<div class="card">'+
+      '<h2>使用者</h2>'+
+      '<p class="desc">每個人的紀錄、TDEE、目標與常吃清單完全獨立，互不干擾。</p>'+
+      '<div class="user-list">'+
+        users.map(function(u){
+          return '<button class="user-row" data-edit-user="'+esc(u.id)+'">'+
+            avatarHtml(u,"sm")+
+            '<b>'+esc(u.name)+(u.id===me.id?'<span class="tag-me">目前</span>':'')+'</b>'+
+            '<span class="chev">›</span></button>';
+        }).join("")+
+      '</div>'+
+      '<button class="btn ghost" data-act="new-user">＋ 新增使用者</button>'+
+      '<button class="btn ghost" data-act="switch-user">切換使用者</button>'+
+     '</div>';
 
   /* 個人資料 → TDEE */
   h+='<div class="card">'+
-      '<h2>身體資料</h2>'+
+      '<h2>'+esc(me.name)+' 的身體資料</h2>'+
       '<p class="desc">用 Mifflin-St Jeor 公式算基礎代謝，再乘活動係數得到 TDEE。</p>'+
       '<div class="field"><label>性別</label><div class="chips">'+
         '<button class="chip '+(p.sex==="male"?"on":"")+'" data-set="sex" data-val="male">男</button>'+
@@ -365,7 +432,8 @@ function viewSettings(){
   h+='<div class="card">'+
       '<h2>AI 熱量判讀</h2>'+
       '<p class="desc">用你自己的 Anthropic API key，從這台裝置直接呼叫 Claude。'+
-        'key 只存在這支手機的瀏覽器裡，不會上傳、也不會進 GitHub。</p>'+
+        'key 只存在這支手機的瀏覽器裡，不會上傳、也不會進 GitHub。'+
+        '<br><b>同一台裝置上兩個人共用同一把 key</b>（key 綁裝置，不綁使用者）。</p>'+
       '<div class="field"><label>API key</label>'+
         '<input type="password" id="ai-key" placeholder="sk-ant-..." value="'+esc(key)+'" autocomplete="off">'+
         '<div class="hint">到 console.anthropic.com → API keys 申請，並記得在 Billing 設每月上限。</div></div>'+
@@ -375,7 +443,7 @@ function viewSettings(){
                  esc(m.label)+'</button>';
         }).join("")+
       '</div><div class="hint">'+esc(aiModelInfo(p.model).hint)+'</div></div>'+
-      '<div class="tdee-box"><div class="r"><span>AI 用量</span><b style="font-size:14px">'+esc(usageText())+'</b></div></div>'+
+      '<div class="tdee-box"><div class="r"><span>AI 用量（這台裝置）</span><b style="font-size:14px">'+esc(usageText())+'</b></div></div>'+
       '<button class="btn" data-act="save-key">儲存 API key</button>'+
       (key?'<button class="btn ghost" data-act="clear-key">移除這台裝置的 key</button>':'')+
      '</div>';
@@ -386,7 +454,7 @@ function viewSettings(){
     h+='<div class="card">'+
         '<h2>GitHub 同步金鑰</h2>'+
         '<p class="desc">手機版直接讀寫 GitHub 上的資料檔。沒有金鑰只能看，不能記錄。'+
-          '請用 fine-grained PAT，只授權 calorie-tracker 這一個 repo，Contents 設為 Read and write。</p>'+
+          '請用 fine-grained PAT，只授權 lose-weight-helper 這一個 repo，Contents 設為 Read and write。</p>'+
         '<div class="field"><label>Personal access token</label>'+
           '<input type="password" id="gh-key" placeholder="github_pat_..." value="'+esc(tok)+'" autocomplete="off"></div>'+
         '<button class="btn" data-act="save-gh">儲存金鑰</button>'+
@@ -396,14 +464,12 @@ function viewSettings(){
 
   h+='<div class="card"><h2>資料</h2>'+
       '<p class="desc">紀錄存成 markdown：<br>'+
-        '<code style="font-size:12px">data/days/YYYY-MM-DD.md</code>、'+
-        '<code style="font-size:12px">data/profile.md</code>、'+
-        '<code style="font-size:12px">data/foods.md</code><br>'+
-        '常吃清單目前 '+db.foods.length+' 筆。</p>'+
+        '<code style="font-size:12px">data/users/'+esc(me.id)+'/days/YYYY-MM-DD.md</code><br>'+
+        esc(me.name)+' 的常吃清單目前 '+db.foods.length+' 筆。</p>'+
       (db.foods.length?'<button class="btn ghost" data-act="clear-foods">清空常吃清單</button>':'')+
      '</div>';
 
-  h+='<p style="text-align:center;color:#b0b8ac;font-size:12px;padding:6px 16px 30px">熱量手帳 v1.0</p>';
+  h+='<p style="text-align:center;color:#b0b8ac;font-size:12px;padding:6px 16px 30px">減重助手 v2.0</p>';
   return h;
 }
 
@@ -416,6 +482,13 @@ function wire(){
       render();
       window.scrollTo(0,0);
     };
+  });
+
+  $app.querySelectorAll("[data-pick]").forEach(function(b){
+    b.onclick=function(){ switchUser(b.getAttribute("data-pick")); };
+  });
+  $app.querySelectorAll("[data-edit-user]").forEach(function(b){
+    b.onclick=function(){ openUserSheet(b.getAttribute("data-edit-user")); };
   });
 
   $app.querySelectorAll("[data-act]").forEach(function(b){
@@ -445,6 +518,13 @@ function wire(){
 }
 
 function doAct(act, el){
+  if(act==="switch-user"){ picking=true; render(); return; }
+  if(act==="manage-users"){
+    /* 從選人畫面進管理：先進去目前這位（或第一位）的設定頁 */
+    if(!me && users.length) return switchUser(users[0].id, function(){ view="settings"; picking=false; render(); });
+    picking=false; view="settings"; render(); return;
+  }
+  if(act==="new-user"){ openUserSheet(null); return; }
   if(act==="prev-day"){ curDate=shiftDate(curDate,-1); ensureDays([curDate]); render(); return; }
   if(act==="next-day"){ if(curDate<dateKey()){ curDate=shiftDate(curDate,1); ensureDays([curDate]); render(); } return; }
   if(act==="go-today"){ curDate=dateKey(); ensureDays([curDate]); render(); return; }
@@ -473,9 +553,137 @@ function doAct(act, el){
     setTimeout(function(){ location.reload(); }, 700); return;
   }
   if(act==="clear-foods"){
-    if(!confirm("清空常吃清單？（不影響已記錄的飲食）")) return;
+    if(!confirm("清空 "+me.name+" 的常吃清單？（不影響已記錄的飲食）")) return;
     db.foods=[]; persistFoods(); render(); return;
   }
+}
+
+/* ============ 使用者管理 ============ */
+function openUserSheet(id){
+  var u=id ? users.filter(function(x){ return x.id===id; })[0] : null;
+  if(id && !u) return;
+  if(!u && !STORE.canWrite()){ toast("唯讀模式：無法新增使用者", true); return; }
+  var draft = u ? { id:u.id, name:u.name, emoji:u.emoji, color:u.color, createdAt:u.createdAt }
+                : { id:"", name:"", emoji:USER_EMOJIS[users.length%USER_EMOJIS.length],
+                    color:USER_COLORS[users.length%USER_COLORS.length], createdAt:"" };
+
+  function body(){
+    return '<form id="f-user">'+
+      '<div class="user-preview"><span class="picker-face" style="background:'+esc(draft.color)+'">'+esc(draft.emoji)+'</span></div>'+
+      '<div class="field"><label>名字</label>'+
+        '<input type="text" id="u-name" value="'+esc(draft.name)+'" placeholder="例如：Benson" maxlength="20" autocomplete="off" required></div>'+
+      '<div class="field"><label>頭像</label><div class="chips emoji-pick">'+
+        USER_EMOJIS.map(function(e){
+          return '<button type="button" class="chip '+(draft.emoji===e?"on":"")+'" data-uemoji="'+esc(e)+'">'+esc(e)+'</button>';
+        }).join("")+'</div></div>'+
+      '<div class="field"><label>顏色</label><div class="chips">'+
+        USER_COLORS.map(function(c){
+          return '<button type="button" class="swatch '+(draft.color===c?"on":"")+'" data-ucolor="'+esc(c)+'" '+
+                 'style="background:'+esc(c)+'" aria-label="'+esc(c)+'"></button>';
+        }).join("")+'</div></div>'+
+      '<button class="btn" type="submit">'+(u?"儲存":"建立")+'</button>'+
+      (u && users.length>1 ? '<button class="btn danger" type="button" data-del-user="1">刪除這位使用者</button>' : '')+
+    '</form>';
+  }
+
+  function draw(isNew){
+    var opts={ onDraw:function(root){
+      root.querySelectorAll("[data-uemoji]").forEach(function(b){
+        b.onclick=function(){ draft.emoji=b.getAttribute("data-uemoji"); draft.name=root.querySelector("#u-name").value; draw(false); };
+      });
+      root.querySelectorAll("[data-ucolor]").forEach(function(b){
+        b.onclick=function(){ draft.color=b.getAttribute("data-ucolor"); draft.name=root.querySelector("#u-name").value; draw(false); };
+      });
+      var del=root.querySelector("[data-del-user]");
+      if(del) del.onclick=function(){
+        if(!confirm("刪除「"+u.name+"」？這會一併刪掉他/她所有的紀錄，無法復原。")) return;
+        deleteUser(u.id);
+      };
+      root.querySelector("#f-user").onsubmit=function(ev){
+        ev.preventDefault();
+        var name=(root.querySelector("#u-name").value||"").trim();
+        if(!name){ toast("請填名字", true); return; }
+        draft.name=name;
+        saveUser(draft, !u);
+      };
+    }};
+    if(isNew) openSheet(u?"編輯使用者":"新增使用者", body(), opts);
+    else replaceSheet(u?"編輯使用者":"新增使用者", body(), opts);
+  }
+  draw(true);
+}
+
+function saveUser(draft, isNew){
+  var clean=cleanUser(draft);
+  if(isNew){
+    users.push(clean);
+  }else{
+    for(var i=0;i<users.length;i++){
+      if(users[i].id===clean.id){ users[i]=clean; break; }
+    }
+    if(me && me.id===clean.id) me=clean;
+  }
+  users=normalizeUsers(users);
+  persistUsers();
+  closeAllSheets();
+  if(isNew){
+    toast("已建立 "+clean.name);
+    switchUser(clean.id);
+  }else{
+    toast("已更新");
+    render();
+  }
+}
+
+function deleteUser(id){
+  var wasMe = me && me.id===id;
+  users=users.filter(function(u){ return u.id!==id; });
+  chainPersist("users", function(){ return STORE.deleteUser(id); });
+  closeAllSheets();
+  toast("已刪除");
+  if(wasMe){
+    me=null; clearCurUserId();
+    picking=true; render();
+  }else{
+    render();
+  }
+}
+
+/* 切換使用者：把上一位的資料整個丟掉再載入，避免看到別人的紀錄 */
+function switchUser(id, after){
+  var u=users.filter(function(x){ return x.id===id; })[0];
+  if(!u){ picking=true; render(); return; }
+  me=u;
+  setCurUserId(u.id);
+  db={ profile:defaultProfile(), foods:[], days:{} };
+  histDates=[]; histLoaded=false;
+  curDate=dateKey();
+  view="today"; picking=false;
+  $app.innerHTML='<div class="spin" style="padding-top:140px"><div class="dots"><i></i><i></i><i></i></div>載入 '+esc(u.name)+' 的紀錄…</div>';
+  loadUserData().then(function(){
+    if(after) after(); else render();
+    window.scrollTo(0,0);
+  });
+}
+
+function loadUserData(){
+  var todayKeys=[];
+  for(var i=0;i<7;i++) todayKeys.push(shiftDate(curDate,-i));
+  var u=me.id;
+  return STORE.loadCore(u).then(function(core){
+    if(!me || me.id!==u) return; /* 載入途中又切了人：丟棄這批結果 */
+    db.profile=cleanProfile(core.profile||{});
+    db.foods=core.foods||[];
+    return STORE.loadDays(u, todayKeys);
+  }).then(function(days){
+    if(!me || me.id!==u) return;
+    (days||[]).forEach(function(d){ db.days[d.date]=d; });
+    histDates=Object.keys(db.days);
+    booted=true;
+  }).catch(function(e){
+    booted=true;
+    toast(e.userMessage||"載入失敗，先用預設值", true);
+  });
 }
 
 /* ============ sheet 基礎 ============ */
@@ -537,8 +745,8 @@ function drawAddSheet(isNew){
   '</div>';
   var body=mealPicker()+addTabBody();
   var opts={ tabs:tabs, onDraw:wireAddSheet };
-  if(isNew) openSheet("記一筆", body, opts);
-  else replaceSheet("記一筆", body, opts);
+  if(isNew) openSheet("記一筆 · "+me.name, body, opts);
+  else replaceSheet("記一筆 · "+me.name, body, opts);
 }
 function tabBtn(id,label){
   return '<button data-tab="'+id+'" class="'+(addTab===id?"on":"")+'">'+label+'</button>';
@@ -586,7 +794,7 @@ function addTabBody(){
   if(addTab==="fav"){
     if(!db.foods.length){
       return '<div class="card" style="margin:14px 0 0"><p class="desc" style="margin:0">'+
-             '還沒有常吃項目。用 AI 或手動記過的東西會自動存進這裡，下次一鍵就能加。</p></div>';
+             esc(me.name)+' 還沒有常吃項目。用 AI 或手動記過的東西會自動存進這裡，下次一鍵就能加。</p></div>';
     }
     return '<div class="field"><label>搜尋</label>'+
       '<input type="text" id="i-fav-q" placeholder="輸入食物名稱" autocomplete="off"></div>'+
@@ -651,7 +859,6 @@ function wireAddSheet(root){
         pendingPhoto=dataUrl;
         slot.innerHTML='<img class="photo-prev" src="'+dataUrl+'" alt="餐點照片">'+
           '<label class="btn ghost" for="i-photo" style="margin-top:0">換一張</label>';
-        /* innerHTML 換掉 label 之後要重新掛 for=... 的觸發（label 仍指向同一個 input，不用重綁） */
         btn.disabled=false;
         btn.textContent="交給 AI 估算";
       }).catch(function(e){
@@ -737,7 +944,7 @@ function drawAiResult(){
   body+='<button class="btn" data-ai="save">加入 '+aiResult.items.length+' 筆 · 共 '+kcal(total)+' 大卡</button>'+
         '<button class="btn ghost" data-ai="retry">重新描述</button>';
 
-  replaceSheet("AI 估算結果", body, { onDraw:function(root){
+  replaceSheet("AI 估算結果 · "+me.name, body, { onDraw:function(root){
     root.querySelectorAll("[data-meal-pick]").forEach(function(b){
       b.onclick=function(){ addMeal=b.getAttribute("data-meal-pick"); drawAiResult(); };
     });
@@ -909,50 +1116,55 @@ function openNotesSheet(){
 
 /* ============ 載入 ============ */
 function ensureDays(keys){
+  if(!me) return Promise.resolve();
+  var u=me.id;
   var need=keys.filter(function(k){ return !db.days[k]; });
   if(!need.length) return Promise.resolve();
   need.forEach(function(k){ db.days[k]=emptyDay(k); }); /* 先放空的，避免重複請求 */
-  return STORE.loadDays(need).then(function(days){
+  return STORE.loadDays(u, need).then(function(days){
+    if(!me || me.id!==u) return; /* 載入途中切了人：丟棄 */
     days.forEach(function(d){ db.days[d.date]=d; });
-    if(booted) render();
+    if(booted && !picking) render();
   }).catch(function(e){
     toast(e.userMessage||"讀取紀錄失敗", true);
   });
 }
 
 function ensureHistory(){
-  if(histLoaded) return;
-  STORE.loadIndex().then(function(dates){
+  if(histLoaded || !me) return;
+  var u=me.id;
+  STORE.loadIndex(u).then(function(dates){
+    if(!me || me.id!==u) return;
     histDates=dates;
     histLoaded=true;
     /* 最近 30 天的內容補進來，歷史頁才畫得出長條 */
     return ensureDays(dates.slice(-30));
   }).then(function(){
-    if(view==="history") render();
+    if(view==="history" && !picking) render();
   }).catch(function(){
     histLoaded=true;
-    if(view==="history") render();
+    if(view==="history" && !picking) render();
   });
 }
 
 function boot(){
-  var todayKeys=[];
-  for(var i=0;i<7;i++) todayKeys.push(shiftDate(curDate,-i));
-  $app.innerHTML='<div class="spin" style="padding-top:120px"><div class="dots"><i></i><i></i><i></i></div>載入中…</div>';
+  $app.innerHTML='<div class="spin" style="padding-top:140px"><div class="dots"><i></i><i></i><i></i></div>載入中…</div>';
 
-  STORE.loadCore().then(function(core){
-    db.profile=cleanProfile(core.profile||{});
-    db.foods=core.foods||[];
-    return STORE.loadDays(todayKeys);
-  }).then(function(days){
-    (days||[]).forEach(function(d){ db.days[d.date]=d; });
-    histDates=Object.keys(db.days);
-    booted=true;
-    render();
+  STORE.loadUsers().then(function(list){
+    users=list||[];
+    var saved=getCurUserId();
+    var found=users.filter(function(u){ return u.id===saved; })[0];
+    if(!users.length || !found){
+      /* 沒有使用者（第一次用）或這台裝置還沒選過人 -> 停在選人畫面 */
+      booted=true; picking=true; me=null; render();
+      return;
+    }
+    me=found;
+    return loadUserData().then(render);
   }).catch(function(e){
-    booted=true;
+    booted=true; picking=true; me=null;
     render();
-    toast(e.userMessage||"載入失敗，先用預設值", true);
+    toast(e.userMessage||"載入使用者失敗", true);
   });
 }
 
@@ -963,7 +1175,7 @@ document.addEventListener("visibilitychange", function(){
   var now=dateKey();
   if(now!==bootDay && curDate===bootDay){
     bootDay=now; curDate=now;
-    ensureDays([now]).then(render);
+    if(me) ensureDays([now]).then(function(){ if(!picking) render(); });
   }
 });
 

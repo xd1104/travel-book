@@ -1,4 +1,4 @@
-/* 熱量手帳 service worker
+/* 減重助手 service worker
  * - App shell：cache-first
  * - 讀取類 /api（GET）：network-first、失敗退 cache（離線仍看得到上次載入的紀錄）
  * - 寫入類 /api：network-only，失敗回明確的離線 JSON
@@ -6,11 +6,11 @@
  * 鐵律：skipWaiting + activate 清舊快取 + clients.claim，已安裝的 PWA 才吃得到新版
  * 改前端記得把 cache 版本號 +1
  */
-const SHELL_CACHE = 'cal-shell-v1';
-const DATA_CACHE = 'cal-data-v1';
+const SHELL_CACHE = 'lwh-shell-v1';
+const DATA_CACHE = 'lwh-data-v1';
 const KEEP = [SHELL_CACHE, DATA_CACHE];
 
-// 相對於 SW scope 解析（localhost 根目錄或 Pages 子路徑 /calorie-tracker/ 都對）
+// 相對於 SW scope 解析（localhost 根目錄或 Pages 子路徑 /lose-weight-helper/ 都對）
 const BASE = new URL('./', self.location).pathname;
 const SHELL = [
   BASE,
@@ -39,7 +39,7 @@ self.addEventListener('activate', (e) => {
 });
 
 function offlineJson() {
-  return new Response(JSON.stringify({ ok: false, code: 'offline', message: '目前離線或連不到熱量手帳伺服器。' }), {
+  return new Response(JSON.stringify({ ok: false, code: 'offline', message: '目前離線或連不到減重助手伺服器。' }), {
     status: 503,
     headers: { 'Content-Type': 'application/json; charset=utf-8' },
   });

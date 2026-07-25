@@ -1,4 +1,4 @@
-/* 熱量手帳 — 樣式（手機優先；桌機是同一份，只是置中在 480px 內） */
+/* 減重助手 — 樣式（手機優先；桌機是同一份，只是置中在 480px 內） */
 :root{
   --bg:#f6f7f4; --card:#ffffff; --ink:#232821; --muted:#8b9187; --line:#e6e9e1;
   --acc:#2fa86a; --acc-deep:#1f8a55; --acc-soft:#e8f5ee;
@@ -36,6 +36,41 @@ input,textarea,select{font-family:inherit; font-size:16px; color:inherit;}
 .daynav .date small{display:block; font-size:12px; color:var(--muted); font-weight:600; margin-top:1px;}
 .today-btn{font-size:12.5px; font-weight:800; color:var(--acc-deep); background:var(--acc-soft);
   border-radius:99px; padding:0 12px; min-height:32px;}
+
+/* ---------- 誰在用？（Netflix 式選人） ---------- */
+.picker{min-height:100dvh; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:40px 20px calc(40px + var(--safe-b)); text-align:center;}
+.picker-head h1{font-size:26px; font-weight:800;}
+.picker-head p{color:var(--muted); font-size:14px; margin-top:8px; line-height:1.6; max-width:320px;}
+.picker-grid{display:flex; flex-wrap:wrap; gap:16px; justify-content:center; margin-top:34px;}
+.picker-tile{display:flex; flex-direction:column; align-items:center; gap:10px; width:100px;}
+.picker-tile b{font-size:15px; font-weight:700; overflow-wrap:anywhere;}
+.picker-tile.add b{color:var(--muted); font-weight:600;}
+.picker-face{width:88px; height:88px; border-radius:24px; display:flex; align-items:center; justify-content:center;
+  font-size:44px; color:#fff; box-shadow:var(--shadow); transition:transform .16s;}
+.picker-tile:active .picker-face{transform:scale(.94);}
+.picker-face.add{background:transparent; border:2px dashed #cfd6c9; color:#b6bfb2; font-size:38px; font-weight:300;
+  box-shadow:none;}
+.picker-manage{margin-top:36px; min-height:44px; padding:0 18px; color:var(--muted); font-size:13.5px;
+  font-weight:700; text-decoration:underline;}
+
+/* 頭像 */
+.avatar{width:34px; height:34px; border-radius:12px; display:inline-flex; align-items:center; justify-content:center;
+  font-size:18px; color:#fff; flex:0 0 auto;}
+.avatar.sm{width:38px; height:38px; border-radius:13px; font-size:19px;}
+.me-btn{min-width:44px; min-height:44px; display:flex; align-items:center; justify-content:center;}
+.user-list{margin-top:4px;}
+.user-row{width:100%; display:flex; align-items:center; gap:11px; padding:10px 2px; text-align:left;
+  border-top:1px solid #f1f4ee; min-height:56px;}
+.user-row:first-child{border-top:none;}
+.user-row b{flex:1; font-size:15px; font-weight:700; overflow-wrap:anywhere;}
+.user-row .chev{color:#c9d2c4; font-size:19px;}
+.tag-me{display:inline-block; margin-left:7px; background:var(--acc-soft); color:var(--acc-deep);
+  font-size:11px; font-weight:800; padding:2px 7px; border-radius:99px; vertical-align:2px;}
+.user-preview{display:flex; justify-content:center; padding:6px 0 4px;}
+.emoji-pick .chip{min-width:52px; justify-content:center; font-size:22px; padding:0 8px;}
+.swatch{width:44px; height:44px; border-radius:14px; border:3px solid transparent;}
+.swatch.on{border-color:var(--ink);}
 
 /* ---------- 熱量環 ---------- */
 .ring-card{margin:4px 16px 14px; background:var(--card); border-radius:22px; box-shadow:var(--shadow); padding:20px 18px 16px;}
