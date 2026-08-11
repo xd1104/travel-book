@@ -7,7 +7,7 @@ start: "2026-08-29"
 days: 3
 budget: 0
 createdAt: "2026-07-23T15:51:59.575Z"
-updatedAt: "2026-08-11T08:41:16.872Z"
+updatedAt: "2026-08-11T08:41:47.038Z"
 ---
 
 ## 行程
@@ -26,6 +26,7 @@ updatedAt: "2026-08-11T08:41:16.872Z"
 ### Day 2
 
 - {"id":"xmsoev9dizuk7","title":"退房","time":"11:20","cat":"sight","place":"沐楓商旅"}
+- {"id":"xmsoevwn2bxfo","type":"transit","note":"開車","stayMinutes":15}
 
 ## 花費
 
