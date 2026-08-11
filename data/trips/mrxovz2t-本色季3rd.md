@@ -7,7 +7,7 @@ start: "2026-08-29"
 days: 3
 budget: 0
 createdAt: "2026-07-23T15:51:59.575Z"
-updatedAt: "2026-08-11T08:43:20.968Z"
+updatedAt: "2026-08-11T08:44:09.734Z"
 ---
 
 ## 行程
@@ -29,6 +29,7 @@ updatedAt: "2026-08-11T08:43:20.968Z"
 - {"id":"xmsoevwn2bxfo","type":"transit","note":"開車","stayMinutes":20}
 - {"id":"xmsoex0yiyp9g","title":"M PAIN 麵包店","time":"11:40","cat":"sight","stayMinutes":30,"hoursOpen":"11:30","hoursClose":"17:30"}
 - {"id":"xmsoexx42yr6h","type":"transit","note":"開車","stayMinutes":40}
+- {"id":"xmsoeyyr47369","title":"本色季","time":"12:50","cat":"sight","place":"桃園陽光劇場","stayMinutes":530}
 
 ## 花費
 
