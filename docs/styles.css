@@ -56,6 +56,17 @@ ul{padding:0; list-style:none;}
 .mem-right i{font-style:normal; font-size:18px; color:#d6cbb8;}
 .home-foot{text-align:center; color:#b3a996; font-size:12.5px; padding:24px 16px 40px;}
 .home-foot button{color:#a4988a; text-decoration:underline; font-size:12.5px; min-height:44px; padding:0 8px;}
+/* 版本鈕：平常低調（跟其他 footer 連結同層級），有新版才跳成琥珀色藥丸 */
+.home-foot .ver-btn{font-variant-numeric:tabular-nums;}
+.home-foot .ver-btn.hot{text-decoration:none; color:#8a5b12; background:#ffe8b8; border-radius:99px;
+  padding:0 14px; font-weight:700;}
+/* 版本 sheet */
+.ver-row{display:flex; align-items:center; justify-content:space-between; gap:12px;
+  background:#faf7f1; border-radius:14px; padding:14px 16px; margin-bottom:14px; font-size:14px;}
+.ver-row b{font-size:16px; font-variant-numeric:tabular-nums;}
+.ver-alert{background:#fff6e3; border:1px solid #f2dcae; border-radius:14px; padding:13px 15px; margin-bottom:4px;}
+.ver-alert b{display:block; font-size:14.5px; color:#8a5b12;}
+.ver-alert span{display:block; font-size:12.5px; color:#9a7434; margin-top:5px; line-height:1.55;}
 
 /* ---------- 旅程頁 ---------- */
 .trip-head{padding:14px 18px 20px; color:#fff; border-radius:0 0 26px 26px;}

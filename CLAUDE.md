@@ -37,9 +37,17 @@ UI/UX 以 `demo/index.html`（UX demo v3.1，Benson 拍板）為準，**勿自�
 
 ## PWA 鐵律（recipe-book 血淚，全部已做，別退步）
 - 所有資源、manifest `start_url`/`scope`、SW scope **一律相對路徑**（Pages 在 `/travel-book/` 子路徑）。
-- SW：`skipWaiting()`＋activate 清舊快取＋`clients.claim()`；`/api/data` network-first、寫入 network-only、殼 cache-first。**改前端記得把 sw.js 的 cache 版本號 +1**（`travel-shell-vN`，目前 v4）。
+- SW：`skipWaiting()`＋activate 清舊快取＋`clients.claim()`；`/api/data` network-first、寫入 network-only、殼 cache-first。**改前端記得把 sw.js 的 cache 版本號 +1**（`travel-shell-vN`，目前 v5）**並同步 `APP_VER`**（見下方「版本與更新」）。
 - input/textarea/select `font-size ≥ 16px`（iOS 防自動放大）；觸控目標 ≥ 44px；Enter 送出全部走原生 `<form>` + `type=submit`。
 - 換 icon 後 iOS 已安裝的 PWA 要移除主畫面重加才會換。
+
+## 版本與更新（v1.4，機制沿用 lose-weight-helper）
+- **`APP_VER` 是唯一的版本來源**（`public/app.js` 最上面），首頁 footer 那顆鈕與「版本」sheet 都讀它。**改前端時跟 `sw.js` 的 cache 版本號一起 +1。**
+- 為什麼需要：PWA 的殼是 cache-first，新 SW 裝好、activate 之後畫面上跑的仍是舊 JS，**要重新載入才會換過去**，使用者看不到這件事、只會覺得「怎麼沒有新功能」。
+- 偵測有兩條路，兩條都要留：`registration.updatefound` → `installing.statechange === "installed"` 且**已經有 controller**（第一次安裝不算更新），以及 `controllerchange`（同樣用進站時記的 `hadController` 擋掉首次安裝）。`markUpdate()` 只會觸發一次。
+- **刻意不自動 reload（v1.4 起改的）**：舊版是 `controllerchange` 就 `location.reload()`，會在編行程編到一半把頁面彈掉。現在改成偵測到就跳 toast＋footer 那顆變成「🎉 有新版本・點一下更新」（`.ver-btn.hot`），點開「版本」sheet 由使用者自己按「立即更新」（＝`location.reload()`）。
+- 沒有新版時 sheet 給「檢查有沒有新版本」＝`checkUpdate()`（`reg.update()` 再等 1.2 秒讓 handler 跑完），沒有就回「已經是最新版了。」
+- **版本入口放 footer 不放設定**：設定入口只在非 localhost 顯示，電腦版沒有；footer 兩邊都看得到。
 
 ## 其他實作備忘
 - 拖曳排序：pointer events、只把手可拖（`touch-action:none`）、座標一律用 page 座標（clientY+scrollY）——這是為了「邊緣自動捲動」正確，別改回 viewport 座標。

@@ -9,6 +9,10 @@
  */
 
 /* ============ 常數 ============ */
+/* 版本號的唯一來源：首頁 footer 與「版本」sheet 都讀它。
+ * 改前端時跟 sw.js 的 cache 版本號一起 +1（見「版本與更新」段）。 */
+var APP_VER="1.4";
+
 /* 行程點類別（v1.1 起）＝可管理的全域資源：清單存 db.categories（同步 data/categories.md），
  * CATS 是 id->物件 的索引（rebuildCats 重建）。「其他」永遠存在＝刪類別後的 fallback。 */
 function defaultCategories(){
@@ -609,14 +613,23 @@ function tripCard(t){
     + '<span class="count-chip '+st.cls+'">'+st.text+'</span></div>'
     + '</button>';
 }
+/* 版本那顆按鈕：平常顯示版本號，偵測到新版就改口成「點一下更新」並轉成琥珀色。
+ * 電腦版沒有「設定」入口，所以版本放 footer（兩邊都看得到）。 */
+function verBtn(){
+  return updateReady
+    ? '<button class="ver-btn hot" onclick="openVersion()">🎉 有新版本・點一下更新</button>'
+    : '<button class="ver-btn" onclick="openVersion()">v'+APP_VER+'</button>';
+}
 function homeFoot(){
   if(STORE.local){
-    return '<footer class="home-foot">資料存在這台電腦，並自動同步到 GitHub</footer>';
+    return '<footer class="home-foot">資料存在這台電腦，並自動同步到 GitHub　'
+      + verBtn()+'</footer>';
   }
   var mode = STORE.canWrite() ? "已連線 GitHub・可編輯" : "唯讀模式・貼上金鑰即可編輯";
   return '<footer class="home-foot">'+mode+'　'
     + '<button onclick="openSettings()">設定</button>'
-    + '<button onclick="reloadData()">重新整理</button></footer>';
+    + '<button onclick="reloadData()">重新整理</button>'
+    + verBtn()+'</footer>';
 }
 function viewHome(){
   var today=new Date(); today.setHours(0,0,0,0);
@@ -1597,6 +1610,31 @@ function clearSettings(){
   closeSheet();
   reloadData();
 }
+/* ============ 版本 sheet ============ */
+function openVersion(){
+  var body;
+  if(updateReady){
+    body = '<div class="ver-alert"><b>🎉 新版本已經下載好了</b>'
+      + '<span>重新載入就會換過去。記到一半的東西已經存好了，不會不見。</span></div>'
+      + '<div class="d-acts"><button class="btn-primary" onclick="location.reload()">立即更新</button></div>';
+  }else{
+    body = (verMsg ? '<div class="ver-alert"><b>'+esc(verMsg)+'</b></div>' : '')
+      + '<div class="d-acts"><button class="btn-ghost" onclick="doCheckUpdate(this)">檢查有沒有新版本</button></div>';
+  }
+  openSheet("版本",
+    '<div class="ver-row"><span>現在跑的版本</span><b>v'+APP_VER+'</b></div>'
+    + body
+    + '<div class="hint">這是<b>這台裝置實際跑的版本</b>，不是雲端最新的。平常關掉重開就會換到新版。</div>');
+  verMsg="";
+}
+function doCheckUpdate(btn){
+  btn.disabled=true; btn.textContent="檢查中…";
+  checkUpdate().then(function(found){
+    verMsg = found ? "" : "已經是最新版了。";
+    openVersion();   /* 整份重畫這個 sheet（openSheet 本來就是換掉 innerHTML） */
+  });
+}
+
 function reloadData(){
   renderBoot();
   STORE._sha = {};
@@ -1614,11 +1652,13 @@ function renderBootError(e){
     + (STORE.local?'':'<button class="btn-ghost" style="width:auto;padding:0 26px" onclick="openSettings()">設定</button>')
     + '</div>';
 }
+var booted=false;
 function bootLoad(){
   renderBoot();
   STORE.loadAll().then(function(d){
     db = migrate(d);
     rebuildCats();
+    booted=true;
     render();
   }).catch(function(e){
     renderBootError(e);
@@ -1626,16 +1666,55 @@ function bootLoad(){
 }
 bootLoad();
 
-/* ---- service worker ---- */
+/* ============ 版本與更新 ============
+ * PWA 的殼是 cache-first，新的 service worker 裝好、activate 之後，
+ * 畫面上跑的仍然是舊的 JS，要重新載入才會換過去——使用者看不到這件事，
+ * 只會覺得「怎麼沒有新功能」。所以偵測到新版就記起來（updateReady），
+ * footer 那顆改口成「點一下更新」，由使用者自己按。
+ * ⚠️ 刻意不自動 reload：編行程編到一半被彈掉很惱人。
+ * ⚠️ 改前端時 APP_VER 與 sw.js 的 cache 版本號要一起 +1。 */
+var swReg=null;
+var updateReady=false;
+var verMsg="";                 /* 「檢查更新」的結果訊息，畫完就清掉 */
+
+function markUpdate(){
+  if(updateReady) return;
+  updateReady=true;
+  toast("有新版本了，首頁最下面點一下就能更新");
+  if(booted) render(true);
+}
+
 if("serviceWorker" in navigator){
-  /* 新 SW 接手（版本升級）後 reload 一次，確保跑到新版程式 */
-  var swRefreshing=false;
+  /* 第一次安裝時本來就沒有 controller，那不算「更新」，不要嚇人 */
+  var hadController=!!navigator.serviceWorker.controller;
   navigator.serviceWorker.addEventListener("controllerchange", function(){
-    if(swRefreshing) return;
-    swRefreshing=true;
-    location.reload();
+    if(!hadController){ hadController=true; return; }
+    markUpdate();
   });
   window.addEventListener("load", function(){
-    navigator.serviceWorker.register("sw.js").catch(function(){});
+    navigator.serviceWorker.register("sw.js").then(function(reg){
+      swReg=reg;
+      /* 標準的偵測點：新的 worker 裝好、而且原本就有一個在跑 ＝ 有新版 */
+      reg.addEventListener("updatefound", function(){
+        var w=reg.installing;
+        if(!w) return;
+        w.addEventListener("statechange", function(){
+          if(w.state==="installed" && navigator.serviceWorker.controller) markUpdate();
+        });
+      });
+    }).catch(function(){ /* 沒 SW 也能用 */ });
   });
+}
+
+/* 主動問一次有沒有新版。瀏覽器自己也會檢查，但頻率不保證，
+ * 使用者想「現在就確認」的時候要有東西可以按。 */
+function checkUpdate(){
+  if(!swReg || !swReg.update) return Promise.resolve(false);
+  return swReg.update().then(function(){
+    /* sw.js 有 skipWaiting，新的通常直接 activate，訊號由上面兩個 handler 送達；
+     * 這裡等一下下讓它跑完再回報結果。 */
+    return new Promise(function(res){
+      setTimeout(function(){ res(updateReady); }, 1200);
+    });
+  }).catch(function(){ return false; });
 }
