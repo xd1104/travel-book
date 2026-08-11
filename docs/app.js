@@ -11,7 +11,7 @@
 /* ============ 常數 ============ */
 /* 版本號的唯一來源：首頁 footer 與「版本」sheet 都讀它。
  * 改前端時跟 sw.js 的 cache 版本號一起 +1（見「版本與更新」段）。 */
-var APP_VER="1.6";
+var APP_VER="1.7";
 
 /* 行程點類別（v1.1 起）＝可管理的全域資源：清單存 db.categories（同步 data/categories.md），
  * CATS 是 id->物件 的索引（rebuildCats 重建）。「其他」永遠存在＝刪類別後的 fallback。 */
@@ -1007,7 +1007,7 @@ function openStopEdit(idx){
     '<form onsubmit="submitStopEdit(event,'+idx+')">'
     + '<label class="field"><span class="fl">名稱 *</span><input name="title" required value="'+esc(sp.title)+'" autocomplete="off"></label>'
     + '<div class="f-row2">'
-    +   '<label class="field"><span class="fl">時間</span><input type="time" name="time" value="'+esc(sp.time)+'"></label>'
+    +   '<label class="field"><span class="fl">時間</span><input type="time" name="time" value="'+esc(sp.time)+'" oninput="stayTimeChanged(this.form)"></label>'
     +   '<label class="field">'+catFieldLabel()+'<select name="cat">'+catOptions(curCat)+'</select></label>'
     + '</div>'
     + '<label class="field"><span class="fl">地點</span><input name="place" value="'+esc(sp.place)+'" autocomplete="off"></label>'
@@ -1027,6 +1027,7 @@ function openStopEdit(idx){
     + '<label class="field"><span class="fl">詳細備註</span><textarea name="note" rows="3">'+esc(sp.note||"")+'</textarea></label>'
     + '<button class="btn-primary" type="submit">儲存</button>'
     + '</form>');
+  stayInit();
 }
 function submitStopEdit(ev, idx){
   ev.preventDefault();
@@ -1401,40 +1402,81 @@ function catOptions(selectedId){
 function catFieldLabel(){
   return '<span class="fl">類別<button type="button" class="fl-mini" onclick="openCatManager()">管理</button></span>';
 }
-/* 預計停留欄（v1.2）：快選 chips ＋ 自訂分鐘數，同一個 input（name=stayMinutes）為準 */
-var STAY_CHIPS = [
-  {v:30, t:"30 分"}, {v:60, t:"1 小時"}, {v:90, t:"1.5 小時"},
-  {v:120, t:"2 小時"}, {v:180, t:"3 小時"}, {v:240, t:"半天"}
-];
-function stayField(cur, label){
-  cur = Number(cur)||0;
-  return '<div class="field"><span class="fl">'+(label||"預計停留")+'（選填）</span>'
+/* ---- 停留／移動時間欄（v1.7 改版）----
+ * 「停多久（時／分）」與「待到幾點」是**同一個值的兩個窗口**，改哪一邊另一邊跟著算——
+ * 刻意不做成模式切換（不必先決定用哪種，而且兩個數字同時看得到）。
+ * 真值＝時／分兩格（readStay 讀它們），「待到」只是輸入捷徑，不存檔。
+ * 移動（transit）沒有起點時間，所以不給「待到」、chips 換成路上常用值。 */
+var STAY_CHIPS = [{v:30,t:"30 分"}, {v:60,t:"1 小時"}, {v:120,t:"2 小時"}, {v:240,t:"半天"}];
+var MOVE_CHIPS = [{v:10,t:"10 分"}, {v:30,t:"30 分"}, {v:60,t:"1 小時"}, {v:120,t:"2 小時"}];
+function stayField(cur, label, isMove){
+  cur = Math.max(0, Math.round(Number(cur)||0));
+  var chips = isMove ? MOVE_CHIPS : STAY_CHIPS;
+  var hm = '<div class="stay-sub"><span class="sfl">'+(isMove?"移動多久":"停多久")+'</span>'
+    + '<div class="stay-hm">'
+    +   '<input type="number" name="stayH" min="0" step="1" inputmode="numeric" aria-label="小時" placeholder="0"'
+    +     ' value="'+(Math.floor(cur/60)||"")+'" oninput="stayHM(this.form)"><i>時</i>'
+    +   '<input type="number" name="stayM" min="0" step="1" inputmode="numeric" aria-label="分鐘" placeholder="0"'
+    +     ' value="'+((cur%60)||"")+'" oninput="stayHM(this.form)"><i>分</i>'
+    + '</div></div>';
+  var body = isMove ? hm
+    : '<div class="f-row2">'+hm
+      + '<div class="stay-sub"><span class="sfl">待到</span>'
+      +   '<input type="time" name="stayUntil" oninput="stayUntilChanged(this.form)">'
+      + '</div></div>'
+      + '<div class="hint stay-hint" hidden>先填上面的「時間」，才算得出待到幾點。</div>';
+  return '<div class="field stay-field"><span class="fl">'+(label||"預計停留")+'（選填）</span>'
     + '<div class="stay-chips">'
-    + STAY_CHIPS.map(function(c){
+    + chips.map(function(c){
         return '<button type="button" class="stay-chip'+(cur===c.v?" on":"")+'" data-v="'+c.v+'"'
           + ' onclick="setStay(this,'+c.v+')">'+c.t+'</button>';
       }).join("")
-    + '</div>'
-    + '<input type="number" name="stayMinutes" min="0" step="5" inputmode="numeric"'
-    + ' placeholder="或自訂分鐘數" value="'+(cur||"")+'" oninput="stayInputChanged(this)">'
-    + '</div>';
+    + '</div>' + body + '</div>';
+}
+/* 起點時間＝同一張表單的「時間」欄（transit 沒有這欄 → null） */
+function stayStart(f){ return (f && f.time) ? minsOf(f.time.value) : null; }
+function stayWrite(f, mins){
+  mins = Math.max(0, Math.round(mins||0));
+  if(f.stayH) f.stayH.value = Math.floor(mins/60) || "";
+  if(f.stayM) f.stayM.value = (mins%60) || "";
+}
+/* 同步「待到」與 chips 選中狀態。src==="until" 時不回頭覆寫他正在打的那格。 */
+function staySync(f, src){
+  var mins = readStay(f), st = stayStart(f);
+  if(f.stayUntil){
+    f.stayUntil.disabled = (st===null);
+    if(src!=="until") f.stayUntil.value = (st!==null && mins>0) ? timeOf(st+mins) : "";
+  }
+  var hint = f.querySelector(".stay-hint");
+  if(hint) hint.hidden = (st!==null);
+  [].slice.call(f.querySelectorAll(".stay-chip")).forEach(function(b){
+    b.classList.toggle("on", mins>0 && Number(b.getAttribute("data-v"))===mins);
+  });
+}
+function stayHM(f){ staySync(f, "hm"); }
+/* 待到比開始早＝跨午夜（23:00 待到 00:30 ＝ 停 90 分） */
+function stayUntilChanged(f){
+  var st = stayStart(f), u = minsOf(f.stayUntil.value);
+  if(st===null || u===null) return;
+  stayWrite(f, ((u-st)%1440+1440)%1440);
+  staySync(f, "until");
 }
 function setStay(btn, v){
   var f = btn.form;
-  var already = btn.classList.contains("on");
-  if(f && f.stayMinutes) f.stayMinutes.value = already ? "" : v; /* 再點一次＝取消 */
-  var chips = document.querySelectorAll ? document.querySelectorAll(".stay-chip") : [];
-  [].slice.call(chips).forEach(function(b){ b.classList.toggle("on", b===btn && !already); });
+  stayWrite(f, btn.classList.contains("on") ? 0 : v); /* 再點一次＝取消 */
+  staySync(f, "chip");
 }
-function stayInputChanged(inp){
-  var v = Number(inp.value)||0;
-  var chips = document.querySelectorAll ? document.querySelectorAll(".stay-chip") : [];
-  [].slice.call(chips).forEach(function(b){
-    b.classList.toggle("on", v>0 && Number(b.getAttribute("data-v"))===v);
-  });
+/* 「時間」欄改了＝整段往前/後移，停多久不變、待到跟著算 */
+function stayTimeChanged(f){ staySync(f, "time"); }
+/* sheet 進 DOM 之後才跑得到（openSheet 沒有 onDraw hook） */
+function stayInit(){
+  var f = sheetLayer.querySelector("form");
+  if(f && f.stayH) staySync(f, "init");
 }
 function readStay(f){
-  return Math.max(0, Math.round(Number(f.stayMinutes && f.stayMinutes.value)||0));
+  var h = Math.max(0, Math.floor(Number(f.stayH && f.stayH.value)||0));
+  var m = Math.max(0, Math.floor(Number(f.stayM && f.stayM.value)||0));
+  return h*60 + m;
 }
 /* v1.3：FAB 先問要加哪一種（站點 vs 路上），避免把兩種塞進同一張長表單 */
 function openAddPicker(){
@@ -1456,9 +1498,10 @@ function openTransitSheet(){
     '<form onsubmit="submitTransit(event)">'
     + '<label class="field"><span class="fl">怎麼移動</span>'
     +   '<input name="note" placeholder="例：地鐵銀座線、走路、計程車" autocomplete="off"></label>'
-    + stayField(0, "移動時間")
+    + stayField(0, "移動時間", true)
     + '<button class="btn-primary" type="submit">加入 Day '+ui.day+'</button>'
     + '</form>');
+  stayInit();
 }
 function submitTransit(ev){
   ev.preventDefault();
@@ -1476,9 +1519,10 @@ function openTransitEdit(idx){
     '<form onsubmit="submitTransitEdit(event,'+idx+')">'
     + '<label class="field"><span class="fl">怎麼移動</span>'
     +   '<input name="note" value="'+esc(sp.note||"")+'" placeholder="例：地鐵銀座線、走路、計程車" autocomplete="off"></label>'
-    + stayField(sp.stayMinutes, "移動時間")
+    + stayField(sp.stayMinutes, "移動時間", true)
     + '<button class="btn-primary" type="submit">儲存</button>'
     + '</form>');
+  stayInit();
 }
 function submitTransitEdit(ev, idx){
   ev.preventDefault();
@@ -1499,7 +1543,7 @@ function openStopSheet(){
   openSheet("新增行程點・Day "+ui.day,
     '<form onsubmit="submitStop(event)">'
     + '<div class="f-row2">'
-    +   '<label class="field"><span class="fl">時間</span><input type="time" name="time" value="'+esc(guess)+'"></label>'
+    +   '<label class="field"><span class="fl">時間</span><input type="time" name="time" value="'+esc(guess)+'" oninput="stayTimeChanged(this.form)"></label>'
     +   '<label class="field">'+catFieldLabel()+'<select name="cat">'+catOptions()+'</select></label>'
     + '</div>'
     + '<label class="field"><span class="fl">名稱 *</span><input name="title" required placeholder="例：淺草寺" autocomplete="off"></label>'
@@ -1515,6 +1559,7 @@ function openStopSheet(){
     + '<div class="hint">加入後點卡片可補齊更多細節（費用、電話、官網…）</div>'
     + '<button class="btn-primary" type="submit">加入 Day '+ui.day+'</button>'
     + '</form>');
+  stayInit();
 }
 function submitStop(ev){
   ev.preventDefault();

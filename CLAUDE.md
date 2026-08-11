@@ -31,7 +31,14 @@ UI/UX 以 `demo/index.html`（UX demo v3.1，Benson 拍板）為準，**勿自�
 - **`bookingRef`（訂位／票券代號）v1.1 起 UI 隱藏但資料保留**：編輯表單與詳細檢視都不顯示、submitStopEdit 刻意不碰它，serializer（cleanStop）照寫、parser 原樣帶回——別把這段當死碼清掉，會造成舊資料無聲丟失。
 - **縮天不刪資料**：serializer 會把超出 `days` 的 day-key 照寫（只略過空天），天數改回來資料就回來。
 - **`hours` 舊自由文字欄位**是向下相容欄，有結構化時間（hoursOpen/Close/24）時前端存檔會清掉它——別「清理」這段邏輯。
-- **`stayMinutes`（v1.2 預計停留，分鐘、選填）**：0/缺值＝未設定（serializer 不寫）。顯示規則（`formatStay`，定案）：<60 分→「45 分」；能被 30 整除→小數小時（60→「1 小時」、90→「1.5 小時」、150→「2.5 小時」）；其餘→「2 小時 20 分」。表單＝快選 chips（30/60/90/120/180/240=半天）＋自訂分鐘 input，同一個 `name=stayMinutes` 為準、再點選中的 chip＝取消。
+- **`stayMinutes`（v1.2 預計停留，分鐘、選填）**：0/缺值＝未設定（serializer 不寫）。顯示規則（`formatStay`，定案）：<60 分→「45 分」；能被 30 整除→小數小時（60→「1 小時」、90→「1.5 小時」、150→「2.5 小時」）；其餘→「2 小時 20 分」。表單見下方「停留欄 v1.7」。
+- **停留欄 v1.7（`stayField`／`staySync`，定案）＝「停多久（時／分）」與「待到幾點」是同一個值的兩個窗口**：改哪一邊另一邊跟著算。**刻意不做成模式切換**（Benson 拍板：不必先決定用哪種，而且兩個數字要同時看得到）。
+  - **真值＝時／分兩格**（`readStay` 讀 `stayH`/`stayM` 相加）。**舊的 `name=stayMinutes` 單一 input 已移除**——`stayUntil` 只是輸入捷徑，不進資料。
+  - 起點時間＝同一張表單的 `time` 欄（`stayStart`）。沒填時間 → 「待到」disable ＋ 顯示提示；改 `time` 欄會保留停留長度、重算「待到」（`stayTimeChanged`）。
+  - 「待到」比開始早＝跨午夜（23:00 待到 00:30 ＝ 停 90 分）。
+  - chips **刻意砍成 4 顆**（停留 30/60/120/240；移動 10/30/60/120）——6 顆在 375px 會擠成兩排，砍到 4 顆剛好一排，1.5 小時這種直接打比點還快。再點選中的 chip＝取消。
+  - **transit 不給「待到」**（沒有起點時間），標籤是「移動多久」、用 `MOVE_CHIPS`；`stayField(cur, label, isMove)` 第三參數控制。
+  - `stayInit()` 要在 `openSheet` 之後呼叫（openSheet 沒有 onDraw hook），四個入口都有；漏了的話「待到」初值與 chip 選中狀態不會出現。
 - **起訖時間顯示（v1.5，`endTime`／`timeHtml`，定案）**：填了 `time`＋`stayMinutes` 就在卡片與詳細 sheet 顯示區間 `08:00–08:40`，**起深訖淡**（`.stop-time .to`，結束是推算的不是他填的）；跨午夜補上標 `+1`（`23:30–00:10⁺¹`）。算不出區間就退回舊寫法（只有時間→`08:00`；只有停留→`停 40 分`；都沒有→`—`）。**時長不在卡片重複顯示**，留在詳細 sheet 的「預計停留」列（卡片看停到幾點、點進去看停多久）。**transit 不套用**（它的 `stayMinutes` 是移動時間、也沒有 `time`）。不做「下一站建議時間」的連鎖推算（Benson 拍板：一改前面全天跳動，是另一個規模的功能）。
 - **連鎖平移（v1.6，`shiftAfter`／`minsOf`／`timeOf`，定案）**：編輯行程點的「預計停留」或移動的「移動時間」時，**同一天、這一筆之後、有填時間的行程點各平移相同分鐘數**（transit 沒有 time 欄跳過），跳 toast「後面 N 筆時間已跟著往後移 20 分」。
   - **刻意是「平移」不是「照停留＋移動重算整天」**（Benson 拍板）：重算會把他刻意留的空檔壓掉；平移保留原本的節奏。代價是硬時間（表演開演、火車、訂位）也會被推走，靠 toast 告知、他自己改回來。**要真正釘住硬時間得加 `fixed` 欄位＋改 md 格式與前後端 parser，刻意先不做。**
@@ -44,7 +51,7 @@ UI/UX 以 `demo/index.html`（UX demo v3.1，Benson 拍板）為準，**勿自�
 
 ## PWA 鐵律（recipe-book 血淚，全部已做，別退步）
 - 所有資源、manifest `start_url`/`scope`、SW scope **一律相對路徑**（Pages 在 `/travel-book/` 子路徑）。
-- SW：`skipWaiting()`＋activate 清舊快取＋`clients.claim()`；`/api/data` network-first、寫入 network-only、殼 cache-first。**改前端記得把 sw.js 的 cache 版本號 +1**（`travel-shell-vN`，目前 v7）**並同步 `APP_VER`**（見下方「版本與更新」）。
+- SW：`skipWaiting()`＋activate 清舊快取＋`clients.claim()`；`/api/data` network-first、寫入 network-only、殼 cache-first。**改前端記得把 sw.js 的 cache 版本號 +1**（`travel-shell-vN`，目前 v8）**並同步 `APP_VER`**（見下方「版本與更新」）。
 - input/textarea/select `font-size ≥ 16px`（iOS 防自動放大）；觸控目標 ≥ 44px；Enter 送出全部走原生 `<form>` + `type=submit`。
 - 換 icon 後 iOS 已安裝的 PWA 要移除主畫面重加才會換。
 

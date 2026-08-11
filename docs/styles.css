@@ -344,7 +344,16 @@ ul{padding:0; list-style:none;}
 .ao-bd span{display:block; font-size:12.5px; color:var(--muted); margin-top:2px;}
 
 /* 預計停留快選 chips（點選＝填入分鐘數；再點一次取消；自訂輸入會同步高亮） */
-.stay-chips{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;}
+.stay-chips{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;}
+/* 停留欄 v1.7：時/分兩格 ＋ 待到（同值兩個窗口） */
+.stay-field .f-row2{align-items:end;}
+.stay-sub{min-width:0;}
+.stay-sub .sfl{display:block; font-size:11.5px; font-weight:700; color:#b3a996; margin-bottom:4px;}
+.stay-hm{display:flex; align-items:center; gap:5px;}
+.stay-hm input{text-align:center; padding-left:4px; padding-right:4px; min-width:0;}
+.stay-hm i{font-style:normal; font-size:13px; color:var(--muted); flex:0 0 auto;}
+.stay-field input[type=time]{text-align:center;}
+.hint.stay-hint{margin:8px 2px 0;}
 .stay-chip{min-height:44px; padding:0 13px; border-radius:12px; background:#fbfaf6;
   border:1.5px solid var(--line); font-size:14px; font-weight:700; color:var(--muted);}
 .stay-chip.on{background:var(--ink); border-color:var(--ink); color:#fff;}
