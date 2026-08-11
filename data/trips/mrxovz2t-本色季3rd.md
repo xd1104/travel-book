@@ -7,7 +7,7 @@ start: "2026-08-29"
 days: 3
 budget: 0
 createdAt: "2026-07-23T15:51:59.575Z"
-updatedAt: "2026-08-11T08:42:48.200Z"
+updatedAt: "2026-08-11T08:43:20.968Z"
 ---
 
 ## 行程
@@ -28,6 +28,7 @@ updatedAt: "2026-08-11T08:42:48.200Z"
 - {"id":"xmsoev9dizuk7","title":"退房","time":"11:20","cat":"sight","place":"沐楓商旅"}
 - {"id":"xmsoevwn2bxfo","type":"transit","note":"開車","stayMinutes":20}
 - {"id":"xmsoex0yiyp9g","title":"M PAIN 麵包店","time":"11:40","cat":"sight","stayMinutes":30,"hoursOpen":"11:30","hoursClose":"17:30"}
+- {"id":"xmsoexx42yr6h","type":"transit","note":"開車","stayMinutes":40}
 
 ## 花費
 
