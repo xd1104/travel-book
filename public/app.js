@@ -11,7 +11,7 @@
 /* ============ 常數 ============ */
 /* 版本號的唯一來源：首頁 footer 與「版本」sheet 都讀它。
  * 改前端時跟 sw.js 的 cache 版本號一起 +1（見「版本與更新」段）。 */
-var APP_VER="1.5";
+var APP_VER="1.6";
 
 /* 行程點類別（v1.1 起）＝可管理的全域資源：清單存 db.categories（同步 data/categories.md），
  * CATS 是 id->物件 的索引（rebuildCats 重建）。「其他」永遠存在＝刪類別後的 fallback。 */
@@ -126,6 +126,55 @@ function timeHtml(sp){
   }
   return '<span class="stop-time">'+(sp.time?esc(sp.time):"—")+'</span>'
     + (sp.stayMinutes ? '<span class="stop-stay">'+(sp.time?"・":"")+'停 '+formatStay(sp.stayMinutes)+'</span>' : '');
+}
+/* ---- v1.6 連鎖平移 ----
+ * 改了某一筆的「停留」或「移動時間」，後面整串行程點的時間各加減同樣的分鐘。
+ * 刻意用「平移」而不是「照停留＋移動重算整天」：原本刻意留的空檔要保留下來，
+ * 重算會把空檔壓掉。代價是硬時間（表演開演、火車）也會被推走——用 toast 告知，
+ * 他自己改回來。要真正釘住硬時間得加 fixed 欄位＋改 md 格式，Benson 拍板先不做。 */
+function minsOf(time){
+  var m = /^(\d{1,2}):(\d{2})$/.exec(String(time||""));
+  return m ? (+m[1])*60 + (+m[2]) : null;
+}
+function timeOf(mins){
+  mins = ((Math.round(mins)%1440)+1440)%1440;
+  return pad2(Math.floor(mins/60))+":"+pad2(mins%60);
+}
+/* 把 idx 之後、同一天、有填時間的行程點各平移 delta 分鐘；回傳實際移動幾筆。
+ * transit 沒有 time 欄，跳過；沒填時間的本來就沒東西可移。 */
+function shiftAfter(list, idx, delta){
+  if(!delta) return 0;
+  var n = 0;
+  for(var i=idx+1;i<list.length;i++){
+    var s = list[i];
+    if(isTransit(s) || !s.time) continue;
+    var m = minsOf(s.time);
+    if(m===null) continue;
+    s.time = timeOf(m+delta);
+    n++;
+  }
+  return n;
+}
+function shiftToast(n, delta){
+  if(!n) return;
+  var sign = delta>0 ? "往後" : "往前";
+  toast("後面 "+n+" 筆時間已跟著"+sign+"移 "+formatStay(Math.abs(delta)));
+}
+/* 新增行程點時的預設時間＝這一天最後推算得出的時刻（上一站結束＋中間的移動）。
+ * 從頭走一遍，遇到有填時間的行程點就以它為準重新對錶（手填的最大）。 */
+function nextTimeGuess(list){
+  var cur = null;
+  for(var i=0;i<list.length;i++){
+    var s = list[i];
+    if(isTransit(s)){
+      if(cur!==null) cur += Math.round(Number(s.stayMinutes)||0);
+      continue;
+    }
+    var m = minsOf(s.time);
+    if(m!==null) cur = m;
+    if(cur!==null) cur += Math.round(Number(s.stayMinutes)||0);
+  }
+  return cur===null ? "" : timeOf(cur);
 }
 function tripEnd(t){ return addDays(parseDate(t.start), t.days-1); }
 function tripRange(t){
@@ -989,7 +1038,10 @@ function submitStopEdit(ev, idx){
   sp.place = f.place.value.trim();
   sp.mapUrl = f.mapUrl.value.trim();
   sp.cost = Number(f.cost.value)||0;
+  var oldStay = Math.round(Number(sp.stayMinutes)||0);
   sp.stayMinutes = readStay(f); /* 0＝清空（serializer 不寫空值） */
+  /* 停留變長／變短＝後面整串跟著移（v1.6） */
+  var moved = shiftAfter(list, idx, sp.stayMinutes-oldStay);
   /* bookingRef（訂位代號）欄位 v1.1 起 UI 不再提供，但既有值刻意不動（round-trip 保留） */
   sp.phone = f.phone.value.trim();
   sp.hours24 = !!f.hours24.checked;
@@ -999,6 +1051,7 @@ function submitStopEdit(ev, idx){
   sp.url = f.url.value.trim();
   sp.note = f.note.value.trim();
   persistTrip(curTrip()); closeSheet(); render(true);
+  shiftToast(moved, sp.stayMinutes-oldStay);
 }
 
 /* ---- 花費 ---- */
@@ -1432,15 +1485,21 @@ function submitTransitEdit(ev, idx){
   if(!requireWrite()) return;
   var f=ev.target; var list=curList()||[]; var sp=list[idx]; if(!sp) return;
   sp.note = f.note.value.trim();
+  var oldStay = Math.round(Number(sp.stayMinutes)||0);
   sp.stayMinutes = readStay(f);
+  /* 移動時間變了＝後面整串跟著移（v1.6） */
+  var moved = shiftAfter(list, idx, sp.stayMinutes-oldStay);
   persistTrip(curTrip()); closeSheet(); render(true);
+  shiftToast(moved, sp.stayMinutes-oldStay);
 }
 function openStopSheet(){
   if(!requireWrite()) return;
+  /* 時間預設帶「上一站結束＋中間的移動」，接著排最順；要改再改（v1.6） */
+  var guess = nextTimeGuess(curList()||[]);
   openSheet("新增行程點・Day "+ui.day,
     '<form onsubmit="submitStop(event)">'
     + '<div class="f-row2">'
-    +   '<label class="field"><span class="fl">時間</span><input type="time" name="time"></label>'
+    +   '<label class="field"><span class="fl">時間</span><input type="time" name="time" value="'+esc(guess)+'"></label>'
     +   '<label class="field">'+catFieldLabel()+'<select name="cat">'+catOptions()+'</select></label>'
     + '</div>'
     + '<label class="field"><span class="fl">名稱 *</span><input name="title" required placeholder="例：淺草寺" autocomplete="off"></label>'
