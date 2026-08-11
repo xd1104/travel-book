@@ -11,7 +11,7 @@
 /* ============ 常數 ============ */
 /* 版本號的唯一來源：首頁 footer 與「版本」sheet 都讀它。
  * 改前端時跟 sw.js 的 cache 版本號一起 +1（見「版本與更新」段）。 */
-var APP_VER="1.4";
+var APP_VER="1.5";
 
 /* 行程點類別（v1.1 起）＝可管理的全域資源：清單存 db.categories（同步 data/categories.md），
  * CATS 是 id->物件 的索引（rebuildCats 重建）。「其他」永遠存在＝刪類別後的 fallback。 */
@@ -99,6 +99,33 @@ function formatStay(min){
   if(min<60) return min+" 分";
   if(min%30===0) return (min/60)+" 小時"; /* 60→1、90→1.5、120→2、150→2.5 */
   return Math.floor(min/60)+" 小時 "+(min%60)+" 分";
+}
+/* v1.5 起訖時間：填了時間＋預計停留就算得出「停到幾點」。
+ * 回 null＝算不出來（沒時間、沒停留、或時間格式怪），呼叫端自己退回舊寫法。
+ * plus＝跨到隔天幾天（23:30 停 40 分 → 00:10 的 +1）。 */
+function pad2(n){ return (n<10?"0":"")+n; }
+function endTime(time, min){
+  var m = /^(\d{1,2}):(\d{2})$/.exec(String(time||""));
+  if(!m) return null;
+  min = Math.round(Number(min)||0);
+  if(min<=0) return null;
+  var tot = (+m[1])*60 + (+m[2]) + min;
+  var plus = Math.floor(tot/1440);
+  tot = ((tot%1440)+1440)%1440;
+  return { txt: pad2(Math.floor(tot/60))+":"+pad2(tot%60), plus: plus };
+}
+/* 時間區塊（卡片與詳細 sheet 共用）。起深訖淡＝開始是他填的、結束是推算的。
+ * 算不出區間時退回舊寫法（只有時間 → 08:00；只有停留 → 停 40 分）。 */
+function timeHtml(sp){
+  var e = endTime(sp.time, sp.stayMinutes);
+  if(e){
+    return '<span class="stop-time">'+esc(sp.time)
+      + '<span class="to">–'+e.txt+'</span>'
+      + (e.plus ? '<span class="plus1">+'+e.plus+'</span>' : '')
+      + '</span>';
+  }
+  return '<span class="stop-time">'+(sp.time?esc(sp.time):"—")+'</span>'
+    + (sp.stayMinutes ? '<span class="stop-stay">'+(sp.time?"・":"")+'停 '+formatStay(sp.stayMinutes)+'</span>' : '');
 }
 function tripEnd(t){ return addDays(parseDate(t.start), t.days-1); }
 function tripRange(t){
@@ -772,8 +799,7 @@ function viewPlan(t){
       return '<div class="stop">'
         + '<div class="rail"><span class="dot" style="background:'+c.color+'"></span><span class="ln"></span></div>'
         + '<div class="stop-card'+(ui.edit?"":" tappable")+'"'+tap+'>'
-        +   '<div class="stop-top"><span class="stop-time">'+(sp.time?esc(sp.time):"—")+'</span>'
-        +     (sp.stayMinutes ? '<span class="stop-stay">'+(sp.time?"・":"")+'停 '+formatStay(sp.stayMinutes)+'</span>' : '')
+        +   '<div class="stop-top">'+timeHtml(sp)
         +     '<span class="cat-pill" style="color:'+c.color+'; background:'+c.color+'1a">'+c.emoji+' '+c.label+'</span>'
         +     right + '</div>'
         +   '<div class="stop-name">'+esc(sp.title)+'</div>'
@@ -909,7 +935,7 @@ function openStopDetail(idx){
   var href = mapLink(sp);
   openSheet(esc(sp.title),
     '<div class="d-meta"><span class="day-tag">Day '+ui.day+'</span>'
-    + (sp.time ? '<span class="stop-time">'+esc(sp.time)+'</span>' : "")
+    + (sp.time ? timeHtml(sp) : "")
     + '<span class="cat-pill" style="color:'+c.color+'; background:'+c.color+'1a">'+c.emoji+' '+c.label+'</span></div>'
     + rows
     + '<div class="d-acts">'

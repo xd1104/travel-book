@@ -104,6 +104,9 @@ ul{padding:0; list-style:none;}
 .stop-card.tappable:active{transform:scale(.985);}
 .stop-top{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
 .stop-time{font-weight:800; font-size:15px; font-variant-numeric:tabular-nums;}
+/* 起訖時間：結束時間是推算的，比開始淡一階（v1.5）；+1＝跨到隔天 */
+.stop-time .to{color:#a89e8f; font-weight:600;}
+.stop-time .plus1{color:#a89e8f; font-weight:600; font-size:11px; vertical-align:super; margin-left:1px;}
 .cat-pill{font-size:12px; font-weight:700; padding:3px 9px; border-radius:99px;}
 .map-btn{width:44px; height:44px; display:flex; align-items:center; justify-content:center; font-size:20px;
   margin:-10px -10px -8px auto; border-radius:12px; text-decoration:none;}
