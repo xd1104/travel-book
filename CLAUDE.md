@@ -28,6 +28,10 @@ UI/UX 以 `demo/index.html`（UX demo v3.1，Benson 拍板）為準，**勿自�
 - 裝置記憶存的是**派生金鑰**不是密碼：所以後台**換 PAT 時各裝置自動換過去、不用重解鎖**；**換密碼／刪人／收回權限則解不開 → 靜默清掉回到「只看看」**並提示一次。抓不到 keyring.json（離線）時維持現狀，不會把人踢回唯讀。
 - 首次進站 0.9 秒主動彈一次解鎖 sheet（旗標 `keyring.travel-book.introSeen`），之後永遠不再自動彈。
 - 本機測試：`localStorage["keyring.travel-book.src"]` 可指到本機後台的 `http://localhost:4620/keyring.json`。
+- **解鎖畫面視覺 v2.1（2026-08-18，lab-ux 方向 B「暖卡列」定案；只動 CSS 與兩處 template，狀態機沒碰）**：頭像從 116px 滿彩度漸層磚縮成 **44px 淡底頭像**（同一組 `THEMES` 壓到 ~20%，存在模組的 `CFG.tints`），選人改**直向橫卡列**（`.kr-grid` 變 flex column、`.kr-tile` 變 64px 高的米白卡），第二步拿掉 74px 大頭像／置中大標，改用 `.kr-id` 橫列。理由：那組漸層在這個 App 是「一趟旅程」的語彙，套在人身上會變成兩張沒名字的旅程卡。**別再把 `grad()` 用回頭像**（`grad()` 現在只剩 footer 藥丸的 24px 小方塊在用）。
+- **模組 CSS 的權重鐵律（v2.1 修，QA 退過一次）**：這份 CSS 是注入到「本身就有 CSS 的宿主」裡跑的，單一 class (0,1,0) 會被 `.kr-sheet button`（模組自己的通則）和 `.home-foot button`（travel-book 的）這種 (0,1,1) 壓過 —— v2.0 的珊瑚「解鎖」鈕實際是透明的、footer 身分藥丸是沒有底色的灰色小字。現在**每條規則都用同一個 class 寫兩次提權**（`.kr-chip.kr-chip{}` ＝ 0,2,0），新增規則照做；**不可以**寫成 `.home-foot .kr-chip`（把宿主結構寫死進模組，下一個 App 會再壞一次）。
+- **樣式注入時機**：`init()` 就注入 `#kr-style`（不是等第一次 `paint()`）——footer 藥丸每次進站都看得到，不能等使用者開過 sheet 才有樣式。
+- `.kr-dot`（footer 藥丸的小方塊）也吃 tint，跟 sheet 裡的頭像同一種語言；`grad()` 已移除，模組不再渲染滿彩度漸層。
 
 ## 資料格式（定案；前後端各有一套 mirror parser，改要一起改）
 - 每趟旅程一個 `data/trips/<id>.md`，id = `<ts36>-<slug>`（slug 保留中文）。
@@ -61,7 +65,7 @@ UI/UX 以 `demo/index.html`（UX demo v3.1，Benson 拍板）為準，**勿自�
 
 ## PWA 鐵律（recipe-book 血淚，全部已做，別退步）
 - 所有資源、manifest `start_url`/`scope`、SW scope **一律相對路徑**（Pages 在 `/travel-book/` 子路徑）。
-- SW：`skipWaiting()`＋activate 清舊快取＋`clients.claim()`；`/api/data` network-first、寫入 network-only、殼 cache-first。**改前端記得把 sw.js 的 cache 版本號 +1**（`travel-shell-vN`，目前 v9）**並同步 `APP_VER`**（見下方「版本與更新」）。
+- SW：`skipWaiting()`＋activate 清舊快取＋`clients.claim()`；`/api/data` network-first、寫入 network-only、殼 cache-first。**改前端記得把 sw.js 的 cache 版本號 +1**（`travel-shell-vN`，目前 v10）**並同步 `APP_VER`**（見下方「版本與更新」）。
 - input/textarea/select `font-size ≥ 16px`（iOS 防自動放大）；觸控目標 ≥ 44px；Enter 送出全部走原生 `<form>` + `type=submit`。
 - 換 icon 後 iOS 已安裝的 PWA 要移除主畫面重加才會換。
 
