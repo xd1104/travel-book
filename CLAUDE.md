@@ -19,6 +19,16 @@ UI/UX 以 `demo/index.html`（UX demo v3.1，Benson 拍板）為準，**勿自�
 ## 金鑰（安全）
 - 手機用 **fine-grained PAT、只授權 `travel-book` 一個 repo 的 Contents 讀寫**，存 localStorage（key **`travel_gh_pat`**）。設定入口只在非 localhost 顯示（首頁 footer「設定」）。**任何真實金鑰不可寫進程式或 commit。**
 
+## 鑰匙圈解鎖（v2.0，定案；別誤改）
+- **一人一組密碼取代「貼 PAT」**：`public/keyring-unlock.js`（正本在 `Claude Work/keyring/client/`，改那邊再複製過來）抓公開的 `xd1104/keyring` repo 的 `keyring.json`（只有密文），使用者選自己＋輸密碼，瀏覽器用 WebCrypto（PBKDF2-SHA256 600000 → AES-GCM 256）解出金鑰。
+- **`travel_gh_pat` 這個 key 不動**（跟舊版完全相容，GitHubStore 一行都沒改）。`getToken` v2.0 起會**先讀 sessionStorage**：解鎖時沒勾「記住這台裝置」就存那裡，關掉分頁即失效。
+- `requireWrite(reason)` 多了一個理由字串：唯讀被擋時**直接升起解鎖 sheet 並帶理由條**（「要『規劃新旅程』得先解鎖」），不再只丟 toast 叫他自己去找設定。沒帶 reason 也能跑（就不顯示理由條）。
+- footer 第一行是身分藥丸（`Keyring.chipHtml()`，模組自帶 `kr-` 樣式），第二行才是原本的設定／重新整理／版本。**本機版（LocalStore）不顯示**——本機不用鑰匙。
+- **「設定 → 貼金鑰」刻意保留**當救援入口（鑰匙圈壞掉時還能手動貼一把）。`clearSettings` 會一併 `Keyring.forget()`，否則下次載入又把金鑰寫回來。
+- 裝置記憶存的是**派生金鑰**不是密碼：所以後台**換 PAT 時各裝置自動換過去、不用重解鎖**；**換密碼／刪人／收回權限則解不開 → 靜默清掉回到「只看看」**並提示一次。抓不到 keyring.json（離線）時維持現狀，不會把人踢回唯讀。
+- 首次進站 0.9 秒主動彈一次解鎖 sheet（旗標 `keyring.travel-book.introSeen`），之後永遠不再自動彈。
+- 本機測試：`localStorage["keyring.travel-book.src"]` 可指到本機後台的 `http://localhost:4620/keyring.json`。
+
 ## 資料格式（定案；前後端各有一套 mirror parser，改要一起改）
 - 每趟旅程一個 `data/trips/<id>.md`，id = `<ts36>-<slug>`（slug 保留中文）。
 - 結構：frontmatter（`name/dest/emoji/theme/start/days/budget/createdAt/updatedAt`，字串 JSON-quoted、數字裸寫）＋ 四段 body：
@@ -51,7 +61,7 @@ UI/UX 以 `demo/index.html`（UX demo v3.1，Benson 拍板）為準，**勿自�
 
 ## PWA 鐵律（recipe-book 血淚，全部已做，別退步）
 - 所有資源、manifest `start_url`/`scope`、SW scope **一律相對路徑**（Pages 在 `/travel-book/` 子路徑）。
-- SW：`skipWaiting()`＋activate 清舊快取＋`clients.claim()`；`/api/data` network-first、寫入 network-only、殼 cache-first。**改前端記得把 sw.js 的 cache 版本號 +1**（`travel-shell-vN`，目前 v8）**並同步 `APP_VER`**（見下方「版本與更新」）。
+- SW：`skipWaiting()`＋activate 清舊快取＋`clients.claim()`；`/api/data` network-first、寫入 network-only、殼 cache-first。**改前端記得把 sw.js 的 cache 版本號 +1**（`travel-shell-vN`，目前 v9）**並同步 `APP_VER`**（見下方「版本與更新」）。
 - input/textarea/select `font-size ≥ 16px`（iOS 防自動放大）；觸控目標 ≥ 44px；Enter 送出全部走原生 `<form>` + `type=submit`。
 - 換 icon 後 iOS 已安裝的 PWA 要移除主畫面重加才會換。
 

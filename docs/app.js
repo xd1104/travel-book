@@ -11,7 +11,7 @@
 /* ============ 常數 ============ */
 /* 版本號的唯一來源：首頁 footer 與「版本」sheet 都讀它。
  * 改前端時跟 sw.js 的 cache 版本號一起 +1（見「版本與更新」段）。 */
-var APP_VER="1.7";
+var APP_VER="2.0";
 
 /* 行程點類別（v1.1 起）＝可管理的全域資源：清單存 db.categories（同步 data/categories.md），
  * CATS 是 id->物件 的索引（rebuildCats 重建）。「其他」永遠存在＝刪類別後的 fallback。 */
@@ -416,9 +416,16 @@ var GH = { owner:"xd1104", repo:"travel-book", branch:"main" };
 var IS_LOCAL = ["localhost","127.0.0.1","::1",""].indexOf(location.hostname)>=0;
 var FORCE_GH = /[?&]store=github\b/.test(location.search);
 var TOKEN_KEY = "travel_gh_pat";
-function getToken(){ try{ return localStorage.getItem(TOKEN_KEY)||""; }catch(e){ return ""; } }
+/* key 名稱刻意不動（跟舊版完全相容）。v2.0 起多讀一個 sessionStorage：
+ * 鑰匙圈解鎖時沒勾「記住這台裝置」就存那裡，關掉分頁即失效（別人的電腦用）。 */
+function getToken(){
+  try{ return sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY) || ""; }catch(e){ return ""; }
+}
 function setToken(t){ try{ localStorage.setItem(TOKEN_KEY,t); }catch(e){} }
-function clearToken(){ try{ localStorage.removeItem(TOKEN_KEY); }catch(e){} }
+function clearToken(){
+  try{ localStorage.removeItem(TOKEN_KEY); }catch(e){}
+  try{ sessionStorage.removeItem(TOKEN_KEY); }catch(e){}
+}
 
 function uiError(message){ var e=new Error(message); e.userMessage=message; return e; }
 
@@ -607,6 +614,24 @@ var GitHubStore = {
 
 var STORE = (IS_LOCAL && !FORCE_GH) ? LocalStore : GitHubStore;
 
+/* ============ 鑰匙圈解鎖（v2.0） ============
+ * 手機／別人的電腦不用再貼一長串 PAT：每個人一組密碼，任何裝置輸一次就能編輯。
+ * 金鑰的密文放在公開的 keyring repo，解開後照樣寫進既有的 travel_gh_pat，
+ * 所以 GitHubStore 完全不用改。模組正本在 keyring/client/keyring-unlock.js。
+ * 「設定→貼金鑰」入口刻意保留：萬一鑰匙圈壞掉，還能手動貼一把救回來。 */
+var KR = (typeof Keyring !== "undefined") ? Keyring : null;
+var KR_ON = !!KR && !STORE.local;
+if(KR){
+  KR.init({
+    enabled: KR_ON,
+    appId: "travel-book",
+    tokenKey: TOKEN_KEY,
+    toast: function(msg, isErr){ toast(msg, isErr); },
+    /* 解鎖／換人／後台換了金鑰 -> 重新載入（有金鑰走認證 API，沒金鑰退回唯讀） */
+    onChange: function(){ if(booted) reloadData(); }
+  });
+}
+
 /* ============ 持久化（樂觀更新：畫面先動，背景寫入，失敗才 toast） ============ */
 var persistChains = {}; /* 同一份檔案的寫入排隊，避免並發互蓋 */
 function chainPersist(key, job){
@@ -630,9 +655,12 @@ function persistCategories(){
   return chainPersist("cats", function(){ return STORE.saveCategories(db.categories); });
 }
 
-/* 唯讀守門（Pages 無金鑰） */
-function requireWrite(){
+/* 唯讀守門（Pages 無金鑰）
+ * v2.0：不再只丟 toast 叫他自己回首頁找「設定」——直接把解鎖 sheet 端到他面前，
+ * 並帶上理由條（reason ＝ 他剛剛想做的事，例如「規劃新旅程」）。 */
+function requireWrite(reason){
   if(STORE.canWrite()) return true;
+  if(KR_ON){ KR.open(reason||""); return false; }
   toast("唯讀模式：到下方「設定」貼上金鑰才能編輯", true);
   return false;
 }
@@ -701,11 +729,17 @@ function homeFoot(){
     return '<footer class="home-foot">資料存在這台電腦，並自動同步到 GitHub　'
       + verBtn()+'</footer>';
   }
-  var mode = STORE.canWrite() ? "已連線 GitHub・可編輯" : "唯讀模式・貼上金鑰即可編輯";
-  return '<footer class="home-foot">'+mode+'　'
-    + '<button onclick="openSettings()">設定</button>'
-    + '<button onclick="reloadData()">重新整理</button>'
-    + verBtn()+'</footer>';
+  /* 第一行＝身分藥丸（誰在用／點我解鎖），第二行才是原本的 footer 連結。
+   * 身分放這裡不放頂部：旅程頁的 header 是旅程封面，塞身分會搶主體。 */
+  var chip = KR_ON
+    ? KR.chipHtml()
+    : '<span class="foot-mode">'+(STORE.canWrite()?"已連線 GitHub・可編輯":"唯讀模式・貼上金鑰即可編輯")+'</span>';
+  return '<footer class="home-foot">'+chip
+    + '<div class="foot-links">'
+    +   '<button onclick="openSettings()">設定</button>'
+    +   '<button onclick="reloadData()">重新整理</button>'
+    +   verBtn()
+    + '</div></footer>';
 }
 function viewHome(){
   var today=new Date(); today.setHours(0,0,0,0);
@@ -998,7 +1032,7 @@ function toggleHours24(cb){
   f.hoursClose.disabled = cb.checked;
 }
 function openStopEdit(idx){
-  if(!requireWrite()) return;
+  if(!requireWrite("改這個行程點")) return;
   var list=curList()||[]; var sp=list[idx]; if(!sp) return;
   var curCat = CATS[sp.cat] ? sp.cat : "other"; /* 類別被刪掉的舊行程點 fallback 到「其他」 */
   var legacyHours = (sp.hours && !sp.hoursOpen && !sp.hoursClose && !sp.hours24)
@@ -1154,7 +1188,7 @@ function openTplPicker(){
     + '<div class="d-acts"><button class="btn-ghost" onclick="openTplManager()">管理模板</button></div>');
 }
 function applyTemplate(id){
-  if(!requireWrite()) return;
+  if(!requireWrite("套用打包模板")) return;
   var t=curTrip(); if(!t) return;
   var tp=null; db.templates.forEach(function(x){ if(x.id===id) tp=x; });
   if(!tp) return;
@@ -1177,7 +1211,7 @@ function openTplManager(){
     rows + '<div class="d-acts"><button class="btn-primary" onclick="openTplEdit()">＋ 新增模板</button></div>');
 }
 function delTemplate(id){
-  if(!requireWrite()) return;
+  if(!requireWrite("刪掉打包模板")) return;
   if(!confirm("刪除這個模板？（不影響已帶入各旅程的項目）")) return;
   db.templates = db.templates.filter(function(t){return t.id!==id;});
   chainPersist("tpl:"+id, function(){ return STORE.deleteTemplate(id); });
@@ -1185,7 +1219,7 @@ function delTemplate(id){
 }
 var tplDraft = null;
 function openTplEdit(id){
-  if(!requireWrite()) return;
+  if(!requireWrite("改打包模板")) return;
   var src=null;
   if(id){ db.templates.forEach(function(t){ if(t.id===id) src=t; }); }
   tplDraft = src
@@ -1263,7 +1297,7 @@ function openCatManager(){
     + '<div class="d-acts"><button class="btn-primary" onclick="openCatEdit()">＋ 新增類別</button></div>');
 }
 function openCatEdit(id){
-  if(!requireWrite()) return;
+  if(!requireWrite("改行程點類別")) return;
   var src=null;
   if(id){ (db.categories||[]).forEach(function(c){ if(c.id===id) src=c; }); }
   var draft = src ? {id:src.id, label:src.label, emoji:src.emoji, color:src.color}
@@ -1303,7 +1337,7 @@ function saveCat(ev, id){
   render(true); /* 行程卡的類別膠囊即時換色 */
 }
 function delCat(id){
-  if(!requireWrite()) return;
+  if(!requireWrite("刪掉類別")) return;
   if(id==="other") return; /* fallback 類別不可刪 */
   var c=CATS[id];
   if(!confirm("刪除類別「"+(c?c.label:id)+"」？用到它的行程點會顯示成「其他」。")) return;
@@ -1318,9 +1352,12 @@ function delCat(id){
 /* ---- 備註 ---- */
 function viewNotes(t){
   var ro = !STORE.canWrite();
-  return '<div class="notes-hint"><span>'+(ro?"唯讀模式（貼上金鑰即可編輯）":"航班、訂房代號、緊急聯絡…都丟這裡")+'</span>'
+  /* 唯讀時 textarea 維持 readonly，但點下去要能解鎖（不是點了沒反應） */
+  var hint = ro ? (KR_ON ? "只看看模式（點一下就能解鎖來寫）" : "唯讀模式（貼上金鑰即可編輯）")
+                : "航班、訂房代號、緊急聯絡…都丟這裡";
+  return '<div class="notes-hint"><span>'+hint+'</span>'
     +   '<span class="note-saved" id="note-saved">已儲存 ✓</span></div>'
-    + '<textarea class="notes-area" '+(ro?"readonly ":"")+'oninput="noteInput(this.value)" '
+    + '<textarea class="notes-area" '+(ro?'readonly onclick="requireWrite(\'寫備註\')" ':"")+'oninput="noteInput(this.value)" '
     +   'placeholder="例：&#10;去程航班 BR198 09:20&#10;飯店訂房代號 ABC-123">'+esc(t.notes)+'</textarea>';
 }
 
@@ -1330,30 +1367,30 @@ function goHome(){ ui.screen="home"; render(); }
 function setTab(tab){ ui.tab=tab; ui.edit=false; render(); }
 function setDay(d){ ui.day=d; render(); }
 function toggleEdit(){
-  if(!ui.edit && !requireWrite()) return;
+  if(!ui.edit && !requireWrite("調整順序")) return;
   ui.edit=!ui.edit; render(true);
 }
 
 function delStop(idx){
-  if(!requireWrite()) return;
+  if(!requireWrite("刪掉這個行程點")) return;
   var list=curList(); if(!list) return;
   list.splice(idx,1); persistTrip(curTrip()); render(true);
 }
 function togglePack(id){
-  if(!requireWrite()) return;
+  if(!requireWrite("勾打包清單")) return;
   var t=curTrip();
   t.packing.forEach(function(p){ if(p.id===id) p.done=!p.done; });
   persistTrip(t); render(true);
 }
 function delPack(id){
-  if(!requireWrite()) return;
+  if(!requireWrite("刪掉打包項目")) return;
   var t=curTrip();
   t.packing = t.packing.filter(function(p){return p.id!==id;});
   persistTrip(t); render(true);
 }
 function addPack(ev){
   ev.preventDefault();
-  if(!requireWrite()) return;
+  if(!requireWrite("加打包項目")) return;
   var t=curTrip();
   var input=document.getElementById("pack-input");
   var text=(input.value||"").trim(); if(!text) return;
@@ -1363,7 +1400,7 @@ function addPack(ev){
   if(again) again.focus({preventScroll:true});
 }
 function delExpense(id){
-  if(!requireWrite()) return;
+  if(!requireWrite("刪掉這筆花費")) return;
   var t=curTrip();
   t.expenses = t.expenses.filter(function(e){return e.id!==id;});
   persistTrip(t); render(true);
@@ -1480,7 +1517,7 @@ function readStay(f){
 }
 /* v1.3：FAB 先問要加哪一種（站點 vs 路上），避免把兩種塞進同一張長表單 */
 function openAddPicker(){
-  if(!requireWrite()) return;
+  if(!requireWrite("加行程點或移動")) return;
   openSheet("加到 Day "+ui.day,
     '<div class="add-pick">'
     + '<button class="add-opt" onclick="openStopSheet()">'
@@ -1493,7 +1530,7 @@ function openAddPicker(){
 }
 /* 移動：只有備註＋移動時間（沿用 stayMinutes 元件） */
 function openTransitSheet(){
-  if(!requireWrite()) return;
+  if(!requireWrite("加一段移動")) return;
   openSheet("新增移動・Day "+ui.day,
     '<form onsubmit="submitTransit(event)">'
     + '<label class="field"><span class="fl">怎麼移動</span>'
@@ -1513,7 +1550,7 @@ function submitTransit(ev){
   persistTrip(t); closeSheet(); render();
 }
 function openTransitEdit(idx){
-  if(!requireWrite()) return;
+  if(!requireWrite("改這段移動")) return;
   var list=curList()||[]; var sp=list[idx]; if(!sp) return;
   openSheet("編輯移動",
     '<form onsubmit="submitTransitEdit(event,'+idx+')">'
@@ -1537,7 +1574,7 @@ function submitTransitEdit(ev, idx){
   shiftToast(moved, sp.stayMinutes-oldStay);
 }
 function openStopSheet(){
-  if(!requireWrite()) return;
+  if(!requireWrite("加行程點")) return;
   /* 時間預設帶「上一站結束＋中間的移動」，接著排最順；要改再改（v1.6） */
   var guess = nextTimeGuess(curList()||[]);
   openSheet("新增行程點・Day "+ui.day,
@@ -1582,7 +1619,7 @@ function submitStop(ev){
 }
 
 function openExpenseSheet(){
-  if(!requireWrite()) return;
+  if(!requireWrite("記一筆花費")) return;
   var opts = Object.keys(ECATS).map(function(k){
     return '<option value="'+k+'">'+ECATS[k].emoji+' '+ECATS[k].label+'</option>';
   }).join("");
@@ -1608,7 +1645,7 @@ function submitExpense(ev){
 
 /* ---- 新增／編輯旅程（共用表單） ---- */
 function openTripSheet(editId){
-  if(!requireWrite()) return;
+  if(!requireWrite(editId ? "改這趟旅程" : "規劃新旅程")) return;
   var trip = null;
   if(editId){ db.trips.forEach(function(t){ if(t.id===editId) trip=t; }); }
   var emojis = ["🧳","🗼","🏝️","⛩️","🗽","🎡","⛰️","🌸"];
@@ -1699,7 +1736,7 @@ function submitTrip(ev){
   persistTrip(nt); closeSheet(); openTrip(nt.id);
 }
 function delTrip(id){
-  if(!requireWrite()) return;
+  if(!requireWrite("刪掉這趟旅程")) return;
   var t=null; db.trips.forEach(function(x){ if(x.id===id) t=x; });
   if(!t) return;
   if(!confirm("刪除「"+t.name+"」？整趟的行程、花費、打包、備註都會一起刪掉，無法復原。")) return;
@@ -1711,11 +1748,15 @@ function delTrip(id){
   toast("已刪除旅程");
 }
 
-/* ============ 設定（GitHub 金鑰；只在 Pages 版出現） ============ */
+/* ============ 設定（GitHub 金鑰；只在 Pages 版出現）
+ * v2.0 起這裡是**進階／救援**入口：平常用下面那條解鎖藥丸（一組密碼就好），
+ * 這裡留給「鑰匙圈壞掉／還沒配好」時手動貼一把金鑰把自己救回來。 ============ */
 function openSettings(){
   var t = getToken();
-  openSheet("設定",
-    '<label class="field"><span class="fl">GitHub 金鑰（PAT）</span>'
+  openSheet("設定（進階）",
+    (KR_ON ? '<div class="hint" style="margin-top:0">平常不用來這裡——首頁最下面那條「點我解鎖」輸入自己的密碼就好。'
+           + '這頁是鑰匙圈出問題時的救援用。</div>' : '')
+    + '<label class="field"><span class="fl">GitHub 金鑰（PAT）</span>'
     + '<input id="settings-token" value="'+esc(t)+'" placeholder="github_pat_..." autocomplete="off" autocapitalize="off" spellcheck="false"></label>'
     + '<div class="hint">用 fine-grained PAT、只授權 <b>travel-book</b> 這一個 repo 的 Contents（Read and write）。'
     + '金鑰只存在這支手機的瀏覽器，不會上傳到別的地方。</div>'
@@ -1736,6 +1777,8 @@ function saveSettings(){
 }
 function clearSettings(){
   clearToken();
+  /* 鑰匙圈記著的身分也要一起清掉，否則下次載入又把金鑰寫回來，看起來像沒清成功 */
+  if(KR_ON) KR.forget();
   toast("已清除金鑰，回到唯讀");
   closeSheet();
   reloadData();
@@ -1790,6 +1833,8 @@ function bootLoad(){
     rebuildCats();
     booted=true;
     render();
+    /* 這台裝置從沒解鎖過、也沒看過解鎖 sheet -> 主動端一次，之後永遠不再自動彈 */
+    if(KR_ON) KR.maybeIntro();
   }).catch(function(e){
     renderBootError(e);
   });

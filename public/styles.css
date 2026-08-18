@@ -56,6 +56,10 @@ ul{padding:0; list-style:none;}
 .mem-right i{font-style:normal; font-size:18px; color:#d6cbb8;}
 .home-foot{text-align:center; color:#b3a996; font-size:12.5px; padding:24px 16px 40px;}
 .home-foot button{color:#a4988a; text-decoration:underline; font-size:12.5px; min-height:44px; padding:0 8px;}
+/* v2.0：第一行是身分藥丸（.kr-chip，樣式由 keyring-unlock.js 帶），第二行才是這些連結 */
+.home-foot .foot-links{margin-top:12px; display:flex; align-items:center; justify-content:center; gap:4px; flex-wrap:wrap;}
+.home-foot .foot-mode{display:block; margin-bottom:2px;}
+.home-foot .kr-chip{text-decoration:none;}
 /* 版本鈕：平常低調（跟其他 footer 連結同層級），有新版才跳成琥珀色藥丸 */
 .home-foot .ver-btn{font-variant-numeric:tabular-nums;}
 .home-foot .ver-btn.hot{text-decoration:none; color:#8a5b12; background:#ffe8b8; border-radius:99px;
