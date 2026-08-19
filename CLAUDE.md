@@ -26,6 +26,7 @@ UI/UX 以 `demo/index.html`（UX demo v3.1，Benson 拍板）為準，**勿自�
 - footer 第一行是身分藥丸（`Keyring.chipHtml()`，模組自帶 `kr-` 樣式），第二行才是原本的設定／重新整理／版本。**本機版（LocalStore）不顯示**——本機不用鑰匙。
 - **「設定 → 貼金鑰」刻意保留**當救援入口（鑰匙圈壞掉時還能手動貼一把）。`clearSettings` 會一併 `Keyring.forget()`，否則下次載入又把金鑰寫回來。
 - 裝置記憶存的是**派生金鑰**不是密碼：所以後台**換 PAT 時各裝置自動換過去、不用重解鎖**；**換密碼／刪人／收回權限則解不開 → 靜默清掉回到「只看看」**並提示一次。抓不到 keyring.json（離線）時維持現狀，不會把人踢回唯讀。
+- **顯示用資料也會跟著對帳（v2.2 修）**：解鎖時存的是當下的**快照**（名字／emoji／主題色），所以後台改名之後，已解鎖的裝置原本永遠顯示舊名字。`refreshFromRing()` 現在會在 userId 對得上時把這三個欄位更新成鑰匙圈裡的最新值（金鑰不動、不用重解鎖）。**對帳只在頁面載入時跑**——`Keyring.reload()` 只是重抓鑰匙圈、不做對帳，別拿它當驗證入口。
 - 首次進站 0.9 秒主動彈一次解鎖 sheet（旗標 `keyring.travel-book.introSeen`），之後永遠不再自動彈。
 - 本機測試：`localStorage["keyring.travel-book.src"]` 可指到本機後台的 `http://localhost:4620/keyring.json`。
 - **解鎖畫面視覺 v2.1（2026-08-18，lab-ux 方向 B「暖卡列」定案；只動 CSS 與兩處 template，狀態機沒碰）**：頭像從 116px 滿彩度漸層磚縮成 **44px 淡底頭像**（同一組 `THEMES` 壓到 ~20%，存在模組的 `CFG.tints`），選人改**直向橫卡列**（`.kr-grid` 變 flex column、`.kr-tile` 變 64px 高的米白卡），第二步拿掉 74px 大頭像／置中大標，改用 `.kr-id` 橫列。理由：那組漸層在這個 App 是「一趟旅程」的語彙，套在人身上會變成兩張沒名字的旅程卡。**別再把 `grad()` 用回頭像**（`grad()` 現在只剩 footer 藥丸的 24px 小方塊在用）。
@@ -65,7 +66,7 @@ UI/UX 以 `demo/index.html`（UX demo v3.1，Benson 拍板）為準，**勿自�
 
 ## PWA 鐵律（recipe-book 血淚，全部已做，別退步）
 - 所有資源、manifest `start_url`/`scope`、SW scope **一律相對路徑**（Pages 在 `/travel-book/` 子路徑）。
-- SW：`skipWaiting()`＋activate 清舊快取＋`clients.claim()`；`/api/data` network-first、寫入 network-only、殼 cache-first。**改前端記得把 sw.js 的 cache 版本號 +1**（`travel-shell-vN`，目前 v10）**並同步 `APP_VER`**（見下方「版本與更新」）。
+- SW：`skipWaiting()`＋activate 清舊快取＋`clients.claim()`；`/api/data` network-first、寫入 network-only、殼 cache-first。**改前端記得把 sw.js 的 cache 版本號 +1**（`travel-shell-vN`，目前 v11）**並同步 `APP_VER`**（見下方「版本與更新」）。
 - input/textarea/select `font-size ≥ 16px`（iOS 防自動放大）；觸控目標 ≥ 44px；Enter 送出全部走原生 `<form>` + `type=submit`。
 - 換 icon 後 iOS 已安裝的 PWA 要移除主畫面重加才會換。
 
