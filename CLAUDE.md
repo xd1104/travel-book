@@ -19,20 +19,37 @@ UI/UX 以 `demo/index.html`（UX demo v3.1，Benson 拍板）為準，**勿自�
 ## 金鑰（安全）
 - 手機用 **fine-grained PAT、只授權 `travel-book` 一個 repo 的 Contents 讀寫**，存 localStorage（key **`travel_gh_pat`**）。設定入口只在非 localhost 顯示（首頁 footer「設定」）。**任何真實金鑰不可寫進程式或 commit。**
 
-## 鑰匙圈解鎖（v2.0，定案；別誤改）
+## 鑰匙圈解鎖（功能 v2.2＋視覺 v3 公版，定案；別誤改）
 - **一人一組密碼取代「貼 PAT」**：`public/keyring-unlock.js`（正本在 `Claude Work/keyring/client/`，改那邊再複製過來）抓公開的 `xd1104/keyring` repo 的 `keyring.json`（只有密文），使用者選自己＋輸密碼，瀏覽器用 WebCrypto（PBKDF2-SHA256 600000 → AES-GCM 256）解出金鑰。
 - **`travel_gh_pat` 這個 key 不動**（跟舊版完全相容，GitHubStore 一行都沒改）。`getToken` v2.0 起會**先讀 sessionStorage**：解鎖時沒勾「記住這台裝置」就存那裡，關掉分頁即失效。
-- `requireWrite(reason)` 多了一個理由字串：唯讀被擋時**直接升起解鎖 sheet 並帶理由條**（「要『規劃新旅程』得先解鎖」），不再只丟 toast 叫他自己去找設定。沒帶 reason 也能跑（就不顯示理由條）。
+- `requireWrite(reason)` 多了一個理由字串：唯讀被擋時**直接升起解鎖畫面（v3 起是滿版）並帶理由條**（「要『規劃新旅程』得先解鎖」），不再只丟 toast 叫他自己去找設定。沒帶 reason 也能跑（就不顯示理由條）。
 - footer 第一行是身分藥丸（`Keyring.chipHtml()`，模組自帶 `kr-` 樣式），第二行才是原本的設定／重新整理／版本。**本機版（LocalStore）不顯示**——本機不用鑰匙。
 - **「設定 → 貼金鑰」刻意保留**當救援入口（鑰匙圈壞掉時還能手動貼一把）。`clearSettings` 會一併 `Keyring.forget()`，否則下次載入又把金鑰寫回來。
 - 裝置記憶存的是**派生金鑰**不是密碼：所以後台**換 PAT 時各裝置自動換過去、不用重解鎖**；**換密碼／刪人／收回權限則解不開 → 靜默清掉回到「只看看」**並提示一次。抓不到 keyring.json（離線）時維持現狀，不會把人踢回唯讀。
 - **顯示用資料也會跟著對帳（v2.2 修）**：解鎖時存的是當下的**快照**（名字／emoji／主題色），所以後台改名之後，已解鎖的裝置原本永遠顯示舊名字。`refreshFromRing()` 現在會在 userId 對得上時把這三個欄位更新成鑰匙圈裡的最新值（金鑰不動、不用重解鎖）。**對帳只在頁面載入時跑**——`Keyring.reload()` 只是重抓鑰匙圈、不做對帳，別拿它當驗證入口。
-- 首次進站 0.9 秒主動彈一次解鎖 sheet（旗標 `keyring.travel-book.introSeen`），之後永遠不再自動彈。
+- 首次進站 0.9 秒主動彈一次解鎖畫面（旗標 `keyring.travel-book.introSeen`），之後永遠不再自動彈。
 - 本機測試：`localStorage["keyring.travel-book.src"]` 可指到本機後台的 `http://localhost:4620/keyring.json`。
-- **解鎖畫面視覺 v2.1（2026-08-18，lab-ux 方向 B「暖卡列」定案；只動 CSS 與兩處 template，狀態機沒碰）**：頭像從 116px 滿彩度漸層磚縮成 **44px 淡底頭像**（同一組 `THEMES` 壓到 ~20%，存在模組的 `CFG.tints`），選人改**直向橫卡列**（`.kr-grid` 變 flex column、`.kr-tile` 變 64px 高的米白卡），第二步拿掉 74px 大頭像／置中大標，改用 `.kr-id` 橫列。理由：那組漸層在這個 App 是「一趟旅程」的語彙，套在人身上會變成兩張沒名字的旅程卡。**別再把 `grad()` 用回頭像**（`grad()` 現在只剩 footer 藥丸的 24px 小方塊在用）。
-- **模組 CSS 的權重鐵律（v2.1 修，QA 退過一次）**：這份 CSS 是注入到「本身就有 CSS 的宿主」裡跑的，單一 class (0,1,0) 會被 `.kr-sheet button`（模組自己的通則）和 `.home-foot button`（travel-book 的）這種 (0,1,1) 壓過 —— v2.0 的珊瑚「解鎖」鈕實際是透明的、footer 身分藥丸是沒有底色的灰色小字。現在**每條規則都用同一個 class 寫兩次提權**（`.kr-chip.kr-chip{}` ＝ 0,2,0），新增規則照做；**不可以**寫成 `.home-foot .kr-chip`（把宿主結構寫死進模組，下一個 App 會再壞一次）。
-- **樣式注入時機**：`init()` 就注入 `#kr-style`（不是等第一次 `paint()`）——footer 藥丸每次進站都看得到，不能等使用者開過 sheet 才有樣式。
-- `.kr-dot`（footer 藥丸的小方塊）也吃 tint，跟 sheet 裡的頭像同一種語言；`grad()` 已移除，模組不再渲染滿彩度漸層。
+- **解鎖畫面 v3「公版」（2026-08-20，Benson 拍板；只換視覺與版面，狀態機／加解密／對外 API 一行沒動）**——這一段**推翻 v2.1 的部分決策，不要當 bug 修回去**：
+  - **底部 sheet 改成滿版 `#kr-full`**（`.kr-sheet`／`.kr-backdrop`／`.kr-grab` 全部移除），三段式 flex：`.kr-top`（App 名字＋✕）／`.kr-main > .kr-mid`（垂直置中、可捲）／`.kr-foot`（「先看看就好」常駐條）。**已解鎖點藥丸的身分頁與換人確認也是滿版**（Benson 要的是統一介面，不要一個滿版一個 sheet）。
+  - **配色是「公版深色」，不吃這個 App 的任何主色**：暖墨咖啡 `rgba(26,21,16,.955)` ＋頂部暖光 ＋ backdrop blur，主鈕是暖白 `#f6efe1` 深字（**刻意不是珊瑚色**）。理由：解鎖是「進 App 之前」的一層，它不屬於任何一個 App 的視覺語言；而且**只要模組還有「一半吃變數、一半寫死」的顏色，接第 N 個 App 就會再壞一次**（食譜本那次就是粉底＋橘字）。**`#kr-full` 子樹內一個宿主變數都不准讀，連 `var(--acc, fallback)` 都不行**；模組自己的常數用 `--krs-*`（定義在 `#kr-full` 上）。App 的身分靠左上角一行文字（預設 `document.title`）不靠顏色。
+  - **唯一能碰主色的是身分藥丸 `.kr-chip`**（它住在 App 的畫面裡）：**底色永遠是模組固定的中性色 `#f6f2ea`，主色只准上前景**——只有 `.kr-cta`（「點我解鎖 ›」那幾個字）吃 `var(--acc, #c1553f)`。`.kr-dot` 改回**滿彩度、圓形 22px**。
+  - **頭像改回滿彩度漸層＋圓形**（v2.1 的 20% tint 與 `CFG.tints` 已移除）：v2.1 的理由是「滿彩漸層在這個 App 是一趟旅程的語言、會跟旅程封面撞」，但**v3 的解鎖層是獨立的深色滿版，畫面上根本沒有封面可以撞**，深底上也需要彩度才看得見人。另加一道保險：**頭像一律圓形、旅程卡一律圓角矩形**——用形狀分語意，顏色就不必退讓。
+  - **「先看看就好」是版面的固定成員**（`.kr-foot` 全寬 62px 常駐條，每一屏都有）＋右上 ✕ ＋標題寫「**誰要編輯？**」而不是「誰在用？」。這三件事是「滿版沒有變成鎖屏」的關鍵，**改文案等於改掉這個設計**。
+  - **safe-area 與鍵盤**：`#kr-full` 高度用 `var(--kr-vh,100dvh)`，`fitVH()` 靠 `visualViewport` 維護（**不要用 `100vh`**）；`.kr-foot` 是 flex item **不是 `position:fixed`**，鍵盤彈出時它自然停在鍵盤正上方——**這是刻意的，不要「優化」成 fixed**。`open()` 時鎖 `body.overflow`、`close()` 還原成進來時的值。
+  - **矮螢幕密度（QA 退件兩次修，機制別再換回去）**：鍵盤彈出後可視高度只剩 340~440px（iPhone SE 約 407px），原尺寸會讓「解鎖」鈕掉到摺線下面。
+    - **⚠️ 不可以用 `@media(max-height:…)`**：媒體查詢吃的是 **CSS 視窗高度**，而 **iOS 鍵盤只縮 `visualViewport`、CSS 視窗高度一動也不動** ⇒ 媒體查詢永遠不觸發。**Android 會過、iPhone 不會**（實證：`--kr-vh`=407 時解鎖鈕可見高度 0px）。這也正是模組本來就有 `--kr-vh`／`fitVH()` 的原因。
+    - **正解**：`applyDensity()` 依**實際量到的滿版高度**在 `#kr-full` 上加／移除 `.kr-short`(≤640)／`.kr-tiny`(≤500)／`.kr-micro`(≤460)，緊縮規則全部寫成 `#kr-full.kr-short …`；再掛一個 **ResizeObserver** 在 layer 上，任何原因（鍵盤、轉向、測試直接改 `--kr-vh`）造成的高度變化都會重算。
+    - **門檻是用最壞情境定的**（理由條 ＋ 已打錯 2 次＝錯誤條兩行），不是用單純情境——單純情境會給出假的安全感。`.kr-micro` 刻意讓掉三樣次要的東西（理由條、錯誤條第二行、出口第二行）換「密碼欄＋解鎖鈕＋出口」完整可見；**觸控目標 ≥44px 與密碼欄 16px 不准讓**。
+    - **已知缺口（QA 建議級，刻意先不修）**：`.kr-micro` 把理由條整條 `display:none`。正常路徑不受影響（他點寫入鍵的當下畫面還是全高、看得到理由，鍵盤才彈出）；但**一開機就矮**（手機橫置／桌機小視窗）時，他從頭到尾看不到「為什麼被擋」。要收的話把理由縮成一行併進副標即可。
+    - 實測（最壞情境、不捲動）：`--kr-vh` = 340/380/407/440/500 兩個 App 全過，破線點在 **~318px**（比 QA 要求的最低 340 還低 22px）。
+  - **量測方法（前兩輪雙方都在這裡失準過）**：① 量之前 `scrollTop` 一律歸 0；② 不要只看 `getBoundingClientRect`（它不管捲動容器的裁切）；③ 至少兩種方法交叉驗：clip-aware 交集（走 overflow 祖先，但**走到 `#kr-full` 就要停**——它是 `position:fixed`，body/html 的 overflow 裁不到它，多走一層會誤判成被裁掉）／`elementFromPoint` 打按鈕（**用邊中點不要用四角**，圓角 15px 會讓角落落在形狀外）／截圖掃暖白 `rgb(246,239,225)` 像素（**掃描欄要避開置中的「解鎖」字樣**，否則連續段會被文字切斷）。
+  - **同名的人靠前端分辨**（`hintOf()`）：後台有填 `hint` 就顯示 hint，沒有但名字重複就顯示 `id`（ASCII slug）。**刻意不改後台、不改資料格式。**
+- **模組 CSS 的權重鐵律（v2.1 訂、v3 強化；QA 退過一次）**：這份 CSS 是注入到「本身就有 CSS 的宿主」裡跑的，單一 class (0,1,0) 會被 `.home-foot button`（0,1,1）壓過 —— v2.0 的珊瑚「解鎖」鈕實際是透明的、footer 藥丸是沒底色的灰色小字。現在：**滿版層內一律 `#kr-full .kr-x{}`（1,1,0，綁模組自己的 id）**；**滿版層外（只有藥丸）用同一個 class 寫兩次 `.kr-chip.kr-chip{}`（0,2,0）**。**絕對不可以**寫成 `.home-foot .kr-chip`（把宿主結構寫死進模組，下一個 App 會再壞一次）。`styles.css` 裡也**不准出現任何 `kr-` 開頭的規則**（原本那條 `.home-foot .kr-chip{text-decoration:none}` v3 已刪，模組自己鎖死了）。
+  - 同一個坑的變形：**`#kr-full .kr-id span` 會連頭像那顆 `<span class="kr-av">` 一起選到**（1,1,1 壓過 1,1,0），66px 圓頭像會變成 13.5px 灰字。所以副標寫成 `.kr-id div span`。加新規則時先想「這個 tag 選擇器會不會掃到自家別的元件」。
+- **第二條滲漏路徑：宿主的「繼承屬性」（QA 退件修）**——跟「權重被壓」是不同的病，**權重擋不住它**，因為模組根本沒宣告那個屬性。實測抓到：travel 有 `-webkit-tap-highlight-color:transparent`、食譜本沒有 ⇒ **同一顆頭像磚在 iPhone 上一個 App 點下去會閃灰、另一個不會**；還有 `text-size-adjust`（auto vs 100%）與隱藏 checkbox 的 `font-size`（13.33px vs 16px）。修法是在 `#kr-full`（以及 `.kr-chip`）**把所有會繼承的屬性一次寫死**（tap-highlight／text-size-adjust／box-sizing／font-weight／font-style／font-variant／text-transform／text-shadow／word-spacing／white-space／direction／cursor／font-smoothing／user-select…），`#kr-full input` 另補 `font-size:16px`。
+  - **驗法**：用 `getComputedStyle` 把**全部**屬性（~340 項）攤開逐項比對兩個 App，不是挑幾項看。目前差異 = **0**（唯一剩下的是 `.kr-chip .kr-cta` 的 `color` 與它 16 個 `currentColor` 衍生屬性——那正是唯一被允許吃 `--acc` 的鉤子）。宿主 `:root` 的 `--acc/--ink/…` 會被繼承進 `#kr-full` 的 computed style，那是正常的：**模組不讀它們**就不算滲漏。
+- **樣式注入時機**：`init()` 就注入 `#kr-style`（不是等第一次 `paint()`）——footer 藥丸每次進站都看得到，不能等使用者開過解鎖畫面才有樣式。
+- **改這個模組的驗收線**：同一份模組在旅途手帳與食譜本裡，解鎖畫面的 **computed style 必須逐項相同**（這是「公版」的機器定義，差一項就是半套主題化復發）；`#kr-full` 子樹 grep 不到 `var(--acc`／`--ink`／`--line`…；`.kr-go` 的 `background-color` 必須是 `rgb(246,239,225)`、`.kr-chip` 必須是 `rgb(246,242,234)`；`#kr-pw` 的 `font-size` 必須是 `16px`；觸控目標 ≥44px。
 
 ## 資料格式（定案；前後端各有一套 mirror parser，改要一起改）
 - 每趟旅程一個 `data/trips/<id>.md`，id = `<ts36>-<slug>`（slug 保留中文）。
