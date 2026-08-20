@@ -7,7 +7,7 @@ start: "2026-08-29"
 days: 3
 budget: 0
 createdAt: "2026-07-23T15:51:59.575Z"
-updatedAt: "2026-08-20T09:11:16.808Z"
+updatedAt: "2026-08-20T09:11:29.205Z"
 ---
 
 ## 行程
@@ -18,11 +18,11 @@ updatedAt: "2026-08-20T09:11:16.808Z"
 - {"id":"xmryc54e4wpkc","type":"transit","note":"開車","stayMinutes":180}
 - {"id":"xmrxp38ze7yh5","title":"秀水湯包","time":"08:00","cat":"food","note":"要先打電話訂","mapUrl":"https://maps.app.goo.gl/27E6ut2M7AB92huj6?g_st=ic","stayMinutes":40,"hoursOpen":"04:30","hoursClose":"12:30"}
 - {"id":"xmryc79oshkc3","type":"transit","note":"開車","stayMinutes":120}
+- {"id":"xmt1aw21ug550","title":"好難吃養生紫米海苔飯捲","time":"10:30","cat":"food","place":"桃園","mapUrl":"https://maps.app.goo.gl/244CrtsXQDCRxfdU7","stayMinutes":15,"hoursOpen":"06:30","hoursClose":"13:00"}
 - {"id":"xmryc8eysee3h","title":"沐楓商旅","time":"11:00","cat":"stay","mapUrl":"https://maps.app.goo.gl/3gxzUEDbABHB8eEH8?g_st=ic","stayMinutes":30}
 - {"id":"xmryc8nv19dyn","type":"transit","note":"開車","stayMinutes":30}
 - {"id":"xmryc9bvikjxm","title":"桃園陽光劇場","time":"12:00","cat":"sight","stayMinutes":540}
 - {"id":"xmrycdc8xd1ue","title":"宵夜？","time":"10:00","cat":"food"}
-- {"id":"xmt1aw21ug550","title":"好難吃養生紫米海苔飯捲","time":"10:30","cat":"food","place":"桃園","mapUrl":"https://maps.app.goo.gl/244CrtsXQDCRxfdU7","stayMinutes":15,"hoursOpen":"06:30","hoursClose":"13:00"}
 
 ### Day 2
 
