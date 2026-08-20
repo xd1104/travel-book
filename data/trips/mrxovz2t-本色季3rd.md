@@ -7,7 +7,7 @@ start: "2026-08-29"
 days: 3
 budget: 0
 createdAt: "2026-07-23T15:51:59.575Z"
-updatedAt: "2026-08-20T09:10:55.846Z"
+updatedAt: "2026-08-20T09:11:16.808Z"
 ---
 
 ## 行程
@@ -22,7 +22,7 @@ updatedAt: "2026-08-20T09:10:55.846Z"
 - {"id":"xmryc8nv19dyn","type":"transit","note":"開車","stayMinutes":30}
 - {"id":"xmryc9bvikjxm","title":"桃園陽光劇場","time":"12:00","cat":"sight","stayMinutes":540}
 - {"id":"xmrycdc8xd1ue","title":"宵夜？","time":"10:00","cat":"food"}
-- {"id":"xmt1aw21ug550","title":"好難吃養生紫米海苔飯捲","time":"11:30","cat":"food","place":"桃園","mapUrl":"https://maps.app.goo.gl/244CrtsXQDCRxfdU7","stayMinutes":15,"hoursOpen":"06:30","hoursClose":"13:00"}
+- {"id":"xmt1aw21ug550","title":"好難吃養生紫米海苔飯捲","time":"10:30","cat":"food","place":"桃園","mapUrl":"https://maps.app.goo.gl/244CrtsXQDCRxfdU7","stayMinutes":15,"hoursOpen":"06:30","hoursClose":"13:00"}
 
 ### Day 2
 
