@@ -86,7 +86,15 @@ UI/UX 以 `demo/index.html`（UX demo v3.1，Benson 拍板）為準，**勿自�
   - 連結＝`https://www.google.com/maps/dir/?api=1&origin=…&destination=…&travelmode=…`（官方 Maps URLs API，手機點了會開 Google Maps App）。起訖點來源優先序 **`addr` → `place`**，**`title` 刻意不算**（「宵夜？」不是地址，搜出來會是亂的）。**兩端都要有可靠來源才顯示連結**——**上一站算不出地址就不顯示**（Benson 拍板：不要用「目前位置」當起點、不要拿名稱去猜）；一天的頭尾（沒有上一站／下一站）自然也不顯示。
   - **交通方式看 transit 的備註自動判斷**（`travelMode`）：走路／步行→walking；腳踏車／單車／YouBike→bicycling；捷運／地鐵／公車／巴士／電車／火車／高鐵→transit；**「騎車」在台灣多半是機車 → driving**；認不出來→driving。
   - UI：路線鈕沿用卡片的 `.map-btn`（同一個圖示語言），但在灰條裡**視覺縮到 38px＋上下負 margin**，實測灰條高度維持 38px（跟沒有鈕的那條一樣）；命中區用 `::before inset:-3px` 外擴回 44px（跟 v1.3 的工具鈕同一招）。**調整模式不顯示**、點它 `stopPropagation`（不會順便打開編輯移動的表單）。
-- **`.gitattributes` 強制 md/js/css/html/json 為 LF**；前後端 parser 開頭都先 `replace(/\r\n/g,'\n')`。壞的 JSON 行 parser 會跳過該行（不整檔炸掉）。
+- **`addr` 的 GitHub Actions 補寫（v2.5，定案；別誤改）**：Benson **幾乎只用手機**，而展開短連結手機做不到 ⇒「要回電腦開一次 server 才長出路線連結」等於沒做。所以加了一台不是他電腦的機器：`.github/workflows/backfill-addrs.yml`（push 到 main 且 `data/**` 有變動時觸發，`permissions: contents: write`＋內建 `GITHUB_TOKEN`，**不用任何 PAT**、零依賴只用 Node 內建模組）。
+  - **邏輯不分岔**：workflow 不自己寫展開邏輯，跑的是 `.github/scripts/backfill-addrs.js`，那支 `require('../../server.js')` 直接呼叫**同一個** `scanAllAddrs()`。為此 server.js 的啟動段包進了 **`if (require.main === module)`**（被 require 時不 build `docs/`、不開 port、不 `initSync`），並在檔尾 `module.exports` 出 `{ scanAllAddrs, backfillTripAddrs, expandMapUrl, TRIPS_DIR, DATA_DIR }`。**要改展開邏輯只改 server.js 那一份**；別在 `.github/` 底下複製一套（這個專案已經有「前後端兩套 parser」的債了）。
+  - **`AUTO_SYNC=0` 必須在 require server.js 之前設**（server.js 載入當下就讀那個環境變數），否則 server 的 git 自動同步會跟 workflow 的 commit 打架。
+  - **防自我觸發迴圈三道**：①**沒變更就不 commit**（根本那道——第二輪 addr 都補齊了、腳本一個位元組都不寫）；② GitHub 內建「GITHUB_TOKEN 推的 commit 不再觸發 workflow」；③ commit 訊息帶 `[skip ci]` ＋ job 的 `if: !contains(head_commit.message,'[skip ci]')`。
+  - **三方同時寫同一個 repo**（手機 Contents API／電腦 server.js／Actions）：push 前 `git pull --rebase --autostash`，失敗就 `git rebase --abort` 再重試，最多 3 次；三次都撞就**放棄並 exit 0**（不硬幹、不留半套 rebase 狀態），下次有人動 `data/**` 會再補。
+  - **只准碰 `data/`**：commit 前有一道 `git status --porcelain | grep -v '^data/'` 斷言（用 `-c core.quotepath=false`，因為旅程檔名有中文）。
+  - **壞連結／逾時／Google 擋 runner 都不讓 workflow 變紅燈**（只留 annotation）——這是加值功能，紅燈只會變成他手機上的噪音。
+  - **已知**：像 `maps/dir/?geocode=A;B` 這種**路線型**短連結展不開（沒有 `?q=` 也沒有 `@lat,lng`），且**沒有負向快取** ⇒ 每一輪都會再花 3 次請求重試它。無害（不寫檔＝不 commit），要根治得加欄位改資料格式，刻意先不做。
+- **`.gitattributes` 強制 md/js/css/html/json/yml 為 LF**；前後端 parser 開頭都先 `replace(/\r\n/g,'\n')`。壞的 JSON 行 parser 會跳過該行（不整檔炸掉）。（`.yml` 是 v2.5 補的：workflow 的 `run:` 區塊在 ubuntu bash 跑，CRLF 會變成 `$'\r': command not found`。）
 
 ## PWA 鐵律（recipe-book 血淚，全部已做，別退步）
 - 所有資源、manifest `start_url`/`scope`、SW scope **一律相對路徑**（Pages 在 `/travel-book/` 子路徑）。

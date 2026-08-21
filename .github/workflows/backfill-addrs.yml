@@ -1,0 +1,89 @@
+# 把行程點的 Google Maps 短連結展開成地址（addr），寫回 repo。
+#
+# 為什麼需要這台機器：
+#   v2.4 起，上下兩個行程點都有 addr 時，中間那條「移動」會自動長出路線連結。
+#   但 addr 只能靠「跟著短連結的 302 轉址走」才拿得到，而**瀏覽器不准跨網域讀
+#   Location** ⇒ 手機端（GitHub Pages 版）永遠補不了。Benson 幾乎只用手機，
+#   「要回電腦開一次 server.js 才會生效」對他等於沒做。
+#   所以需要一台不是他電腦的機器 —— 就是這裡。
+#
+# 邏輯在哪：不在這裡。展開邏輯（跳數上限／逾時／只打 Google 網域／重讀最新檔再補／
+#   updatedAt 不動）是 server.js 裡那份過了 QA 的實作，這支 workflow 只是
+#   `require` 它、跑 scanAllAddrs()。**不要在這裡另寫一份會分岔的展開邏輯。**
+#
+# ⚠️ 防自我觸發的無限迴圈（三道，由根本到保險）：
+#   1. 沒變更就不 commit ── 最根本的那道。第二輪掃描時 addr 都補齊了，
+#      腳本一個位元組都不會改 ⇒ 沒有 commit ⇒ 沒有 push ⇒ 停下來。
+#   2. GitHub 內建：用 GITHUB_TOKEN 推的 commit 不會再觸發 workflow。
+#   3. commit 訊息帶 [skip ci]，外加下面的 if: 條件擋掉。
+#
+# ⚠️ 三方會同時寫同一個 repo：他手機（Contents API）、電腦端 server.js（git push）、
+#   這支 workflow。所以 push 前先 pull --rebase，撞車就重試；三次都失敗就放棄
+#   （不硬幹、不留半套狀態），下次有人動 data/** 時會再補一次。
+#
+# ⚠️ 這支只准碰 data/。server.js 被 require 時不開 port、不 build docs/、不做
+#   自動同步（require.main 守衛 + AUTO_SYNC=0），下面還有一道斷言把關。
+#
+# ⚠️ 壞連結／逾時／Google 擋 runner 都算日常，不讓 workflow 變紅燈（只留 annotation）。
+name: 補地址
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'data/**'
+  workflow_dispatch:        # 想立刻補一輪就從 Actions 頁面按 Run workflow
+
+concurrency:
+  group: backfill-addrs     # 前一輪還沒 push 完就不要開下一輪
+  cancel-in-progress: false
+
+permissions:
+  contents: write           # 只用內建 GITHUB_TOKEN，不需要任何 PAT／secret
+
+jobs:
+  backfill:
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: 展開短連結、把地址補進 data/trips/*.md
+        env:
+          AUTO_SYNC: '0'    # 借用 server.js 的邏輯，但不要它自己去 git push
+        run: node .github/scripts/backfill-addrs.js
+
+      - name: 斷言只動到 data/
+        run: |
+          outside=$(git -c core.quotepath=false status --porcelain | cut -c4- | grep -v '^data/' || true)
+          if [ -n "$outside" ]; then
+            echo "::error::補地址不該動到 data/ 以外的檔案，中止且不 commit："
+            echo "$outside"
+            exit 1
+          fi
+          echo "OK：只有 data/ 底下有變動（或完全沒變動）"
+
+      - name: 有變動才 commit + push
+        run: |
+          if [ -z "$(git status --porcelain data)" ]; then
+            echo "沒有補到新地址 → 不 commit（這就是防迴圈的根本，第二輪必然走到這裡）"
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data
+          git commit -m "auto: 展開地圖短連結補上地址 [skip ci]"
+          # 他手機與電腦端 server 也會推同一個 repo，撞車就重抓再套一次
+          for i in 1 2 3; do
+            if git pull --rebase --autostash origin main && git push origin HEAD:main; then
+              exit 0
+            fi
+            git rebase --abort 2>/dev/null || true   # 別留半套 rebase 狀態
+            sleep $((i * 5))
+          done
+          echo "::warning::push 三次都被拒，本輪放棄（沒留下半套狀態）；下次有人動 data/** 會再補"
+          exit 0

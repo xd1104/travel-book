@@ -541,6 +541,11 @@ function addrFromMapsUrl(u) {
   try { url = new URL(u); } catch { return ''; }
   const q = (url.searchParams.get('q') || '').trim();
   if (q) return q;
+  /* 路線型的分享連結（他從 Google Maps 分享「A 到 B」時會產生）沒有 q=，
+   * 但目的地就明明白白在 daddr 裡。少了這一行，那種連結會永遠展不開、
+   * 每次 CI 都白試三次。（QA 追出來的：先前判定「這條展不開」是錯的。） */
+  const daddr = (url.searchParams.get('daddr') || '').trim();
+  if (daddr) return daddr;
   const at = /@(-?\d+\.\d+),(-?\d+\.\d+)/.exec(url.href);
   if (at) return at[1] + ',' + at[2];
   const dd = /!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/.exec(url.href);
@@ -797,25 +802,42 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-// 啟動先鏡射 docs/（保證從任何入口啟動——start.bat 或 tool-manager 面板——
-// docs/ 都不落後 public/）；build 失敗只記 log，不擋本機服務
-try {
-  require('./build.js').build();
-} catch (e) {
-  console.error('[build] failed (continuing):', e.message);
+/* ------------------------------------------------------------------ */
+/* 啟動（只有「直接 node server.js」才跑）                              */
+/* v2.5 起這支檔也會被 .github/scripts/backfill-addrs.js `require` 進去 */
+/* 借用地址展開邏輯（見下方 module.exports）。被 require 時：           */
+/* 不 build docs/、不開 port、不 initSync——CI 只准碰 data/。            */
+/* ------------------------------------------------------------------ */
+if (require.main === module) {
+  // 啟動先鏡射 docs/（保證從任何入口啟動——start.bat 或 tool-manager 面板——
+  // docs/ 都不落後 public/）；build 失敗只記 log，不擋本機服務
+  try {
+    require('./build.js').build();
+  } catch (e) {
+    console.error('[build] failed (continuing):', e.message);
+  }
+
+  server.listen(PORT, async () => {
+    console.log('Travel Book server running at http://localhost:' + PORT);
+    console.log('Data dir: ' + DATA_DIR);
+    await initSync(); // 先 pull（若手機端剛建了模板/旅程，避免重複種子）
+    try {
+      const seededTpl = await seedTemplatesIfEmpty();
+      const seededCat = await seedCategoriesIfMissing();
+      if (seededTpl || seededCat) scheduleSync();
+    } catch (e) {
+      console.error('[seed] failed:', e.message);
+    }
+    // v2.4：補掃一次短連結 → 地址（手機端新增的行程點在這裡補齊）；背景跑，掛了不影響服務
+    queueAddrJob(scanAllAddrs);
+  });
 }
 
-server.listen(PORT, async () => {
-  console.log('Travel Book server running at http://localhost:' + PORT);
-  console.log('Data dir: ' + DATA_DIR);
-  await initSync(); // 先 pull（若手機端剛建了模板/旅程，避免重複種子）
-  try {
-    const seededTpl = await seedTemplatesIfEmpty();
-    const seededCat = await seedCategoriesIfMissing();
-    if (seededTpl || seededCat) scheduleSync();
-  } catch (e) {
-    console.error('[seed] failed:', e.message);
-  }
-  // v2.4：補掃一次短連結 → 地址（手機端新增的行程點在這裡補齊）；背景跑，掛了不影響服務
-  queueAddrJob(scanAllAddrs);
-});
+/* ------------------------------------------------------------------ */
+/* 對外（給 GitHub Actions 的補地址腳本用）                             */
+/* ⚠️ 刻意只匯出地址展開這一組：手機端做不到展開（瀏覽器讀不到跨網域   */
+/*    的 Location），所以 Actions 要跑「同一份」邏輯，不可以再寫一份    */
+/*    會分岔的實作。這個專案已經有「前後端兩套 parser 要一起改」的債，  */
+/*    不要再加第三套。                                                  */
+/* ------------------------------------------------------------------ */
+module.exports = { scanAllAddrs, backfillTripAddrs, expandMapUrl, TRIPS_DIR, DATA_DIR };
