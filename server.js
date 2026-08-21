@@ -546,10 +546,14 @@ function addrFromMapsUrl(u) {
    * 每次 CI 都白試三次。（QA 追出來的：先前判定「這條展不開」是錯的。） */
   const daddr = (url.searchParams.get('daddr') || '').trim();
   if (daddr) return daddr;
-  const at = /@(-?\d+\.\d+),(-?\d+\.\d+)/.exec(url.href);
-  if (at) return at[1] + ',' + at[2];
+  /* ⚠️ 順序很重要：`!3d!4d` 是**店家本身的座標**，`@lat,lng,13z` 是**當時地圖畫面的
+   * 中心點**（後面那個 z 是縮放層級）。舊版先讀 `@`，等於拿「螢幕正中央」當店的位置——
+   * Benson 實際點開發現起點的圖釘不在店上（那次差 15 公尺，因為他剛好把店擺在畫面中間；
+   * 店在畫面邊緣或縮得更遠時會差更多）。`@` 只能當最後的退路。 */
   const dd = /!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/.exec(url.href);
   if (dd) return dd[1] + ',' + dd[2];
+  const at = /@(-?\d+\.\d+),(-?\d+\.\d+)/.exec(url.href);
+  if (at) return at[1] + ',' + at[2];
   return '';
 }
 

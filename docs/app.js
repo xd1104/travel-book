@@ -11,7 +11,7 @@
 /* ============ 常數 ============ */
 /* 版本號的唯一來源：首頁 footer 與「版本」sheet 都讀它。
  * 改前端時跟 sw.js 的 cache 版本號一起 +1（見「版本與更新」段）。 */
-var APP_VER="2.4";
+var APP_VER="2.5";
 
 /* 行程點類別（v1.1 起）＝可管理的全域資源：清單存 db.categories（同步 data/categories.md），
  * CATS 是 id->物件 的索引（rebuildCats 重建）。「其他」永遠存在＝刪類別後的 fallback。 */
@@ -182,6 +182,26 @@ function shiftAfter(list, idx, delta){
     n++;
   }
   return n;
+}
+/* 這一筆改完之後，後面那些站要平移幾分鐘（v1.6 原本只算停留；2026-08-21 起「時間」也算）。
+ * 語意＝「這一筆的結束時間」變了多少：(新時間+新停留) − (舊時間+舊停留)＝時間差＋停留差。
+ * 所以同一次同時改「時間」和「停留」時，兩個差是加起來成一個總量、只推一次，
+ * 不會各推一次重複累加（例：時間 +10 分、停留 +20 分 ⇒ 後面全部 +30 分）。
+ * 時間沒動時就退化成純停留差＝v1.6 的舊行為，一行都沒變。
+ * 舊／新時間有一邊是空的（沒時間→有時間、有時間→清空）＝算不出時間差，
+ * 此時整筆都不平移（回 0）：沒有基準的推算寧可不做，也不要把後面整天亂移。 */
+function stopShiftDelta(oldTime, newTime, oldStay, newStay){
+  var dStay = Math.round(Number(newStay)||0) - Math.round(Number(oldStay)||0);
+  if(String(oldTime||"") === String(newTime||"")) return dStay;
+  var a = minsOf(oldTime), b = minsOf(newTime);
+  if(a===null || b===null) return 0;
+  var dTime = b - a;
+  /* 時鐘是 mod 1440 的環：23:00→01:00 直接相減是 −1320，真正的意思是 +120。
+   * 取最短方向（−720, 720] 只是為了讓 toast 講人話——平移出來的時間兩種算法完全一樣
+   * （shiftAfter 也是 mod 1440）。 */
+  if(dTime > 720) dTime -= 1440;
+  else if(dTime <= -720) dTime += 1440;
+  return dTime + dStay;
 }
 function shiftToast(n, delta){
   if(!n) return;
@@ -1102,6 +1122,7 @@ function submitStopEdit(ev, idx){
   if(!requireWrite()) return;
   var f = ev.target; var list=curList()||[]; var sp=list[idx]; if(!sp) return;
   sp.title = f.title.value.trim();
+  var oldTime = String(sp.time||"");
   sp.time = f.time.value;
   sp.cat = f.cat.value;
   sp.place = f.place.value.trim();
@@ -1112,8 +1133,10 @@ function submitStopEdit(ev, idx){
   sp.cost = Number(f.cost.value)||0;
   var oldStay = Math.round(Number(sp.stayMinutes)||0);
   sp.stayMinutes = readStay(f); /* 0＝清空（serializer 不寫空值） */
-  /* 停留變長／變短＝後面整串跟著移（v1.6） */
-  var moved = shiftAfter(list, idx, sp.stayMinutes-oldStay);
+  /* 時間或停留變了＝後面整串跟著移（v1.6；2026-08-21 起「時間」也連鎖）。
+   * 一次算一個總量（見 stopShiftDelta），同時改兩者也只推一次。 */
+  var delta = stopShiftDelta(oldTime, sp.time, oldStay, sp.stayMinutes);
+  var moved = shiftAfter(list, idx, delta);
   /* bookingRef（訂位代號）欄位 v1.1 起 UI 不再提供，但既有值刻意不動（round-trip 保留） */
   sp.phone = f.phone.value.trim();
   sp.hours24 = !!f.hours24.checked;
@@ -1123,7 +1146,7 @@ function submitStopEdit(ev, idx){
   sp.url = f.url.value.trim();
   sp.note = f.note.value.trim();
   persistTrip(curTrip()); closeSheet(); render(true);
-  shiftToast(moved, sp.stayMinutes-oldStay);
+  shiftToast(moved, delta);
 }
 
 /* ---- 花費 ---- */

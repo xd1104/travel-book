@@ -4,10 +4,10 @@
  * - 其他 /api（寫入）：network-only，失敗回明確的離線 JSON
  * - 跨網域（GitHub API / raw）一律放行不攔（Pages 版資料不經 SW cache）
  * 鐵律：skipWaiting + activate 清舊快取 + clients.claim，已安裝 PWA 才吃得到新版
- * 改前端記得把 cache 版本號 +1，並同步 app.js 最上面的 APP_VER
+ * 改前端記得把 cache 版本號 +1（SHELL 與 DATA 兩個一起跳，別只跳一個），並同步 app.js 最上面的 APP_VER
  */
-const SHELL_CACHE = 'travel-shell-v13';
-const DATA_CACHE = 'travel-data-v13';
+const SHELL_CACHE = 'travel-shell-v14';
+const DATA_CACHE = 'travel-data-v14';
 const KEEP = [SHELL_CACHE, DATA_CACHE];
 
 // 相對於 SW scope 解析（localhost 根目錄或 Pages 子路徑 /travel-book/ 都對）
