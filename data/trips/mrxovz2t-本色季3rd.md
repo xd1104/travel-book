@@ -7,7 +7,7 @@ start: "2026-08-29"
 days: 3
 budget: 0
 createdAt: "2026-07-23T15:51:59.575Z"
-updatedAt: "2026-08-21T07:23:49.172Z"
+updatedAt: "2026-08-21T07:24:16.088Z"
 ---
 
 ## 行程
@@ -32,7 +32,7 @@ updatedAt: "2026-08-21T07:23:49.172Z"
 - {"id":"xmsoex0yiyp9g","title":"M PAIN 麵包店","time":"11:40","cat":"sight","stayMinutes":30,"hoursOpen":"11:30","hoursClose":"17:30"}
 - {"id":"xmsoexx42yr6h","type":"transit","note":"開車","stayMinutes":40}
 - {"id":"xmsoeyyr47369","title":"本色季","time":"12:50","cat":"sight","place":"桃園陽光劇場","stayMinutes":530}
-- {"id":"xmt2mi5v52bzy","title":"宵夜","time":"22:00","cat":"food"}
+- {"id":"xmt2mi5v52bzy","title":"宵夜","time":"22:00","cat":"food","note":"大廟生炒羊肉\n串燒小棧(中壢)\n橋頭小吃"}
 
 ## 花費
 
