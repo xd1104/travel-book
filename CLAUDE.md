@@ -105,19 +105,23 @@ UI/UX 以 `demo/index.html`（UX demo v3.1，Benson 拍板）為準，**勿自�
   - **前端永遠不自己寫 `addr`**（只有 server／CI 展得開短連結），UI 只負責顯示與清空。**`transit` 一個欄位都不准加**，它的表單仍然只有 `note`＋移動時間。
 - **`.gitattributes` 強制 md/js/css/html/json/yml 為 LF**；前後端 parser 開頭都先 `replace(/\r\n/g,'\n')`。壞的 JSON 行 parser 會跳過該行（不整檔炸掉）。（`.yml` 是 v2.5 補的：workflow 的 `run:` 區塊在 ubuntu bash 跑，CRLF 會變成 `$'\r': command not found`。）
 
-## 圖示語言（v2.6，Benson 拍板；**這條界線別誤讀成「把 emoji 都換掉」**）
+## 圖示語言（v2.7，Benson 拍板；**這條界線別誤讀成「把 emoji 都換掉」**）
 - **只有「系統給的功能鈕」用 inline SVG**（`app.js` 最上面的 `ICO`，吃 `currentColor`、每台裝置長得一樣）：
-  - 行程點卡片右上的 `.map-btn`＝**大頭針 `ICO.pin`**（「這個地方在哪」），詳細 sheet 的 `.btn-ghost`「開啟 Google 地圖」同一顆；
-  - 移動灰條右邊的路線鈕＝**起點空心圓＋圓角轉彎＋箭頭 `ICO.route`**（「從這裡到那裡怎麼走」）。
-  - **兩顆的輪廓刻意差很多**（一顆水滴／一條帶箭頭的折線），縮到 19px 也分得出來——**改圖前先確認這件事還成立**，做成兩顆很像的圖等於白做。
+  - 行程點卡片右上的 `.map-btn`＝**折頁地圖 `ICO.pin`**（「這個地方在哪」），詳細 sheet 的 `.btn-ghost`「開啟 Google 地圖」與地址卡的 `.mp` 同一顆；
+  - 移動灰條右邊的路線鈕＝**起點圓 → S 曲線 → 終點圓的一條彎路 `ICO.route`**（「從這裡到那裡怎麼走」）。
+  - **兩顆的輪廓刻意差很多**（一張攤開的地圖／一條路），縮到 18px 也分得出來——**改圖前先確認這件事還成立**，做成兩顆很像的圖等於白做。
 - **⛔ 內容型 emoji 一律不准動**：類別 emoji（`CATS[].emoji`）、旅程封面 emoji、tab bar、`.ao-ico`、詳細列前的 📍⏱️💰📞🔗🕘📝、`.empty .big`、**灰條左邊那顆 🚶（`.tr-ico`，Benson 拍板留 emoji）**。單色符號字元（`✕`／`☰`／`✎`／FAB 的 ＋）也保留（本來就跨裝置一致，換 SVG 零收益）。
   - 一句話規則：**使用者選的＝內容，留著；系統給的功能鈕＝介面，用 SVG。** 動了內容那排，整個 App 的個性就沒了。
-- 配色＝**B 淡珊瑚底**（Benson 拍板）：卡片鈕 `#fff1ef` 底＋`var(--acc-deep)`，灰條鈕 `#fbeae7`（灰底上再淡一階）——跟 `.count-chip`／`.cat-pill` 同一套 tinted pill 語言＝「這裡可以點」。
-- **`.map-btn` 本體的尺寸一行都沒改**：卡片 44px、灰條視覺 38px＋`::before inset:-3px` 外擴回 44px、灰條總高仍是 38px（v2.4 決策照舊）。調整模式（`ui.edit`）一樣不顯示這兩顆鈕。
+- **樣式＝A 留白（v2.7 推翻 v2.6 的「B 淡珊瑚底」，Benson 看實機後拍板：「有點突兀」；別當誤改修回去）**：**底色整個拿掉**（`background:none`）、筆畫 1.8→1.6、顏色壓淡成中性灰（卡片 `#a89d8d`、灰條 `#9a9082`）、圖形 22→21px（灰條 19→18px）；只在 `:active` 給一層極淡的中性底（卡片 `#f4efe5`、灰條 `#e6dfd1`）當回饋。
+  - **根因不是「有底色」**（`.cat-pill` 也有底色），而是**它借了藥丸的底色語言，把一個「工具」提到跟「內容」同一階**：44px 實心色塊是整張卡最大的元素、12px 圓角方塊塞進 16px 圓角的卡角像貼紙、38px 那顆等於整條灰條的高度、而且它是內容區唯一的珊瑚色沿右邊重複出現＝一條色點柱。**要改這裡先想「它是工具、不是內容」這條**，不是換一顆更好看的按鈕。（完整診斷見 `DESIGN.md` 附錄 B。）
+  - 卡片那顆右緣 margin 改 `-11px`（原 -10px），讓圖形右緣落在卡片 14px 的 padding 線上、不再貼著圓角。
+- **圖形＝「圓潤」這一組（v2.7）**：pin 是三折的折頁地圖、route 是**沒有箭頭**的彎路。箭頭是全站唯一的尖角（其他都是藥丸／圓角／圓點）所以拿掉；方向感靠兩端的起訖圓與 S 形補。順手解掉「同一張卡上兩顆針」（地點行本來就有內容型 📍）。
+- **`.map-btn` 本體的尺寸一行都沒改**：卡片 44px、灰條視覺 38px＋`::before inset:-3px` 外擴回 44px、灰條總高仍是 38px（v2.4 決策照舊）。⚠️ **底色拿掉之後 `::before` 那條更不能刪**——看不見但要點得到。調整模式（`ui.edit`）一樣不顯示這兩顆鈕。
 
 ## PWA 鐵律（recipe-book 血淚，全部已做，別退步）
 - 所有資源、manifest `start_url`/`scope`、SW scope **一律相對路徑**（Pages 在 `/travel-book/` 子路徑）。
-- SW：`skipWaiting()`＋activate 清舊快取＋`clients.claim()`；`/api/data` network-first、寫入 network-only、殼 cache-first。**改前端記得把 sw.js 的 cache 版本號 +1**（`travel-shell-vN`，目前 v15；**`SHELL_CACHE` 與 `DATA_CACHE` 兩個都要跳，別只跳一個**）**並同步 `APP_VER`**（見下方「版本與更新」）。
+- SW：`skipWaiting()`＋activate 清舊快取＋`clients.claim()`；`/api/data` network-first、寫入 network-only、殼 cache-first。
+- ⚠️ **`keyring-unlock.js` 走 network-first，刻意不跟 app shell 一起 cache-first**（2026-08-21 加）：它的正本在 keyring repo、由 CI 自動同步過來，**更新時不會跳這裡的 cache 版本號**；若走 cache-first，手機會永遠停在第一次快取到的那一版，模組的修正永遠到不了使用者手上。它仍在 `SHELL` 預先快取，所以離線時一定拿得到快取、不會落到 `offlineJson()`。**別為了「統一策略」把它併回 app shell。****改前端記得把 sw.js 的 cache 版本號 +1**（`travel-shell-vN`，目前 v16；**`SHELL_CACHE` 與 `DATA_CACHE` 兩個都要跳，別只跳一個**）**並同步 `APP_VER`**（見下方「版本與更新」）。
 - input/textarea/select `font-size ≥ 16px`（iOS 防自動放大）；觸控目標 ≥ 44px；Enter 送出全部走原生 `<form>` + `type=submit`。
 - 換 icon 後 iOS 已安裝的 PWA 要移除主畫面重加才會換。
 

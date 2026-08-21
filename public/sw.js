@@ -6,8 +6,8 @@
  * 鐵律：skipWaiting + activate 清舊快取 + clients.claim，已安裝 PWA 才吃得到新版
  * 改前端記得把 cache 版本號 +1（SHELL 與 DATA 兩個一起跳，別只跳一個），並同步 app.js 最上面的 APP_VER
  */
-const SHELL_CACHE = 'travel-shell-v15';
-const DATA_CACHE = 'travel-data-v15';
+const SHELL_CACHE = 'travel-shell-v16';
+const DATA_CACHE = 'travel-data-v16';
 const KEEP = [SHELL_CACHE, DATA_CACHE];
 
 // 相對於 SW scope 解析（localhost 根目錄或 Pages 子路徑 /travel-book/ 都對）
@@ -72,6 +72,16 @@ self.addEventListener('fetch', (e) => {
   // 其他 API（寫入類）：network-only
   if (url.pathname.includes('/api/')) {
     e.respondWith(fetch(req).catch(() => offlineJson()));
+    return;
+  }
+
+  /* 鑰匙圈解鎖模組：network-first（刻意不跟 App shell 一起走 cache-first）。
+   * 這支檔案的正本在 keyring repo，由 keyring 的 sync-unlock.yml 自動同步過來——
+   * 它更新時**不會**跟著跳下面那個 SHELL_CACHE 版本號，所以若走 cache-first，
+   * 手機會永遠停在第一次快取到的那一版，模組的修正永遠到不了使用者手上。
+   * 它本來就在 SHELL 預先快取，離線時 networkFirst 一定拿得到快取，不會落到 offlineJson()。 */
+  if (req.method === 'GET' && url.pathname.endsWith('/keyring-unlock.js')) {
+    e.respondWith(networkFirst(req, SHELL_CACHE));
     return;
   }
 
