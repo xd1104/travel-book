@@ -7,7 +7,7 @@ start: "2026-08-29"
 days: 3
 budget: 0
 createdAt: "2026-07-23T15:51:59.575Z"
-updatedAt: "2026-08-21T07:12:58.817Z"
+updatedAt: "2026-08-21T07:13:15.608Z"
 ---
 
 ## 行程
@@ -47,6 +47,7 @@ updatedAt: "2026-08-21T07:12:58.817Z"
 - {"id":"xmrxovz2t55ct","text":"摺疊傘","done":false,"zone":"checked"}
 - {"id":"xmt2m04qbmpxm","text":"防水包","done":false,"zone":"checked"}
 - {"id":"xmt2m481oao4q","text":"小冰箱","done":false,"zone":"carry"}
+- {"id":"xmt2m4l04kwzw","text":"門票","done":false,"zone":"carry"}
 
 ## 備註
 
