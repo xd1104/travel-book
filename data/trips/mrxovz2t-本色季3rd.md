@@ -7,7 +7,7 @@ start: "2026-08-29"
 days: 3
 budget: 0
 createdAt: "2026-07-23T15:51:59.575Z"
-updatedAt: "2026-08-20T09:29:40.920Z"
+updatedAt: "2026-08-20T16:24:10.027Z"
 ---
 
 ## 行程
@@ -20,10 +20,10 @@ updatedAt: "2026-08-20T09:29:40.920Z"
 - {"id":"xmryc79oshkc3","type":"transit","note":"開車","stayMinutes":120}
 - {"id":"xmt1aw21ug550","title":"好難吃養生紫米海苔飯捲","time":"10:40","cat":"food","place":"桃園","mapUrl":"https://maps.app.goo.gl/244CrtsXQDCRxfdU7","stayMinutes":15,"hoursOpen":"06:30","hoursClose":"13:00"}
 - {"id":"xmt1ay6ttluaz","type":"transit","note":"開車","stayMinutes":40}
-- {"id":"xmryc8eysee3h","title":"沐楓商旅","time":"11:00","cat":"stay","mapUrl":"https://maps.app.goo.gl/3gxzUEDbABHB8eEH8?g_st=ic","stayMinutes":30}
+- {"id":"xmryc8eysee3h","title":"沐楓商旅","time":"11:00","cat":"stay","mapUrl":"https://maps.app.goo.gl/4R7fo3hcBBJfUXrj8?g_st=il","stayMinutes":30}
 - {"id":"xmryc8nv19dyn","type":"transit","note":"開車","stayMinutes":30}
 - {"id":"xmryc9bvikjxm","title":"桃園陽光劇場","time":"12:00","cat":"sight","stayMinutes":540}
-- {"id":"xmrycdc8xd1ue","title":"宵夜？","time":"10:00","cat":"food","note":"大廟生炒羊肉\n串燒小棧(中壢)\n橋頭小吃"}
+- {"id":"xmrycdc8xd1ue","title":"宵夜？","time":"22:00","cat":"food","note":"大廟生炒羊肉\n串燒小棧(中壢)\n橋頭小吃"}
 
 ### Day 2
 
