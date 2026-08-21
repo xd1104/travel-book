@@ -7,7 +7,7 @@ start: "2026-08-29"
 days: 3
 budget: 0
 createdAt: "2026-07-23T15:51:59.575Z"
-updatedAt: "2026-08-21T07:24:50.876Z"
+updatedAt: "2026-08-21T07:27:14.244Z"
 ---
 
 ## 行程
@@ -23,7 +23,7 @@ updatedAt: "2026-08-21T07:24:50.876Z"
 - {"id":"xmryc8eysee3h","title":"沐楓商旅","time":"11:00","cat":"stay","mapUrl":"https://maps.app.goo.gl/4R7fo3hcBBJfUXrj8?g_st=il","addr":"桃園市中壢區中榮里博愛三路沐楓商旅 Hotel MU","stayMinutes":30}
 - {"id":"xmryc8nv19dyn","type":"transit","note":"開車","stayMinutes":30}
 - {"id":"xmryc9bvikjxm","title":"桃園陽光劇場","time":"12:00","cat":"sight","stayMinutes":540}
-- {"id":"xmrycdc8xd1ue","title":"中原夜市 ( 宵夜 )","time":"22:00","cat":"food"}
+- {"id":"xmrycdc8xd1ue","title":"夜市 ( 宵夜 )","time":"22:00","cat":"food","note":"中原 ?\n中壢 ?"}
 
 ### Day 2
 
