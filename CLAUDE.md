@@ -96,11 +96,28 @@ UI/UX 以 `demo/index.html`（UX demo v3.1，Benson 拍板）為準，**勿自�
   - **只准碰 `data/`**：commit 前有一道 `git status --porcelain | grep -v '^data/'` 斷言（用 `-c core.quotepath=false`，因為旅程檔名有中文）。
   - **壞連結／逾時／Google 擋 runner 都不讓 workflow 變紅燈**（只留 annotation）——這是加值功能，紅燈只會變成他手機上的噪音。
   - **已知**：像 `maps/dir/?geocode=A;B` 這種**路線型**短連結展不開（沒有 `?q=` 也沒有 `@lat,lng`），且**沒有負向快取** ⇒ 每一輪都會再花 3 次請求重試它。無害（不寫檔＝不 commit），要根治得加欄位改資料格式，刻意先不做。
+- **地圖連結欄 v2.6（`mapField`／`MF`／`mapf*`，DESIGN.md 附錄 A2 方案 A，Benson 拍板；別退回普通 input）**：編輯／新增行程點的那一欄**顯示的是 `addr`（地址）不是 `mapUrl`（網址）**。理由：Benson 的流程是「Maps App 分享→複製→回來貼」，舊的 input 要先在手機上把一長串短網址刪光才貼得進去，而那串網址人根本看不懂、佔一整欄卻沒有資訊量。
+  - 三個狀態：① 沒連結＝虛線「貼上 Google 地圖連結」；② 有 `mapUrl` 有 `addr`＝地址卡（副標只顯示 host）；③ **有 `mapUrl` 但還沒有 `addr`＝「已連結，地址整理中…」**（`.mlink.pending`）。
+  - **狀態 ③ 是正常狀態不是壞掉**，一定要留：展開短連結只有 server／CI 做得到，手機端存檔後要等 GitHub Actions 跑完（約一分鐘）才長得出地址；而路線型短連結（`maps/dir/?geocode=`）本來就永遠展不開（見上面「已知」）。**文案刻意中性、不准寫「失敗」**，也不能留白（會看起來像壞掉）。
+  - 「貼上新連結」＝`navigator.clipboard.readText()` 直接覆蓋（1 個動作）。**`readText()` 一定要有 fallback**：iOS Safari 會跳系統的貼上確認、使用者可能不點，非安全脈絡直接 reject ⇒ 讀不到就**退回手動輸入子狀態並自動全選**（`setSelectionRange` 不要用 `select()`）。沒有 fallback ＝ 這功能在他手機上有機率整個不能用。
+  - **值的載體是隱藏的 `<input name="mapUrl">`**，所以 `submitStopEdit`／`submitStop` 讀法（`f.mapUrl.value`）一行都不用改；**新增與編輯共用同一個元件**，不要複製第二份 UI。
+  - **`mapUrl` 一有變動（含 ✕ 清空）就把 `addr` 清掉**，而且清除的時機在**「按下貼上／✕ 的當下」**（畫面立刻反映），不是等到存檔——`addr` 是 `mapUrl` 的衍生值，留著舊地址＝移動那條的路線鈕會用錯的起訖點。落盤那一道（submit 裡的 `if(newMap !== sp.mapUrl) sp.addr=""`）刻意留著當保險。**改到一半關掉 sheet 就是不存檔、資料一個位元組都不動**（跟表單其他欄位一致）。
+  - **前端永遠不自己寫 `addr`**（只有 server／CI 展得開短連結），UI 只負責顯示與清空。**`transit` 一個欄位都不准加**，它的表單仍然只有 `note`＋移動時間。
 - **`.gitattributes` 強制 md/js/css/html/json/yml 為 LF**；前後端 parser 開頭都先 `replace(/\r\n/g,'\n')`。壞的 JSON 行 parser 會跳過該行（不整檔炸掉）。（`.yml` 是 v2.5 補的：workflow 的 `run:` 區塊在 ubuntu bash 跑，CRLF 會變成 `$'\r': command not found`。）
+
+## 圖示語言（v2.6，Benson 拍板；**這條界線別誤讀成「把 emoji 都換掉」**）
+- **只有「系統給的功能鈕」用 inline SVG**（`app.js` 最上面的 `ICO`，吃 `currentColor`、每台裝置長得一樣）：
+  - 行程點卡片右上的 `.map-btn`＝**大頭針 `ICO.pin`**（「這個地方在哪」），詳細 sheet 的 `.btn-ghost`「開啟 Google 地圖」同一顆；
+  - 移動灰條右邊的路線鈕＝**起點空心圓＋圓角轉彎＋箭頭 `ICO.route`**（「從這裡到那裡怎麼走」）。
+  - **兩顆的輪廓刻意差很多**（一顆水滴／一條帶箭頭的折線），縮到 19px 也分得出來——**改圖前先確認這件事還成立**，做成兩顆很像的圖等於白做。
+- **⛔ 內容型 emoji 一律不准動**：類別 emoji（`CATS[].emoji`）、旅程封面 emoji、tab bar、`.ao-ico`、詳細列前的 📍⏱️💰📞🔗🕘📝、`.empty .big`、**灰條左邊那顆 🚶（`.tr-ico`，Benson 拍板留 emoji）**。單色符號字元（`✕`／`☰`／`✎`／FAB 的 ＋）也保留（本來就跨裝置一致，換 SVG 零收益）。
+  - 一句話規則：**使用者選的＝內容，留著；系統給的功能鈕＝介面，用 SVG。** 動了內容那排，整個 App 的個性就沒了。
+- 配色＝**B 淡珊瑚底**（Benson 拍板）：卡片鈕 `#fff1ef` 底＋`var(--acc-deep)`，灰條鈕 `#fbeae7`（灰底上再淡一階）——跟 `.count-chip`／`.cat-pill` 同一套 tinted pill 語言＝「這裡可以點」。
+- **`.map-btn` 本體的尺寸一行都沒改**：卡片 44px、灰條視覺 38px＋`::before inset:-3px` 外擴回 44px、灰條總高仍是 38px（v2.4 決策照舊）。調整模式（`ui.edit`）一樣不顯示這兩顆鈕。
 
 ## PWA 鐵律（recipe-book 血淚，全部已做，別退步）
 - 所有資源、manifest `start_url`/`scope`、SW scope **一律相對路徑**（Pages 在 `/travel-book/` 子路徑）。
-- SW：`skipWaiting()`＋activate 清舊快取＋`clients.claim()`；`/api/data` network-first、寫入 network-only、殼 cache-first。**改前端記得把 sw.js 的 cache 版本號 +1**（`travel-shell-vN`，目前 v14）**並同步 `APP_VER`**（見下方「版本與更新」）。
+- SW：`skipWaiting()`＋activate 清舊快取＋`clients.claim()`；`/api/data` network-first、寫入 network-only、殼 cache-first。**改前端記得把 sw.js 的 cache 版本號 +1**（`travel-shell-vN`，目前 v15；**`SHELL_CACHE` 與 `DATA_CACHE` 兩個都要跳，別只跳一個**）**並同步 `APP_VER`**（見下方「版本與更新」）。
 - input/textarea/select `font-size ≥ 16px`（iOS 防自動放大）；觸控目標 ≥ 44px；Enter 送出全部走原生 `<form>` + `type=submit`。
 - 換 icon 後 iOS 已安裝的 PWA 要移除主畫面重加才會換。
 

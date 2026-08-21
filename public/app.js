@@ -11,7 +11,27 @@
 /* ============ 常數 ============ */
 /* 版本號的唯一來源：首頁 footer 與「版本」sheet 都讀它。
  * 改前端時跟 sw.js 的 cache 版本號一起 +1（見「版本與更新」段）。 */
-var APP_VER="2.5";
+var APP_VER="2.6";
+
+/* ---- v2.6 功能鈕的 inline SVG 圖示（吃 currentColor、每台裝置長得一樣）----
+ * ⚠️ 界線（別擴大解釋）：只有「系統給的功能鈕」用 SVG。
+ *    類別 emoji、旅程封面 emoji、tab bar、灰條左邊那顆 🚶、詳細列前的 📍⏱️💰📞🔗🕘📝
+ *    通通是「內容」，一律保留 emoji，不准換成 SVG（Benson 拍板）。
+ * pin＝「這個地方在哪」（定點）；route＝「從這裡到那裡怎麼走」（起點圓＋轉彎箭頭）。
+ * 兩顆的輪廓刻意差很多，縮到 19px 也分得出來——改圖前先確認這件事還成立。 */
+var ICO = {
+  pin:'<svg viewBox="0 0 24 24" class="ico" aria-hidden="true" focusable="false">'
+    + '<path d="M12 21.2c4.2-4.5 6.3-8 6.3-10.6a6.3 6.3 0 1 0-12.6 0c0 2.6 2.1 6.1 6.3 10.6Z"/>'
+    + '<circle cx="12" cy="10.4" r="2.4"/></svg>',
+  route:'<svg viewBox="0 0 24 24" class="ico" aria-hidden="true" focusable="false">'
+    + '<circle cx="6.2" cy="18.4" r="2.6"/>'
+    + '<path d="M6.2 15.8V11.4A3.4 3.4 0 0 1 9.6 8h7.3"/>'
+    + '<path d="M14.4 5.5 17.3 8l-2.9 2.5"/></svg>',
+  paste:'<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">'
+    + '<path d="M9 4.5h6M8.2 5.6H6.6A1.6 1.6 0 0 0 5 7.2v12.2A1.6 1.6 0 0 0 6.6 21h10.8a1.6 1.6 0 0 0 1.6-1.6V7.2a1.6 1.6 0 0 0-1.6-1.6h-1.6"/>'
+    + '<rect x="9" y="2.9" width="6" height="3.4" rx="1.2"/>'
+    + '<path d="M8.6 12h6.8M8.6 15.6h4.6"/></svg>'
+};
 
 /* 行程點類別（v1.1 起）＝可管理的全域資源：清單存 db.categories（同步 data/categories.md），
  * CATS 是 id->物件 的索引（rebuildCats 重建）。「其他」永遠存在＝刪類別後的 fallback。 */
@@ -923,14 +943,14 @@ function viewPlan(t){
           +   (ui.edit?"":' onclick="openTransitEdit('+idx+')"')+'>'
           +   '<span class="tr-ico">🚶</span><span class="tr-txt">'+txt+'</span>'
           +   (dir ? '<a class="map-btn" href="'+esc(dir)+'" target="_blank" rel="noopener"'
-                   + ' onclick="event.stopPropagation()" aria-label="開啟這段路線">🗺️</a>' : "")
+                   + ' onclick="event.stopPropagation()" aria-label="看這一段路線">'+ICO.route+'</a>' : "")
           +   (ui.edit ? right : '')
           + '</div></div>';
       }
       if(!ui.edit){
         var href = mapLink(sp);
         right = href ? '<a class="map-btn" href="'+esc(href)+'" target="_blank" rel="noopener"'
-          + ' onclick="event.stopPropagation()" aria-label="開啟地圖">🗺️</a>' : "";
+          + ' onclick="event.stopPropagation()" aria-label="在地圖上看這個地點">'+ICO.pin+'</a>' : "";
       }
       var tap = ui.edit ? "" : ' onclick="openStopDetail('+idx+')"';
       return '<div class="stop">'
@@ -1076,7 +1096,7 @@ function openStopDetail(idx){
     + '<span class="cat-pill" style="color:'+c.color+'; background:'+c.color+'1a">'+c.emoji+' '+c.label+'</span></div>'
     + rows
     + '<div class="d-acts">'
-    + (href ? '<a class="btn-ghost" href="'+esc(href)+'" target="_blank" rel="noopener">🗺️ 開啟 Google 地圖</a>' : "")
+    + (href ? '<a class="btn-ghost" href="'+esc(href)+'" target="_blank" rel="noopener">'+ICO.pin+' 開啟 Google 地圖</a>' : "")
     + '<button class="btn-primary" onclick="openStopEdit('+idx+')">✎ 編輯</button>'
     + '</div>');
 }
@@ -1084,6 +1104,108 @@ function toggleHours24(cb){
   var f = cb.form;
   f.hoursOpen.disabled = cb.checked;
   f.hoursClose.disabled = cb.checked;
+}
+
+/* ---- v2.6 地圖連結欄（DESIGN.md 附錄 A2 方案 A，Benson 拍板；別退回普通 input）----
+ * 欄位顯示的是**地址（addr）不是網址**：那串短網址人看不懂，手機上還要先刪光才貼得進去。
+ * 三個狀態：① 沒連結＝虛線「貼上 Google 地圖連結」② 有連結有 addr＝地址卡
+ *          ③ 有連結但 addr 還沒補上＝「已連結，地址整理中…」（見下方說明，這是正常狀態不是壞掉）
+ * 值的載體是隱藏的 <input name="mapUrl">，所以兩張表單的 submit 讀法（f.mapUrl.value）一行都不用改。
+ * 新增／編輯**共用這一個元件**，不要複製第二份 UI。
+ * ⚠️ 前端永遠不自己寫 addr（短連結只有 server／CI 展得開），UI 只負責顯示與清空。 */
+var MF = { url:"", addr:"", editing:false };
+function isMapUrl(s){
+  return /^https?:\/\/(maps\.app\.goo\.gl|goo\.gl\/maps|(www\.)?google\.[a-z.]+\/maps)/i.test(String(s||"").trim());
+}
+function hostOf(u){ return String(u||"").split("/")[2] || ""; }
+/* 表單開場時呼叫一次；sp 傳 null＝新增行程點（開場就是狀態 ①） */
+function mapField(sp){
+  MF.url = String((sp && sp.mapUrl) || "");
+  MF.addr = String((sp && sp.addr) || "");
+  MF.editing = false;
+  return '<div class="mapf" id="mapf">'+mapfInner()+'</div>';
+}
+function mapfInner(){
+  var h = '<span class="fl">Google 地圖</span>'
+    + '<input type="hidden" name="mapUrl" value="'+esc(MF.url)+'">';
+  if(MF.editing){
+    h += '<div class="m-edit">'
+      +    '<input id="mfIn" type="text" inputmode="url" value="'+esc(MF.url)+'"'
+      +    ' placeholder="貼上地圖分享連結" autocomplete="off" oninput="mapfType(this.value)">'
+      +    '<button type="button" class="m-done" onclick="mapfDone()">完成</button>'
+      +  '</div>'
+      +  '<div class="hint">整串已經幫你選起來了，直接長按貼上就會蓋掉舊的。</div>';
+  }else if(!MF.url){
+    h += '<button type="button" class="m-empty" onclick="mapfPaste()">'+ICO.paste+' 貼上 Google 地圖連結</button>'
+      +  '<div class="hint">沒有連結也沒關係，會用上面的「地點」文字去搜尋。</div>';
+  }else{
+    /* 狀態 ③：mapUrl 有了、addr 還沒有。展開短連結只有 server／CI 做得到，
+     * 手機端存檔後要等 GitHub Actions 跑完（約一分鐘）才會長出地址；
+     * 路線型短連結（maps/dir/?geocode=）則永遠展不開（CLAUDE.md 已知缺口）。
+     * 所以文案刻意中性、不寫「失敗」，也不能留白看起來像壞掉。 */
+    var pend = !MF.addr;
+    h += '<div class="mlink'+(pend?" pending":"")+'">'
+      +    '<span class="mp">'+ICO.pin+'</span>'
+      +    '<span class="mb">'
+      +      '<span class="maddr">'+(pend ? "已連結，地址整理中…" : esc(MF.addr))+'</span>'
+      +      '<span class="msub">'+(pend ? "存檔後由伺服器把連結換成地址，大約一分鐘" : esc(hostOf(MF.url))+" 連結")+'</span>'
+      +    '</span>'
+      +  '</div>'
+      +  '<div class="mlink-acts">'
+      +    '<button type="button" class="m-paste" onclick="mapfPaste()">'+ICO.paste+' 貼上新連結</button>'
+      +    '<button type="button" class="m-clear" onclick="mapfClear()" aria-label="清除連結">✕</button>'
+      +  '</div>'
+      +  '<button type="button" class="m-manual" onclick="mapfManual()">手動編輯連結</button>';
+  }
+  return h;
+}
+function mapfDraw(){
+  var box = document.getElementById("mapf"); if(!box) return;
+  box.innerHTML = mapfInner();
+  if(MF.editing){
+    var el = document.getElementById("mfIn");
+    /* iOS 用 setSelectionRange 不要用 select()，而且要在同一個 user gesture 的 tick 內 */
+    if(el){ el.focus(); try{ el.setSelectionRange(0, el.value.length); }catch(e){} }
+  }
+}
+/* ★ mapUrl 一有變動（含清空）就把 addr 清掉——addr 是 mapUrl 的衍生值，
+ *   留著舊地址＝移動那條的路線鈕會用錯的起訖點。
+ *   清除的時機刻意在「按下貼上／✕ 的當下」，不是等到存檔（畫面立刻反映）。 */
+function mapfPut(url){ MF.url = String(url||"").trim(); MF.addr = ""; }
+function mapfType(v){
+  var el = document.querySelector("#mapf input[name=mapUrl]");
+  if(String(v||"").trim() !== MF.url) mapfPut(v);
+  if(el) el.value = MF.url;
+}
+function mapfPaste(){
+  /* readText 一定要有 fallback：iOS Safari 會跳系統的「貼上」確認、使用者可能不點；
+   * 非安全脈絡直接 reject。沒有 fallback ＝ 這功能在他手機上有機率整個不能用。 */
+  function got(txt, ok){
+    txt = String(txt||"").trim();
+    if(isMapUrl(txt)){
+      if(txt === MF.url){ toast("跟現在這條一樣，沒有換"); return; }
+      mapfPut(txt); MF.editing = false; mapfDraw();
+      toast("已換成剛剛複製的連結");
+      return;
+    }
+    MF.editing = true; mapfDraw();
+    toast(!ok ? "讀不到剪貼簿，改用手動貼上" : (txt ? "剪貼簿裡不是地圖連結，改用手動" : "剪貼簿是空的，改用手動"));
+  }
+  try{
+    if(navigator.clipboard && navigator.clipboard.readText){
+      navigator.clipboard.readText().then(function(t){ got(t, true); }, function(){ got("", false); });
+    }else got("", false);
+  }catch(e){ got("", false); }
+}
+function mapfClear(){
+  MF.url = ""; MF.addr = ""; MF.editing = false;   /* ✕＝連結與地址一起清 */
+  mapfDraw(); toast("連結和地址都清掉了");
+}
+function mapfManual(){ MF.editing = true; mapfDraw(); }
+function mapfDone(){
+  var el = document.getElementById("mfIn");
+  if(el) mapfType(el.value);   /* 沒有觸發 oninput 的路徑（例如程式填值）也收得到 */
+  MF.editing = false; mapfDraw();
 }
 function openStopEdit(idx){
   if(!requireWrite("改這個行程點")) return;
@@ -1099,7 +1221,7 @@ function openStopEdit(idx){
     +   '<label class="field">'+catFieldLabel()+'<select name="cat">'+catOptions(curCat)+'</select></label>'
     + '</div>'
     + '<label class="field"><span class="fl">地點</span><input name="place" value="'+esc(sp.place)+'" autocomplete="off"></label>'
-    + '<label class="field"><span class="fl">Google Maps 連結</span><input name="mapUrl" inputmode="url" value="'+esc(sp.mapUrl||"")+'" placeholder="貼上地圖分享連結（沒填就用地點文字搜尋）" autocomplete="off"></label>'
+    + mapField(sp)
     + stayField(sp.stayMinutes)
     + '<div class="f-row2">'
     +   '<label class="field"><span class="fl">預估費用（NT$）</span><input type="number" name="cost" min="0" step="1" inputmode="numeric" value="'+(sp.cost||"")+'"></label>'
@@ -1126,8 +1248,9 @@ function submitStopEdit(ev, idx){
   sp.time = f.time.value;
   sp.cat = f.cat.value;
   sp.place = f.place.value.trim();
-  var newMap = f.mapUrl.value.trim();
-  /* v2.4：連結換掉（或清空）＝舊地址失效，清掉讓 server 重新展開 */
+  var newMap = f.mapUrl.value.trim();   /* v2.6 起是地圖欄那個隱藏 input（見 mapField） */
+  /* v2.4：連結換掉（或清空）＝舊地址失效，清掉讓 server 重新展開
+   * （v2.6 的畫面在「按下貼上／✕ 的當下」就已經把 addr 從表單狀態拿掉了，這裡是落盤那一道） */
   if(newMap !== String(sp.mapUrl||"")) sp.addr = "";
   sp.mapUrl = newMap;
   sp.cost = Number(f.cost.value)||0;
@@ -1645,7 +1768,7 @@ function openStopSheet(){
     + '</div>'
     + '<label class="field"><span class="fl">名稱 *</span><input name="title" required placeholder="例：淺草寺" autocomplete="off"></label>'
     + '<label class="field"><span class="fl">地點</span><input name="place" placeholder="例：東京・淺草" autocomplete="off"></label>'
-    + '<label class="field"><span class="fl">Google Maps 連結</span><input name="mapUrl" inputmode="url" placeholder="貼上地圖分享連結（沒填就用地點文字搜尋）" autocomplete="off"></label>'
+    + mapField(null)
     + stayField(0)
     + '<div class="f-row2">'
     +   '<label class="field"><span class="fl">營業時間（開）</span><input type="time" name="hoursOpen"></label>'

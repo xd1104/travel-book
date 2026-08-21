@@ -116,6 +116,15 @@ ul{padding:0; list-style:none;}
 .cat-pill{font-size:12px; font-weight:700; padding:3px 9px; border-radius:99px;}
 .map-btn{width:44px; height:44px; display:flex; align-items:center; justify-content:center; font-size:20px;
   margin:-10px -10px -8px auto; border-radius:12px; text-decoration:none;}
+/* v2.6：功能鈕的圖示改 inline SVG（吃 currentColor、跨裝置一致）；配色＝B 淡珊瑚底，
+ * 跟 .count-chip／.cat-pill 同一套 tinted pill 語言＝「這裡可以點」。
+ * .map-btn 本體的尺寸／margin／圓角一行都沒改（44px、灰條上 38px 的既有決策照舊）。 */
+.map-btn .ico{width:22px; height:22px; display:block; fill:none; stroke:currentColor;
+  stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;}
+.stop-card .map-btn{color:var(--acc-deep); background:#fff1ef;}
+.stop-card .map-btn:active{background:#ffe3df;}
+.btn-ghost .ico{width:19px; height:19px; fill:none; stroke:currentColor; color:var(--acc-deep);
+  stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; flex:0 0 auto;}
 .stop-tools{margin-left:auto; display:flex; gap:8px;}
 .tool-btn,.drag-handle{width:44px; height:44px; border-radius:12px; background:#f3eee4;
   display:flex; align-items:center; justify-content:center; font-size:18px; color:#6b6154; flex:0 0 auto;}
@@ -331,9 +340,12 @@ ul{padding:0; list-style:none;}
  * 上下用負 margin 吃掉多出來的高度——灰條「輕薄一條、不佔版面」的調性不能變；
  * 命中區同樣用偽元素外擴回 44px */
 .transit-bar .map-btn{width:38px; height:38px; font-size:17px; flex:0 0 auto;
-  margin:-7px -6px -7px auto; position:relative;}
+  margin:-7px -6px -7px auto; position:relative;
+  color:var(--acc-deep); background:#fbeae7;} /* v2.6 B 淡珊瑚底（灰底上再淡一階） */
 .transit-bar .map-btn::before{content:""; position:absolute; inset:-3px;}
-.transit-bar .map-btn:active{background:#e4ddcf;}
+.transit-bar .map-btn:active{background:#f6ddd8;}
+/* 路線圖示比卡片的小一階（19px），線條加粗補回可讀性 */
+.transit-bar .map-btn .ico{width:19px; height:19px; stroke-width:1.9;}
 /* 灰條上的工具鈕視覺縮到 38px（灰條不搶版面是核心需求），
  * 命中區用偽元素外擴回 44px——視覺高度不可跟著變大 */
 .transit-bar .tool-btn,.transit-bar .drag-handle{width:38px; height:38px; font-size:16px; background:#e4ddcf;
@@ -370,3 +382,43 @@ ul{padding:0; list-style:none;}
 .stay-chip{min-height:44px; padding:0 13px; border-radius:12px; background:#fbfaf6;
   border:1.5px solid var(--line); font-size:14px; font-weight:700; color:var(--muted);}
 .stay-chip.on{background:var(--ink); border-color:var(--ink); color:#fff;}
+
+/* ---------- v2.6：地圖連結欄（顯示地址不顯示網址；DESIGN.md 附錄 A2 方案 A） ----------
+ * .mlink 刻意套 .field input 同一套外觀（#fbfaf6 底、1.5px 線、13px 圓角），
+ * 讓它看起來還是同一張表單裡的東西，不是外掛上去的元件。 */
+.mapf{margin-bottom:13px;}
+.mapf .fl{display:block; font-size:13px; font-weight:700; color:var(--muted); margin-bottom:6px;}
+.mapf .hint{margin:8px 2px 0;}
+.mlink{display:flex; align-items:flex-start; gap:10px; background:#fbfaf6; border:1.5px solid var(--line);
+  border-radius:13px; padding:11px 12px;}
+.mlink .mp{width:22px; height:22px; flex:0 0 auto; margin-top:1px; color:var(--acc-deep);}
+.mlink .mp .ico{width:22px; height:22px; display:block; fill:none; stroke:currentColor;
+  stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;}
+.mlink .mb{flex:1; min-width:0;}
+.mlink .maddr{display:block; font-size:15px; font-weight:700; line-height:1.45; overflow-wrap:anywhere;}
+.mlink .msub{display:block; font-size:12px; color:var(--muted); margin-top:3px; overflow-wrap:anywhere;}
+/* 有 mapUrl 但 addr 還沒補上：淡一階＝「還在處理」，不是錯誤色 */
+.mlink.pending .maddr{color:#8a8070; font-weight:600;}
+.mlink-acts{display:flex; gap:8px; margin-top:8px;}
+.m-paste{flex:1; min-height:46px; border-radius:13px; background:#fff1ef; color:var(--acc-deep);
+  font-size:15px; font-weight:800; display:flex; align-items:center; justify-content:center; gap:7px;}
+.m-paste:active{background:#ffe3df;}
+.m-paste svg,.m-empty svg{fill:none; stroke:currentColor; stroke-width:1.8;
+  stroke-linecap:round; stroke-linejoin:round; flex:0 0 auto;}
+.m-paste svg{width:18px; height:18px;}
+.m-empty svg{width:19px; height:19px;}
+.m-clear{width:46px; min-height:46px; border-radius:13px; background:#f3eee4; color:#6b6154;
+  font-size:17px; display:flex; align-items:center; justify-content:center; flex:0 0 auto;}
+.m-clear:active{background:#e9e1d2;}
+.m-manual{min-height:44px; display:flex; align-items:center; font-size:12.5px; color:var(--muted);
+  text-decoration:underline; padding:0 2px;}
+.m-empty{width:100%; min-height:52px; border-radius:14px; border:1.5px dashed #d8cfbf; background:transparent;
+  color:#8a8070; font-size:15px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:8px;}
+.m-empty:active{background:#f3eee4;}
+.m-edit{display:flex; gap:8px; align-items:center;}
+.m-edit input{flex:1; min-width:0; font-size:16px; font-family:inherit; color:var(--ink); /* 16px 是 iOS 鐵律，不准降 */
+  padding:12px 13px; border:1.5px solid var(--acc); border-radius:13px; background:#fbfaf6;
+  appearance:none; -webkit-appearance:none;}
+.m-edit input:focus{outline:none;}
+.m-done{min-height:46px; padding:0 14px; border-radius:13px; background:var(--ink); color:#fff;
+  font-size:14.5px; font-weight:800; flex:0 0 auto;}
