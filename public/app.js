@@ -11,7 +11,7 @@
 /* ============ 常數 ============ */
 /* 版本號的唯一來源：首頁 footer 與「版本」sheet 都讀它。
  * 改前端時跟 sw.js 的 cache 版本號一起 +1（見「版本與更新」段）。 */
-var APP_VER="2.3";
+var APP_VER="2.4";
 
 /* 行程點類別（v1.1 起）＝可管理的全域資源：清單存 db.categories（同步 data/categories.md），
  * CATS 是 id->物件 的索引（rebuildCats 重建）。「其他」永遠存在＝刪類別後的 fallback。 */
@@ -85,6 +85,34 @@ function mapLink(sp){
   if(sp.mapUrl) return extUrl(sp.mapUrl);
   if(sp.place) return "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(sp.place);
   return "";
+}
+/* ---- v2.4 移動（transit）的路線連結：上一站 → 下一站，即時算、不存資料 ----
+ * 起訖點來源優先序：addr（server 展開短連結拿到的完整地址）→ place（他自己填的地點文字）。
+ * title 刻意不算（「宵夜？」不是地址，搜出來會是亂的）。
+ * 兩端都要有可靠來源才給連結；算不出來就不顯示（Benson 拍板：不要用「目前位置」也不要用名稱猜）。 */
+function routePoint(sp){
+  if(!sp || isTransit(sp)) return "";
+  return String(sp.addr||"").trim() || String(sp.place||"").trim();
+}
+function prevStopOf(list, idx){ for(var i=idx-1;i>=0;i--){ if(!isTransit(list[i])) return list[i]; } return null; }
+function nextStopOf(list, idx){ for(var i=idx+1;i<list.length;i++){ if(!isTransit(list[i])) return list[i]; } return null; }
+/* 交通方式看移動的備註自動判斷（Benson 拍板）：
+ * 走路→walking；腳踏車→bicycling；大眾運輸→transit；
+ * 開車／自駕／計程車／「騎車」（台灣多半是機車）與認不出來的一律 driving */
+function travelMode(note){
+  var n = String(note||"");
+  if(/走路|步行|徒步|走過去/.test(n)) return "walking";
+  if(/腳踏車|自行車|單車|ubike|youbike|微笑單車/i.test(n)) return "bicycling";
+  if(/捷運|地鐵|公車|巴士|電車|火車|台鐵|高鐵|客運|輕軌|大眾運輸|新幹線|地下鐵/.test(n)) return "transit";
+  return "driving";
+}
+function routeLink(list, idx){
+  var from = routePoint(prevStopOf(list, idx));
+  var to = routePoint(nextStopOf(list, idx));
+  if(!from || !to) return "";
+  return "https://www.google.com/maps/dir/?api=1&origin="+encodeURIComponent(from)
+    + "&destination="+encodeURIComponent(to)
+    + "&travelmode="+travelMode(list[idx] && list[idx].note);
 }
 function hoursText(sp){
   if(sp.hours24) return "24 小時營業";
@@ -224,6 +252,7 @@ function cleanStop(s){
   if(s.place) o.place = String(s.place);
   if(s.note) o.note = String(s.note);
   if(s.mapUrl) o.mapUrl = String(s.mapUrl);
+  if(s.addr) o.addr = String(s.addr); /* v2.4 展開 mapUrl 短連結後的完整地址（server 補；移動那條的路線連結靠它） */
   if(Number(s.cost)) o.cost = Number(s.cost);
   if(Number(s.stayMinutes) > 0) o.stayMinutes = Math.round(Number(s.stayMinutes)); /* v1.2 預計停留（分鐘；負值不落檔） */
   if(s.bookingRef) o.bookingRef = String(s.bookingRef);
@@ -865,11 +894,15 @@ function viewPlan(t){
         if(sp.note) parts.push(esc(sp.note));
         if(sp.stayMinutes) parts.push(formatStay(sp.stayMinutes));
         var txt = parts.join("・") || "移動";
+        /* v2.4 路線鈕：上下兩站都算得出地址才長出來（調整模式不顯示，跟卡片的 .map-btn 一致） */
+        var dir = ui.edit ? "" : routeLink(list, idx);
         return '<div class="stop transit">'
           + '<div class="rail"><span class="dot mini"></span><span class="ln dash"></span></div>'
           + '<div class="transit-bar'+(ui.edit?"":" tappable")+'"'
           +   (ui.edit?"":' onclick="openTransitEdit('+idx+')"')+'>'
           +   '<span class="tr-ico">🚶</span><span class="tr-txt">'+txt+'</span>'
+          +   (dir ? '<a class="map-btn" href="'+esc(dir)+'" target="_blank" rel="noopener"'
+                   + ' onclick="event.stopPropagation()" aria-label="開啟這段路線">🗺️</a>' : "")
           +   (ui.edit ? right : '')
           + '</div></div>';
       }
@@ -1071,7 +1104,10 @@ function submitStopEdit(ev, idx){
   sp.time = f.time.value;
   sp.cat = f.cat.value;
   sp.place = f.place.value.trim();
-  sp.mapUrl = f.mapUrl.value.trim();
+  var newMap = f.mapUrl.value.trim();
+  /* v2.4：連結換掉（或清空）＝舊地址失效，清掉讓 server 重新展開 */
+  if(newMap !== String(sp.mapUrl||"")) sp.addr = "";
+  sp.mapUrl = newMap;
   sp.cost = Number(f.cost.value)||0;
   var oldStay = Math.round(Number(sp.stayMinutes)||0);
   sp.stayMinutes = readStay(f); /* 0＝清空（serializer 不寫空值） */

@@ -54,7 +54,7 @@ UI/UX 以 `demo/index.html`（UX demo v3.1，Benson 拍板）為準，**勿自�
 ## 資料格式（定案；前後端各有一套 mirror parser，改要一起改）
 - 每趟旅程一個 `data/trips/<id>.md`，id = `<ts36>-<slug>`（slug 保留中文）。
 - 結構：frontmatter（`name/dest/emoji/theme/start/days/budget/createdAt/updatedAt`，字串 JSON-quoted、數字裸寫）＋ 四段 body：
-  - `## 行程` → `### Day N` → 每行 `- {一筆行程點的單行 JSON}`（key 順序固定、空值不寫；欄位：id/title/time/cat/place/note/mapUrl/cost/bookingRef/phone/url/hoursOpen/hoursClose/hours24/hours）
+  - `## 行程` → `### Day N` → 每行 `- {一筆行程點的單行 JSON}`（key 順序固定、空值不寫；欄位：id/title/time/cat/place/note/mapUrl/addr/cost/bookingRef/phone/url/hoursOpen/hoursClose/hours24/hours）
   - `## 花費` → 每行 `- {id,amount,cat,desc}`
   - `## 打包` → 每行 `- {id,text,done,zone}`（zone: `carry`｜`checked`）
   - `## 備註` → **永遠最後一段、整段原樣文字**（parser 進入後不再解析 heading，所以備註裡打 `##` 不會壞）
@@ -79,11 +79,18 @@ UI/UX 以 `demo/index.html`（UX demo v3.1，Benson 拍板）為準，**勿自�
   - 不確認、不提供復原（Benson 拍板：直接改＋toast 就好）。
 - **新增行程點的時間預設值（v1.6，`nextTimeGuess`）**：帶「這一天最後推算得出的時刻」＝從頭走一遍，遇到有填時間的行程點就以它重新對錶，再累加停留與移動。整天都沒時間就留空。
 - **`type` 欄位（v1.3）＝時間軸項目型態**：缺值／`"stop"`＝行程點（舊資料無痛，serializer 對 stop **不寫** type，檔案維持原樣）；`"transit"`＝移動。**transit 刻意只用 `note`＋`stayMinutes`（當移動時間），serializer 只輸出 `{id,type,note,stayMinutes}`**——不要幫 transit 補 title/cat/place/費用等站點欄位，「路上」不該佔版面也不該佔資料。UI：transit 是灰色輕薄一條（rail 小空心點＋虛線），點它開精簡表單（不是完整詳細頁）；與 stop 混在同一個 day list 排序／拖曳／刪除。新增走 FAB → 選「行程點／移動」。不做舊「🚗 移動」類別項目的一鍵轉換（Benson 拍板自行手動處理）。
+- **`addr`（v2.4，行程點的完整地址）＋ 移動的路線連結（定案；別誤改）**：Benson 貼的都是 `maps.app.goo.gl` 短連結，短連結**不能直接當路線的起訖點**，但跟著 302 展開會拿到完整地址（`?q=504彰化縣…秀水湯包`）——而且**比店名精確**（「秀水湯包」全台好幾家）。展開只有 server 端做得到（瀏覽器跨網域讀不到 `Location`）。
+  - **新欄位只加在 stop 上**（key 順序：`mapUrl` 之後、`cost` 之前，空值不寫，前後端 serializer 都有）。**transit 一個欄位都不准加**——它仍然只輸出 `{id,type,note,stayMinutes}`，**路線連結是前端即時算的、不落資料**（「路上不該佔資料」這條原則沒有變）。
+  - server 端 `expandMapUrl`：只對 Google 自家網域發請求、最多跟 5 層轉址、單次逾時 5 秒、每次展開間隔 700ms、單輪上限 40 次；抽取序 `?q=` → `@lat,lng` → `!3d..!4d..`。時機＝**存檔後非同步補**＋**啟動補掃一次**（補手機端新增的）。**展開失敗絕不影響存檔**（POST 實測 9ms 回應，失敗只 log、下次再試）；補寫時重讀最新檔、只補「還是同一條 mapUrl 且還沒有 addr」的那筆，`updatedAt` 不動。
+  - `addr` 是 `mapUrl` 的衍生值：POST 時 mapUrl 沒變就沿用既有 addr（手機舊版把 addr 洗掉會自動補回來）、mapUrl 清空則 addr 一起清掉；前端改 mapUrl 也會先清 addr。**同一份檔的寫入（POST 與 addr 補寫）走 `queueTripWrite` 排隊**，避免補寫蓋掉剛存進來的資料。
+  - 連結＝`https://www.google.com/maps/dir/?api=1&origin=…&destination=…&travelmode=…`（官方 Maps URLs API，手機點了會開 Google Maps App）。起訖點來源優先序 **`addr` → `place`**，**`title` 刻意不算**（「宵夜？」不是地址，搜出來會是亂的）。**兩端都要有可靠來源才顯示連結**——**上一站算不出地址就不顯示**（Benson 拍板：不要用「目前位置」當起點、不要拿名稱去猜）；一天的頭尾（沒有上一站／下一站）自然也不顯示。
+  - **交通方式看 transit 的備註自動判斷**（`travelMode`）：走路／步行→walking；腳踏車／單車／YouBike→bicycling；捷運／地鐵／公車／巴士／電車／火車／高鐵→transit；**「騎車」在台灣多半是機車 → driving**；認不出來→driving。
+  - UI：路線鈕沿用卡片的 `.map-btn`（同一個圖示語言），但在灰條裡**視覺縮到 38px＋上下負 margin**，實測灰條高度維持 38px（跟沒有鈕的那條一樣）；命中區用 `::before inset:-3px` 外擴回 44px（跟 v1.3 的工具鈕同一招）。**調整模式不顯示**、點它 `stopPropagation`（不會順便打開編輯移動的表單）。
 - **`.gitattributes` 強制 md/js/css/html/json 為 LF**；前後端 parser 開頭都先 `replace(/\r\n/g,'\n')`。壞的 JSON 行 parser 會跳過該行（不整檔炸掉）。
 
 ## PWA 鐵律（recipe-book 血淚，全部已做，別退步）
 - 所有資源、manifest `start_url`/`scope`、SW scope **一律相對路徑**（Pages 在 `/travel-book/` 子路徑）。
-- SW：`skipWaiting()`＋activate 清舊快取＋`clients.claim()`；`/api/data` network-first、寫入 network-only、殼 cache-first。**改前端記得把 sw.js 的 cache 版本號 +1**（`travel-shell-vN`，目前 v11）**並同步 `APP_VER`**（見下方「版本與更新」）。
+- SW：`skipWaiting()`＋activate 清舊快取＋`clients.claim()`；`/api/data` network-first、寫入 network-only、殼 cache-first。**改前端記得把 sw.js 的 cache 版本號 +1**（`travel-shell-vN`，目前 v13）**並同步 `APP_VER`**（見下方「版本與更新」）。
 - input/textarea/select `font-size ≥ 16px`（iOS 防自動放大）；觸控目標 ≥ 44px；Enter 送出全部走原生 `<form>` + `type=submit`。
 - 換 icon 後 iOS 已安裝的 PWA 要移除主畫面重加才會換。
 

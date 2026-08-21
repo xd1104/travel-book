@@ -327,6 +327,13 @@ ul{padding:0; list-style:none;}
 .tr-ico{font-size:14px; flex:0 0 auto; opacity:.75;}
 .tr-txt{flex:1; min-width:0; font-size:13px; color:#7a7265; overflow-wrap:anywhere; line-height:1.4;}
 .transit-bar .stop-tools{margin-left:auto;}
+/* v2.4 路線鈕：外觀比照卡片的 .map-btn（同一個圖示語言），但視覺縮到 38px、
+ * 上下用負 margin 吃掉多出來的高度——灰條「輕薄一條、不佔版面」的調性不能變；
+ * 命中區同樣用偽元素外擴回 44px */
+.transit-bar .map-btn{width:38px; height:38px; font-size:17px; flex:0 0 auto;
+  margin:-7px -6px -7px auto; position:relative;}
+.transit-bar .map-btn::before{content:""; position:absolute; inset:-3px;}
+.transit-bar .map-btn:active{background:#e4ddcf;}
 /* 灰條上的工具鈕視覺縮到 38px（灰條不搶版面是核心需求），
  * 命中區用偽元素外擴回 44px——視覺高度不可跟著變大 */
 .transit-bar .tool-btn,.transit-bar .drag-handle{width:38px; height:38px; font-size:16px; background:#e4ddcf;

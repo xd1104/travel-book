@@ -11,6 +11,7 @@
  */
 
 const http = require('http');
+const https = require('https');
 const fs = require('fs');
 const fsp = require('fs').promises;
 const path = require('path');
@@ -207,6 +208,7 @@ function cleanStop(s) {
   if (s.place) o.place = String(s.place);
   if (s.note) o.note = String(s.note);
   if (s.mapUrl) o.mapUrl = String(s.mapUrl);
+  if (s.addr) o.addr = String(s.addr); // v2.4 展開 mapUrl 短連結後的完整地址（server 補；移動的路線連結靠它）
   if (Number(s.cost)) o.cost = Number(s.cost);
   if (Number(s.stayMinutes) > 0) o.stayMinutes = Math.round(Number(s.stayMinutes)); // v1.2 預計停留（分鐘；負值不落檔）
   if (s.bookingRef) o.bookingRef = String(s.bookingRef);
@@ -509,6 +511,161 @@ async function seedTemplatesIfEmpty() {
 }
 
 /* ------------------------------------------------------------------ */
+/* v2.4 Google Maps 短連結 → 地址（stop.addr）                          */
+/* 為什麼一定要 server 做：他貼的都是 maps.app.goo.gl 短連結，          */
+/* 跟著 302 轉址才拿得到完整地址（比店名精確——「秀水湯包」有好幾家）， */
+/* 而瀏覽器跨網域讀不到 Location，只有 server 端做得到。                */
+/* ⚠️ addr 只加在行程點（stop）上；transit 一個欄位都不加，             */
+/*    「路上」的路線連結是前端即時算的、不落資料（見 CLAUDE.md v1.3）。 */
+/* ------------------------------------------------------------------ */
+
+const ADDR_TIMEOUT_MS = 5000; // 單次請求逾時（別讓一個壞連結拖住整條佇列）
+const ADDR_HOP_MAX = 5;       // 最多跟 5 層轉址
+const ADDR_GAP_MS = 700;      // 兩次展開之間隔一下，別對 Google 狂打
+const ADDR_MAX_PER_RUN = 40;  // 單次掃描的展開次數上限（剩下的下次再補）
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// 只對 Google 自家網域發請求（使用者可能貼進任何東西，不替他去打陌生站）
+function isMapsHost(u) {
+  try {
+    const h = new URL(u).hostname.toLowerCase();
+    return /(^|\.)google(\.[a-z]{2,3}){1,2}$/.test(h) || /(^|\.)goo\.gl$/.test(h) || /(^|\.)g\.co$/.test(h);
+  } catch { return false; }
+}
+
+// 從一個 maps 網址抽地址：?q= 優先（那就是他當初挑的那一家），
+// 抽不到再退 @lat,lng，最後退 data= 裡的 !3d<lat>!4d<lng>
+function addrFromMapsUrl(u) {
+  let url;
+  try { url = new URL(u); } catch { return ''; }
+  const q = (url.searchParams.get('q') || '').trim();
+  if (q) return q;
+  const at = /@(-?\d+\.\d+),(-?\d+\.\d+)/.exec(url.href);
+  if (at) return at[1] + ',' + at[2];
+  const dd = /!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/.exec(url.href);
+  if (dd) return dd[1] + ',' + dd[2];
+  return '';
+}
+
+// 只讀 header、不下載內容；任何錯誤都回 null（展開失敗不是致命的）
+function fetchRedirect(u) {
+  return new Promise((resolve) => {
+    let mod;
+    try { mod = new URL(u).protocol === 'http:' ? http : https; } catch { return resolve(null); }
+    let done = false;
+    const finish = (v) => { if (!done) { done = true; resolve(v); } };
+    let req;
+    try {
+      req = mod.request(u, {
+        method: 'GET',
+        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; travel-book)', 'Accept-Language': 'zh-TW,zh;q=0.9' },
+      }, (res) => {
+        const loc = res.headers.location || '';
+        res.destroy(); // 只要 header
+        finish({ status: res.statusCode || 0, location: String(loc) });
+      });
+    } catch { return finish(null); }
+    req.setTimeout(ADDR_TIMEOUT_MS, () => req.destroy(new Error('timeout')));
+    req.on('error', () => finish(null));
+    req.end();
+  });
+}
+
+async function expandMapUrl(mapUrl) {
+  let cur = /^https?:\/\//i.test(mapUrl) ? String(mapUrl) : 'https://' + String(mapUrl);
+  for (let i = 0; i <= ADDR_HOP_MAX; i++) {
+    if (!isMapsHost(cur)) return '';
+    const hit = addrFromMapsUrl(cur);
+    if (hit) return hit;                       // 已經是完整網址就不用連線
+    const r = await fetchRedirect(cur);
+    if (!r || !r.location) return '';          // 沒有下一跳（或失敗）＝抽不到
+    try { cur = new URL(r.location, cur).toString(); } catch { return ''; }
+  }
+  return '';
+}
+
+// 展開工作全部串成一條佇列：慢、失敗都不影響存檔，也不會並發狂打
+let addrChain = Promise.resolve();
+function queueAddrJob(fn) {
+  addrChain = addrChain.then(fn).catch((e) => console.error('[addr] job failed:', e.message));
+  return addrChain;
+}
+
+// 同一個檔的寫入排隊（POST 與 addr 補寫共用），避免補寫蓋掉剛存進來的資料
+const tripWriteChains = new Map();
+function queueTripWrite(id, fn) {
+  const prev = tripWriteChains.get(id) || Promise.resolve();
+  const next = prev.then(fn, fn);
+  tripWriteChains.set(id, next.then(() => {}, () => {}));
+  return next;
+}
+
+function eachStop(trip, fn) {
+  for (const key of Object.keys((trip && trip.itinerary) || {})) {
+    for (const s of trip.itinerary[key] || []) if (s && !isTransit(s)) fn(s);
+  }
+}
+
+// 存檔時：mapUrl 沒變就沿用既有 addr（手機端舊版本會把 addr 洗掉，這裡補回來）；
+// mapUrl 被清空 → addr 也跟著失效（addr 是 mapUrl 的衍生值）
+function inheritAddrs(trip, existing) {
+  const prev = new Map();
+  eachStop(existing, (s) => { if (s.addr) prev.set(String(s.id || ''), { mapUrl: String(s.mapUrl || ''), addr: String(s.addr) }); });
+  eachStop(trip, (s) => {
+    if (!s.mapUrl) { delete s.addr; return; }
+    if (s.addr) return;
+    const p = prev.get(String(s.id || ''));
+    if (p && p.mapUrl === String(s.mapUrl)) s.addr = p.addr;
+  });
+}
+
+// 補齊一趟旅程裡「有 mapUrl 但沒 addr」的行程點。整段包在 try/catch 外由 queueAddrJob 接住：
+// 失敗只記 log、下次啟動或下次存檔再試，絕不影響使用者存檔
+async function backfillTripAddrs(id, budget) {
+  const file = path.join(TRIPS_DIR, id + '.md');
+  let trip;
+  try { trip = parseTrip(id, await fsp.readFile(file, 'utf8')); } catch { return 0; }
+  const todo = [];
+  eachStop(trip, (s) => { if (s.mapUrl && !s.addr) todo.push({ sid: String(s.id || ''), mapUrl: String(s.mapUrl) }); });
+  if (!todo.length) return 0;
+  const cap = Math.min(todo.length, budget == null ? ADDR_MAX_PER_RUN : budget);
+  const found = [];
+  for (let i = 0; i < cap; i++) {
+    const addr = await expandMapUrl(todo[i].mapUrl);
+    if (addr) found.push({ sid: todo[i].sid, mapUrl: todo[i].mapUrl, addr });
+    else console.log('[addr] no address from ' + todo[i].mapUrl);
+    if (i < cap - 1) await sleep(ADDR_GAP_MS);
+  }
+  if (!found.length) return cap;
+  await queueTripWrite(id, async () => {
+    let latest; // 重讀最新的檔（展開期間他可能又存過檔），只補「還是同一條 mapUrl 且還沒有 addr」的
+    try { latest = parseTrip(id, await fsp.readFile(file, 'utf8')); } catch { return; }
+    let n = 0;
+    eachStop(latest, (s) => {
+      const f = found.find((x) => x.sid === String(s.id || ''));
+      if (f && !s.addr && String(s.mapUrl || '') === f.mapUrl) { s.addr = f.addr; n++; }
+    });
+    if (!n) return;
+    await atomicWrite(file, serializeTrip(latest), 'utf8'); // updatedAt 沿用檔案裡原本的值，不算他改過
+    console.log('[addr] ' + id + ': 補上 ' + n + ' 筆地址');
+    scheduleSync();
+  });
+  return cap;
+}
+
+// 啟動時補掃一次：把手機端新增、電腦還沒展開過的補齊
+async function scanAllAddrs() {
+  let budget = ADDR_MAX_PER_RUN;
+  let files = [];
+  try { files = (await fsp.readdir(TRIPS_DIR)).filter((f) => f.endsWith('.md')); } catch { return; }
+  for (const f of files) {
+    if (budget <= 0) { console.log('[addr] 本次掃描已達上限，其餘下次再補'); return; }
+    budget -= await backfillTripAddrs(f.replace(/\.md$/, ''), budget);
+  }
+}
+
+/* ------------------------------------------------------------------ */
 /* API                                                                 */
 /* ------------------------------------------------------------------ */
 
@@ -538,20 +695,25 @@ async function handleApi(req, res, url) {
     const body = await readJson(req);
     const now = new Date().toISOString();
     let id = body.id ? safeName(body.id) : '';
-    let createdAt = body.createdAt || now;
-    if (id) {
+    if (!id) id = Date.now().toString(36) + '-' + slugify(body.name);
+    if (!String(body.name || '').trim()) return sendJson(res, 400, { ok: false, message: '旅程名稱不可為空。' });
+    const file = path.join(TRIPS_DIR, id + '.md');
+    const saved = await queueTripWrite(id, async () => {
+      let createdAt = body.createdAt || now;
+      let existing = null;
       try {
-        const existing = parseTrip(id, await fsp.readFile(path.join(TRIPS_DIR, id + '.md'), 'utf8'));
+        existing = parseTrip(id, await fsp.readFile(file, 'utf8'));
         if (existing.createdAt) createdAt = existing.createdAt; // 更新時保留原 createdAt
       } catch { /* 用給的 id 開新檔 */ }
-    } else {
-      id = Date.now().toString(36) + '-' + slugify(body.name);
-    }
-    const trip = Object.assign({}, body, { id, createdAt, updatedAt: now });
-    if (!String(trip.name || '').trim()) return sendJson(res, 400, { ok: false, message: '旅程名稱不可為空。' });
-    await atomicWrite(path.join(TRIPS_DIR, id + '.md'), serializeTrip(trip), 'utf8');
+      const trip = Object.assign({}, body, { id, createdAt, updatedAt: now });
+      inheritAddrs(trip, existing); // v2.4：mapUrl 沒變就沿用已展開的地址
+      await atomicWrite(file, serializeTrip(trip), 'utf8');
+      return parseTrip(id, await fsp.readFile(file, 'utf8'));
+    });
     scheduleSync();
-    return sendJson(res, 200, { ok: true, trip: parseTrip(id, await fsp.readFile(path.join(TRIPS_DIR, id + '.md'), 'utf8')) });
+    // v2.4：有 mapUrl 沒 addr 的行程點，背景去展開短連結（非同步；失敗只記 log，不影響這次存檔）
+    queueAddrJob(() => backfillTripAddrs(id));
+    return sendJson(res, 200, { ok: true, trip: saved });
   }
 
   // DELETE /api/trips/:id
@@ -654,4 +816,6 @@ server.listen(PORT, async () => {
   } catch (e) {
     console.error('[seed] failed:', e.message);
   }
+  // v2.4：補掃一次短連結 → 地址（手機端新增的行程點在這裡補齊）；背景跑，掛了不影響服務
+  queueAddrJob(scanAllAddrs);
 });
