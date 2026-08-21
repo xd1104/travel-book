@@ -646,7 +646,8 @@ var STORE = (IS_LOCAL && !FORCE_GH) ? LocalStore : GitHubStore;
 /* ============ 鑰匙圈解鎖（v2.0） ============
  * 手機／別人的電腦不用再貼一長串 PAT：每個人一組密碼，任何裝置輸一次就能編輯。
  * 金鑰的密文放在公開的 keyring repo，解開後照樣寫進既有的 travel_gh_pat，
- * 所以 GitHubStore 完全不用改。模組正本在 keyring/client/keyring-unlock.js。
+ * 所以 GitHubStore 完全不用改。模組正本在 keyring/client/keyring-unlock.js，
+ * 這個 repo 裡的 keyring-unlock.js 由 keyring 的 sync-unlock.yml 自動同步過來——別手改。
  * 「設定→貼金鑰」入口刻意保留：萬一鑰匙圈壞掉，還能手動貼一把救回來。 */
 var KR = (typeof Keyring !== "undefined") ? Keyring : null;
 var KR_ON = !!KR && !STORE.local;
