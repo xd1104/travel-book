@@ -32,7 +32,7 @@ updatedAt: "2026-08-26T11:54:40.395Z"
 
 - {"id":"xmsoev9dizuk7","title":"退房","time":"11:20","cat":"sight","place":"沐楓商旅"}
 - {"id":"xmsoevwn2bxfo","type":"transit","note":"開車","stayMinutes":20}
-- {"id":"xmsoex0yiyp9g","title":"M PAIN 麵包店","time":"11:40","cat":"sight","mapUrl":"https://maps.app.goo.gl/TsuzLjS95uDA5hFN6?g_st=ic","stayMinutes":30,"hoursOpen":"11:30","hoursClose":"17:30"}
+- {"id":"xmsoex0yiyp9g","title":"M PAIN 麵包店","time":"11:40","cat":"sight","mapUrl":"https://maps.app.goo.gl/TsuzLjS95uDA5hFN6?g_st=ic","addr":"324桃園市平鎮區高雙里長安路216巷168號米色貨櫃屋M PAIN(平鎮門市)","stayMinutes":30,"hoursOpen":"11:30","hoursClose":"17:30"}
 - {"id":"xmsoexx42yr6h","type":"transit","note":"開車","stayMinutes":40}
 - {"id":"xmsoeyyr47369","title":"本色季","time":"12:50","cat":"sight","place":"桃園陽光劇場","stayMinutes":530}
 - {"id":"xmt2mi5v52bzy","title":"宵夜","time":"22:00","cat":"food","note":"大廟生炒羊肉\n串燒小棧(中壢)\n橋頭小吃"}
