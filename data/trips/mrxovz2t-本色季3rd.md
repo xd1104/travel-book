@@ -7,7 +7,7 @@ start: "2026-08-29"
 days: 3
 budget: 0
 createdAt: "2026-07-23T15:51:59.575Z"
-updatedAt: "2026-08-26T08:38:54.501Z"
+updatedAt: "2026-08-26T08:39:07.967Z"
 ---
 
 ## 行程
@@ -24,6 +24,7 @@ updatedAt: "2026-08-26T08:38:54.501Z"
 - {"id":"xmryc8nv19dyn","type":"transit","note":"開車","stayMinutes":30}
 - {"id":"xmryc9bvikjxm","title":"桃園陽光劇場","time":"12:35","cat":"sight","stayMinutes":515}
 - {"id":"xmrycdc8xd1ue","title":"中壢夜市","time":"21:35","cat":"food"}
+- {"id":"xmt9ue9whv5um","type":"transit","note":"開車","stayMinutes":30}
 
 ### Day 2
 
