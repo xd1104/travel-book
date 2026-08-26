@@ -11,7 +11,7 @@
 /* ============ 常數 ============ */
 /* 版本號的唯一來源：首頁 footer 與「版本」sheet 都讀它。
  * 改前端時跟 sw.js 的 cache 版本號一起 +1（見「版本與更新」段）。 */
-var APP_VER="2.7";
+var APP_VER="2.8";
 
 /* ---- 功能鈕的 inline SVG 圖示（吃 currentColor、每台裝置長得一樣）----
  * ⚠️ 界線（別擴大解釋）：只有「系統給的功能鈕」用 SVG。
@@ -247,6 +247,92 @@ function nextTimeGuess(list){
   }
   return cur===null ? "" : timeOf(cur);
 }
+
+/* ============ v2.8 銜接檢查與重新排（規格＝demo/reschedule.html，見 DESIGN.md 附錄 C） ============
+ * 為什麼要有這一段：v1.6/v2.5 的連鎖平移是「後面全部加減同樣的分鐘數」，
+ * 它保留原本的相對關係——包括原本就錯的那一段。缺口是更早「新增／拖曳」時造成的，
+ * 平移只會把缺口原封不動搬著走，怎麼改都修不好。這一段補的是 App 從來沒算過的另一半：
+ * 「照他填的停留＋移動走，這一站其實幾點才到得了」。 */
+function num(v){ return Math.round(Number(v)||0); }
+/* 小於 5 分的差落在真實移動誤差裡＝噪音，標出來會讓提示變常態、失去提醒的意義 */
+var GAP_MIN = 5;
+/* 他填的時間是 00:00–23:59 的鐘面，走出來的 cursor 可能超過 1440（跨午夜）。
+ * lift 把鐘面時刻抬到 cursor 所在的那一圈，01:45 才不會被當成「昨天凌晨」。 */
+function liftTime(m, cursor){ return m + 1440*Math.round((cursor-m)/1440); }
+/* 走一遍這一天：每個行程點各算出 planned（他填的）與 arrive（走得到的）。
+ * gap>0＝來不及（晚幾分）、gap<0＝空檔（早到幾分）、null＝算不出來（沒時間／前面沒有基準）。
+ * 走完一站之後 cursor 以「他填的時間」重新對錶（跟 nextTimeGuess 同一個規則：手填的最大）。 */
+function analyzeDay(list){
+  var out=[], cursor=null;
+  for(var i=0;i<list.length;i++){
+    var s=list[i];
+    if(isTransit(s)){
+      out.push({transit:true});
+      if(cursor!==null) cursor += num(s.stayMinutes);
+      continue;
+    }
+    var m=minsOf(s.time);
+    var arrive=cursor;
+    var planned=(m===null) ? null : ((cursor===null) ? m : liftTime(m, cursor));
+    var gap=(planned!==null && arrive!==null) ? (arrive-planned) : null;
+    out.push({transit:false, planned:planned, arrive:arrive, gap:gap});
+    if(planned!==null) cursor = planned + num(s.stayMinutes);
+    else if(cursor!==null) cursor += num(s.stayMinutes);
+  }
+  return out;
+}
+/* 只收「負的差」（來不及）。正的差是他刻意留的緩衝，**絕對不標**——
+ * 標出來等於每一天都在報錯，提醒就沒有意義了（demo 那個「連空檔也標」的開關是對照組，不做進正式版）。 */
+function lateSet(list){
+  var a=analyzeDay(list), set={};
+  for(var i=0;i<a.length;i++) if(a[i].gap!==null && a[i].gap>=GAP_MIN) set[i]=a[i];
+  return set;
+}
+function firstLateIdx(list){
+  var a=analyzeDay(list);
+  for(var i=0;i<a.length;i++) if(a[i].gap!==null && a[i].gap>=GAP_MIN) return i;
+  return -1;
+}
+/* 重新排：規則只有一條——**新時間 = max(他填的時間, 走得到的時間)，只往後推、不往前拉**。
+ * 所以「來不及的」被挪到真的到得了的時刻，而他刻意留的空檔會**吸收**掉這段延誤：
+ * 一旦某一站原本就晚於走得到的時間（空檔夠大），它就維持原時間，後面整串都不用再推。
+ * 這是跟連鎖平移最大的差別，也是不能簡化成「後面全部 +N」的原因。
+ * startIdx 之前的行程點一律不動（只當作對錶的基準），這樣「從某一站起」與「整天重排」共用同一支。 */
+function replanDay(list, startIdx){
+  var cursor=null, newT={}, changes=[];
+  for(var i=0;i<list.length;i++){
+    var s=list[i];
+    if(isTransit(s)){ if(cursor!==null) cursor += num(s.stayMinutes); continue; }
+    var m=minsOf(s.time);
+    var planned=(m===null) ? null : ((cursor===null) ? m : liftTime(m, cursor));
+    var val=planned;
+    if(i>=startIdx && planned!==null && cursor!==null && cursor>planned) val=cursor;
+    if(val!==null){
+      var t=timeOf(val);
+      if(t!==s.time) changes.push({idx:i, title:s.title, from:s.time, to:t, delta:val-planned});
+      newT[i]=t; cursor = val + num(s.stayMinutes);
+    }else if(cursor!==null){ cursor += num(s.stayMinutes); }
+  }
+  return { newT:newT, changes:changes };
+}
+/* 套用之後他刻意留的空檔各被吃掉多少——這是最容易讓他不爽的副作用，預覽一定要先講。
+ * 作法：拿同一支 analyzeDay 跑「換過時間的副本」，比對原本 gap<0（有空檔）的那幾筆。 */
+function bufferDiff(list, newT){
+  var before=analyzeDay(list);
+  var after=analyzeDay(list.map(function(s,i){
+    if(isTransit(s)) return s;
+    var c={}; for(var k in s) c[k]=s[k];
+    if(newT[i]) c.time=newT[i];
+    return c;
+  }));
+  var out=[];
+  for(var i=0;i<list.length;i++){
+    var b=before[i], a=after[i];
+    if(!b || b.transit || b.gap===null || !a || a.gap===null) continue;
+    if(b.gap<0 && a.gap>b.gap) out.push({ title:list[i].title, from:-b.gap, to:Math.max(0,-a.gap) });
+  }
+  return out;
+}
 function tripEnd(t){ return addDays(parseDate(t.start), t.days-1); }
 function tripRange(t){
   var s=parseDate(t.start), e=tripEnd(t);
@@ -270,11 +356,20 @@ function zoneCount(items, z){
 /* ============ toast（正式版新增：錯誤/唯讀提示） ============ */
 var toastEl = document.getElementById("toast");
 var toastTimer = null;
-function toast(msg, isErr){
+/* act（v2.8 選配）＝{label, fn}：需要他當場做決定時才給（目前只有「新增之後這天接不上」）。
+ * 有動作鈕時停留久一點（8 秒），沒有就維持原本的 2.6 秒；沒帶 act ＝ 跟舊版一模一樣。 */
+function toast(msg, isErr, act){
   toastEl.textContent = msg;
   toastEl.className = isErr ? "err" : "";
+  if(act && act.label){
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "t-act"; b.textContent = act.label;
+    b.onclick = function(){ toastEl.className = "hidden"; act.fn(); };
+    toastEl.appendChild(b);
+    toastEl.className += " has-act";
+  }
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(function(){ toastEl.className += " hidden"; }, 2600);
+  toastTimer = setTimeout(function(){ toastEl.className += " hidden"; }, (act && act.label) ? 8000 : 2600);
 }
 
 /* ============ md 序列化（server.js 的 mirror，改要一起改） ============ */
@@ -915,6 +1010,9 @@ function viewPlan(t){
       + '<b>Day '+i+'</b><span>'+fmtMD(d)+' 週'+WD[d.getDay()]+'</span></button>';
   }
   var list = t.itinerary[String(ui.day)] || [];
+  /* v2.8：先算「哪幾站來不及」——只有負的差（來不及）進得來，空檔不標（見 lateSet） */
+  var late = lateSet(list);
+  var lateKeys = Object.keys(late);
   var items;
   if(!list.length){
     items = '<div class="empty"><div class="big">🌤️</div>'
@@ -923,6 +1021,8 @@ function viewPlan(t){
   }else{
     items = list.map(function(sp, idx){
       var c = CATS[sp.cat] || CATS.other;
+      /* v2.8 rail：接不上的那一段線轉琥珀（零高度成本，捲動時一眼掃得到接不上的位置） */
+      var nextLate = late[idx+1] ? " to-late" : "";
       var right;
       if(ui.edit){
         right = '<span class="stop-tools">'
@@ -941,7 +1041,7 @@ function viewPlan(t){
         /* v2.4 路線鈕：上下兩站都算得出地址才長出來（調整模式不顯示，跟卡片的 .map-btn 一致） */
         var dir = ui.edit ? "" : routeLink(list, idx);
         return '<div class="stop transit">'
-          + '<div class="rail"><span class="dot mini"></span><span class="ln dash"></span></div>'
+          + '<div class="rail"><span class="dot mini"></span><span class="ln dash'+nextLate+'"></span></div>'
           + '<div class="transit-bar'+(ui.edit?"":" tappable")+'"'
           +   (ui.edit?"":' onclick="openTransitEdit('+idx+')"')+'>'
           +   '<span class="tr-ico">🚶</span><span class="tr-txt">'+txt+'</span>'
@@ -956,9 +1056,19 @@ function viewPlan(t){
           + ' onclick="event.stopPropagation()" aria-label="在地圖上看這個地點">'+ICO.pin+'</a>' : "";
       }
       var tap = ui.edit ? "" : ' onclick="openStopDetail('+idx+')"';
+      /* v2.8 銜接條（樣式 A，Benson 拍板）：卡片頂端一行 hairline，是「這張卡的狀態」不是按鈕。
+       * 語氣是提醒不是錯誤（琥珀＝沿用「有新版本」那套語言，刻意不用 --bad）。
+       * 調整模式不顯示：它會改變卡片高度、干擾拖曳的讓位計算。 */
+      var g = late[idx];
+      var gapNote = (g && !ui.edit)
+        ? '<button type="button" class="gap-note" onclick="event.stopPropagation();openReplan('+idx+')">'
+          + '<i></i><span>晚 <b>'+formatStay(g.gap)+'</b>・'+timeOf(g.arrive)+' 才到得了</span>'
+          + '<span class="gn-go">重新排 ›</span></button>'
+        : "";
       return '<div class="stop">'
-        + '<div class="rail"><span class="dot" style="background:'+c.color+'"></span><span class="ln"></span></div>'
+        + '<div class="rail"><span class="dot'+(g?" is-late":"")+'" style="background:'+c.color+'"></span><span class="ln'+nextLate+'"></span></div>'
         + '<div class="stop-card'+(ui.edit?"":" tappable")+'"'+tap+'>'
+        +   gapNote
         +   '<div class="stop-top">'+timeHtml(sp)
         +     '<span class="cat-pill" style="color:'+c.color+'; background:'+c.color+'1a">'+c.emoji+' '+c.label+'</span>'
         +     right + '</div>'
@@ -968,8 +1078,20 @@ function viewPlan(t){
         + '</div></div>';
     }).join("");
   }
+  /* v2.8 Day 層級摘要＋重排入口：只有這一天真的接不上時才長出來（它是「工具」，所以才給底色與 ≥52px） */
+  var fix = "";
+  if(lateKeys.length){
+    var i0 = +lateKeys[0];
+    var sub = esc(list[i0].title)+" 晚 "+formatStay(late[i0].gap);
+    if(lateKeys.length>1) sub += "，還有 "+(lateKeys.length-1)+" 處";
+    fix = '<button type="button" class="fix-bar" onclick="openReplan('+i0+')">'
+      + '<span class="fx-dot"></span>'
+      + '<span class="fx-tx"><b>這一天有 '+lateKeys.length+' 處銜接不上</b><span>'+sub+'</span></span>'
+      + '<span class="fx-go">重新排 ›</span></button>';
+  }
   return '<div class="day-bar"><div class="day-chips">'+chips+'</div>'
     + '<button class="edit-toggle '+(ui.edit?"on":"")+'" onclick="toggleEdit()">'+(ui.edit?"完成":"調整")+'</button></div>'
+    + fix
     + '<div class="timeline" id="timeline">'+items+'</div>';
 }
 
@@ -1071,6 +1193,89 @@ function dragCancel(ev){
   if(drag.raf) cancelAnimationFrame(drag.raf);
   drag = null;
   render(true);
+}
+
+/* ---- v2.8 重新排：預覽（差異清單）→ 他按「就這樣排」才套用 ----
+ * 鐵律：這是他的真行程，**一定要先預覽**，按了「先不要」什麼都不動（連 persist 都不會發生）。
+ * 預覽方式＝差異清單（Benson 拍板）：列出哪幾筆會變、從幾點變幾點，並講清楚哪段空檔被吃掉多少。 */
+var rp = null; /* {startIdx, scope:'break'|'day'} */
+function shortName(t){ t=String(t||""); return t.length>7 ? t.slice(0,7)+"…" : t; }
+function openReplan(idx){
+  if(!requireWrite("重新排這一天")) return;
+  var list = curList()||[];
+  var first = firstLateIdx(list);
+  if(first<0){ toast("這一天的時間都接得上"); return; }
+  var start = (idx>=0 && idx<list.length && !isTransit(list[idx])) ? idx : first;
+  rp = { startIdx:start, scope:"break" };
+  drawReplanSheet();
+}
+function replanNow(){
+  var list = curList()||[];
+  return replanDay(list, rp.scope==="day" ? 0 : rp.startIdx);
+}
+function setReplanScope(s){ if(!rp) return; rp.scope = s; drawReplanSheet(); }
+function drawReplanSheet(){
+  var list = curList()||[];
+  var r = replanNow();
+  var bufs = bufferDiff(list, r.newT);
+  var late = lateSet(list), lateKeys = Object.keys(late);
+  if(!lateKeys.length){ closeSheet(); return; }
+  var i0 = late[rp.startIdx] ? rp.startIdx : +lateKeys[0];
+
+  var why = '<div class="rp-why">'
+    + 'Day '+ui.day+' 的 <b>'+esc(list[i0].title)+'</b> 排在 '+esc(list[i0].time)
+    + '，但照前面的停留＋移動走，<b>'+timeOf(late[i0].arrive)+'</b> 才到得了。<br>'
+    + '重新排＝從這一站起，只把來不及的往後挪，<b>你刻意留的空檔會留著</b>。</div>';
+
+  var scope = '<div class="rp-scope">'
+    + '<button type="button" class="'+(rp.scope==="break"?"on":"")+'" onclick="setReplanScope(\'break\')">從「'
+    +   esc(shortName(list[rp.startIdx].title))+'」起</button>'
+    + '<button type="button" class="'+(rp.scope==="day"?"on":"")+'" onclick="setReplanScope(\'day\')">整天重排</button></div>';
+
+  var rows;
+  if(r.changes.length){
+    rows = '<div class="rp-sec">會變動的 '+r.changes.length+' 筆</div>'
+      + r.changes.map(function(ch){
+          return '<div class="rp-row"><span class="rp-nm">'+esc(ch.title)+'</span>'
+            + '<span class="rp-tm"><s>'+esc(ch.from||"—")+'</s><i>→</i><b>'+esc(ch.to)+'</b></span>'
+            + '<span class="rp-dl">+'+ch.delta+'</span></div>';
+        }).join("");
+  }else{
+    rows = '<div class="rp-sec">沒有東西需要變動</div>';
+  }
+
+  var stopCount = list.filter(function(s){ return !isTransit(s); }).length;
+  var same = stopCount - r.changes.length;
+  var sameLine = same>0 ? '<div class="rp-same">其他 '+same+' 筆時間不動。</div>' : "";
+
+  var bufHtml = "";
+  if(bufs.length){
+    bufHtml = '<div class="rp-sec">你留的空檔</div><div class="rp-buf"><span>🫧</span><div>'
+      + bufs.map(function(b){
+          return '<b>'+esc(b.title)+'</b> 前面的空檔　'+formatStay(b.from)+' → '
+            + (b.to>0 ? formatStay(b.to) : "沒了");
+        }).join("<br>")
+      + '<br><span class="rp-dim">延誤被這段空檔吸收掉了，後面不用整串往後推。</span>'
+      + '</div></div>';
+  }
+
+  openSheet("重新排 Day "+ui.day, why + scope + rows + sameLine + bufHtml
+    + '<div class="rp-acts">'
+    +   '<button type="button" class="btn-ghost" onclick="closeSheet()">先不要</button>'
+    +   '<button type="button" class="btn-primary" onclick="applyReplan()">'+(r.changes.length?"就這樣排":"知道了")+'</button>'
+    + '</div>');
+}
+function applyReplan(){
+  if(!requireWrite("重新排這一天")) return;
+  if(!rp) return;
+  var list = curList()||[];
+  var r = replanNow();
+  var n = r.changes.length;
+  for(var i=0;i<list.length;i++) if(r.newT[i]) list[i].time = r.newT[i];
+  rp = null;
+  if(n) persistTrip(curTrip());
+  closeSheet(); render(true);
+  toast(n ? ("已重排・"+n+" 筆時間換過了") : "本來就接得上，沒有動任何時間");
 }
 
 /* ---- 行程點詳細（檢視 / 編輯） ---- */
@@ -1614,7 +1819,7 @@ function openSheet(title, bodyHtml){
     + '<button onclick="closeSheet()" aria-label="關閉">✕</button></div>'+bodyHtml+'</div>';
   sheetLayer.hidden = false;
 }
-function closeSheet(){ sheetLayer.hidden=true; sheetLayer.innerHTML=""; tplDraft=null; }
+function closeSheet(){ sheetLayer.hidden=true; sheetLayer.innerHTML=""; tplDraft=null; rp=null; }
 
 function catOptions(selectedId){
   return (db.categories||[]).map(function(c){
@@ -1732,8 +1937,15 @@ function submitTransit(ev){
   var f=ev.target, t=curTrip();
   var key=String(ui.day);
   if(!t.itinerary[key]) t.itinerary[key]=[];
-  t.itinerary[key].push({ id:uid(), type:"transit", note:f.note.value.trim(), stayMinutes:readStay(f) });
+  var list=t.itinerary[key];
+  var push=readStay(f);          /* 推的量＝新的移動時間 */
+  var at=list.length;
+  list.push({ id:uid(), type:"transit", note:f.note.value.trim(), stayMinutes:push });
+  /* v2.8：新增也要推後面（這條路徑以前完全不推，缺口就是這樣長出來的）。
+   * 目前 UI 一律加在最後 ⇒ 實務上 moved 多半是 0；之後若做「插在中間」就直接生效。 */
+  var moved=shiftAfter(list, at, push);
   persistTrip(t); closeSheet(); render();
+  afterAddToast(list, moved, push);
 }
 function openTransitEdit(idx){
   if(!requireWrite("改這段移動")) return;
@@ -1791,17 +2003,33 @@ function submitStop(ev){
   var key = String(ui.day);
   if(!t.itinerary[key]) t.itinerary[key]=[];
   var h24 = !!f.hours24.checked;
-  t.itinerary[key].push({
+  var list = t.itinerary[key];
+  var push = readStay(f);        /* 推的量＝新的停留時間 */
+  var at = list.length;
+  list.push({
     id:uid(), time:f.time.value, title:f.title.value.trim(),
     cat:f.cat.value, place:f.place.value.trim(),
     mapUrl:f.mapUrl.value.trim(),
-    stayMinutes:readStay(f),
+    stayMinutes:push,
     hours24:h24,
     hoursOpen:h24?"":f.hoursOpen.value,
     hoursClose:h24?"":f.hoursClose.value,
     note:f.note.value.trim()
   });
+  var moved = shiftAfter(list, at, push);   /* v2.8：新增也要推後面（見 submitTransit 的說明） */
   persistTrip(t); closeSheet(); render();
+  afterAddToast(list, moved, push);
+}
+/* 新增之後的回饋：有推到人就沿用既有的 shiftToast；
+ * 若加完之後這一天接不上，升級成可點的 toast 直接帶去重排（demo 的建議，只在這一種情況給動作鈕）。 */
+function afterAddToast(list, moved, push){
+  var k = Object.keys(lateSet(list||[])).length;
+  if(k){
+    toast("已加入"+(moved ? ("・後面 "+moved+" 筆往後 "+formatStay(push)) : "")+"，但這天有 "+k+" 處銜接不上",
+      false, { label:"重新排", fn:function(){ openReplan(-1); } });
+  }else{
+    shiftToast(moved, push);
+  }
 }
 
 function openExpenseSheet(){

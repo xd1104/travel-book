@@ -1,0 +1,772 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>旅途手帳 — 時間對不上的提示與重排（UX demo）</title>
+<style>
+/* ===== 真色票（照 public/styles.css :root，一個都沒改） ===== */
+:root{
+  --bg:#f7f4ee; --card:#ffffff; --ink:#2b2620; --muted:#8f8578; --line:#e8e1d5;
+  --acc:#ff6b5e; --acc-deep:#e2503f; --ok:#2fa87a; --bad:#d64545;
+  --shadow:0 2px 14px rgba(70,55,30,.08);
+  /* ↓ 這次新增的唯一一組顏色：琥珀。沿用 App 既有的「有新版本」語言
+     （.ver-btn.hot #ffe8b8/#8a5b12、.ver-alert #fff6e3/#f2dcae/#9a7434），
+     刻意不新開一套；也刻意不用 --bad（那是「錯誤／刪除」的語言）。 */
+  --warn-ink:#a9761f; --warn-ink-deep:#8a5b12; --warn-line:#f0e0bd;
+  --warn-bg:#fdf6e7; --warn-dot:#e0a33a;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0; padding:0;}
+body{background:#e9e4da;
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+  color:var(--ink);}
+#app{max-width:480px; margin:0 auto; min-height:100dvh; background:var(--bg); position:relative; padding-bottom:120px;}
+button{font-family:inherit; border:none; background:none; cursor:pointer; color:inherit; padding:0;}
+h1,h2,h3,p,ul{margin:0;}
+
+/* ===== 以下整段抄自 public/styles.css（沿用既有視覺語言，未改動） ===== */
+.trip-head{padding:14px 18px 20px; color:#fff; border-radius:0 0 26px 26px;}
+.head-top{display:flex; align-items:center; justify-content:space-between;}
+.back-btn{display:inline-flex; align-items:center; gap:2px; color:#fff; font-size:15px; font-weight:600;
+  min-height:44px; padding:0 10px 0 0; text-shadow:0 1px 6px rgba(0,0,0,.25);}
+.head-edit{color:#fff; min-height:44px; padding:0 16px; border-radius:99px; background:rgba(255,255,255,.24);
+  font-size:13.5px; font-weight:700; display:inline-flex; align-items:center; gap:4px;}
+.trip-title{display:flex; align-items:center; gap:10px; margin-top:2px;}
+.trip-title .emo{font-size:34px; filter:drop-shadow(0 2px 5px rgba(0,0,0,.25));}
+.trip-title h1{font-size:24px; font-weight:800; text-shadow:0 1px 8px rgba(0,0,0,.3);}
+.trip-sub{font-size:13px; opacity:.95; margin-top:6px; text-shadow:0 1px 6px rgba(0,0,0,.3);}
+.tab-body{padding:16px 16px 40px;}
+.day-bar{position:sticky; top:0; z-index:5; background:linear-gradient(var(--bg) 78%, transparent);
+  padding:10px 0 12px; display:flex; align-items:center; gap:8px;}
+.day-chips{display:flex; gap:8px; overflow-x:auto; flex:1; padding:2px;}
+.day-chips::-webkit-scrollbar{display:none;}
+.day-chip{flex:0 0 auto; min-width:60px; min-height:52px; border-radius:14px; background:var(--card);
+  box-shadow:var(--shadow); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;}
+.day-chip b{font-size:14px;}
+.day-chip span{font-size:11px; color:var(--muted);}
+.day-chip.on{background:var(--ink); color:#fff;}
+.day-chip.on span{color:#cfc8bd;}
+.edit-toggle{flex:0 0 auto; min-height:44px; padding:0 14px; border-radius:12px; background:var(--card);
+  box-shadow:var(--shadow); font-size:13.5px; font-weight:700; color:var(--muted);}
+.edit-toggle.on{background:var(--acc); color:#fff;}
+.stop{display:flex; gap:10px; margin-bottom:2px;}
+.rail{width:22px; display:flex; flex-direction:column; align-items:center; flex:0 0 auto;}
+.rail .dot{width:12px; height:12px; border-radius:50%; margin-top:18px; flex:0 0 auto; box-shadow:0 0 0 3px var(--bg);}
+.rail .ln{width:2px; flex:1; background:var(--line); margin-top:2px;}
+.stop:last-child .rail .ln{background:transparent;}
+.stop-card{flex:1; background:var(--card); border-radius:16px; box-shadow:var(--shadow); padding:12px 14px; margin-bottom:12px; min-width:0;}
+.stop-card.tappable:active{transform:scale(.985);}
+.stop-top{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.stop-time{font-weight:800; font-size:15px; font-variant-numeric:tabular-nums;}
+.stop-time .to{color:#a89e8f; font-weight:600;}
+.stop-time .plus1{color:#a89e8f; font-weight:600; font-size:11px; vertical-align:super; margin-left:1px;}
+.stop-stay{font-size:12.5px; color:var(--muted); font-weight:600; white-space:nowrap;}
+.cat-pill{font-size:12px; font-weight:700; padding:3px 9px; border-radius:99px;}
+.map-btn{width:44px; height:44px; display:flex; align-items:center; justify-content:center;
+  margin:-10px -10px -8px auto; border-radius:12px; text-decoration:none;}
+.map-btn .ico{width:21px; height:21px; display:block; fill:none; stroke:currentColor;
+  stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round;}
+.stop-card .map-btn{color:#a89d8d; background:none; margin:-10px -11px -8px auto;}
+.stop-card .map-btn:active{background:#f4efe5;}
+.stop-tools{margin-left:auto; display:flex; gap:8px;}
+.tool-btn,.drag-handle{width:44px; height:44px; border-radius:12px; background:#f3eee4;
+  display:flex; align-items:center; justify-content:center; font-size:18px; color:#6b6154; flex:0 0 auto;}
+.tool-btn.danger{color:var(--bad); background:#fbeeee;}
+.drag-handle{touch-action:none; font-size:20px;}
+.stop-name{font-size:16.5px; font-weight:700; margin-top:5px; overflow-wrap:anywhere;}
+.stop-place{font-size:13px; color:var(--muted); margin-top:3px; display:flex; align-items:center; gap:4px; overflow-wrap:anywhere;}
+.stop-note{font-size:13.5px; color:#6b6154; background:#faf6ee; border-radius:10px; padding:8px 10px; margin-top:8px; line-height:1.5; overflow-wrap:anywhere; white-space:pre-line;}
+.transit-bar{flex:1; display:flex; align-items:center; gap:8px; min-width:0;
+  background:#f1ece2; border-radius:11px; padding:7px 12px; margin-bottom:12px; min-height:38px;}
+.transit-bar.tappable:active{background:#e9e3d6;}
+.tr-ico{font-size:14px; flex:0 0 auto; opacity:.75;}
+.tr-txt{flex:1; min-width:0; font-size:13px; color:#7a7265; overflow-wrap:anywhere; line-height:1.4;}
+.transit-bar .map-btn{width:38px; height:38px; flex:0 0 auto; margin:-7px -7px -7px auto; position:relative;
+  color:#9a9082; background:none;}
+.transit-bar .map-btn::before{content:""; position:absolute; inset:-3px;}
+.transit-bar .map-btn:active{background:#e6dfd1;}
+.transit-bar .map-btn .ico{width:18px; height:18px; stroke-width:1.7;}
+.transit-bar .tool-btn,.transit-bar .drag-handle{width:38px; height:38px; font-size:16px; background:#e4ddcf; position:relative;}
+.transit-bar .tool-btn::before,.transit-bar .drag-handle::before{content:""; position:absolute; inset:-3px;}
+.stop.transit .rail .dot{width:7px; height:7px; margin-top:16px; background:transparent;
+  border:1.5px solid #cdc3b2; box-shadow:none;}
+.stop.transit .rail .ln{background:none;
+  background-image:linear-gradient(#d8cfbf 55%, transparent 0); background-size:2px 7px; background-repeat:repeat-y;}
+#sheet-layer{position:fixed; inset:0; z-index:50;}
+.backdrop{position:absolute; inset:0; background:rgba(30,22,14,.45); animation:fadeIn .2s;}
+.sheet{position:absolute; bottom:0; left:0; right:0; margin:0 auto; max-width:480px;
+  background:#fff; border-radius:22px 22px 0 0; padding:16px 18px calc(20px + env(safe-area-inset-bottom));
+  max-height:88dvh; overflow-y:auto; animation:slideUp .26s cubic-bezier(.2,.8,.3,1);}
+@keyframes slideUp{from{transform:translateY(60%); opacity:.4;} to{transform:none; opacity:1;}}
+@keyframes fadeIn{from{opacity:0;} to{opacity:1;}}
+.sheet-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; gap:8px;}
+.sheet-head h3{font-size:19px; font-weight:800; overflow-wrap:anywhere;}
+.sheet-head button{min-width:44px; min-height:44px; font-size:18px; color:var(--muted); display:flex; align-items:center; justify-content:center; flex:0 0 auto;}
+.field{display:block; margin-bottom:13px;}
+.field .fl{display:block; font-size:13px; font-weight:700; color:var(--muted); margin-bottom:6px;}
+.field input{width:100%; font-size:16px; font-family:inherit; color:var(--ink);
+  padding:12px 13px; border:1.5px solid var(--line); border-radius:13px; background:#fbfaf6; appearance:none; -webkit-appearance:none;}
+.btn-primary{width:100%; min-height:52px; border-radius:15px; background:var(--acc); color:#fff;
+  font-size:17px; font-weight:800; display:flex; align-items:center; justify-content:center; margin-top:4px;}
+.btn-primary:active{background:var(--acc-deep);}
+.btn-ghost{width:100%; min-height:52px; border-radius:15px; border:1.5px solid var(--line); background:#fbfaf6;
+  color:var(--ink); font-size:16px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:6px;}
+#toast{position:fixed; left:50%; transform:translateX(-50%);
+  bottom:calc(104px + env(safe-area-inset-bottom)); z-index:80;
+  background:rgba(43,38,32,.94); color:#fff; font-size:14px; font-weight:600;
+  padding:11px 18px; border-radius:99px; box-shadow:0 6px 18px rgba(0,0,0,.25);
+  max-width:88vw; text-align:center; transition:opacity .25s;
+  display:flex; align-items:center; gap:10px;}
+#toast.hidden{opacity:0; pointer-events:none;}
+#toast .t-act{flex:0 0 auto; min-height:34px; padding:0 12px; border-radius:99px;
+  background:#fff; color:#2b2620; font-size:13.5px; font-weight:800;}
+
+/* ============================================================
+   ↓↓↓ 這次新設計的三個元件（dev 照這裡抄） ↓↓↓
+   層級宣告（v2.7 教訓：新元素要先想清楚它是哪一層）：
+     1. 銜接條 .gap-note ＝「這張卡的狀態」→ 無底色、hairline、12px，
+        只借用卡片既有的分隔線語言，不借藥丸的底色語言。
+     2. rail 琥珀段 ＝「兩站之間的狀態」→ 零高度、只換顏色。
+     3. 重排入口 .fix-bar ＝「工具」→ 才給底色、才給 >=52px 觸控目標。
+   ============================================================ */
+
+/* 1) 銜接條：卡片頂端一行 hairline。它是狀態，不長得像按鈕。 */
+.gap-note{display:flex; align-items:center; gap:7px; width:100%; text-align:left;
+  font-size:12px; font-weight:700; color:var(--warn-ink); line-height:1.35;
+  padding:1px 0 8px; margin:0 0 8px; border-bottom:1px solid var(--warn-line);
+  position:relative; font-variant-numeric:tabular-nums;}
+/* 命中區外擴回 44px（沿用 .transit-bar .map-btn::before 那一招）：
+   看起來只有一行 ~28px 的字，實際上點得到 */
+.gap-note::before{content:""; position:absolute; left:-14px; right:-14px; top:-9px; bottom:-1px;}
+.gap-note:active{color:var(--warn-ink-deep);}
+.gap-note i{width:6px; height:6px; border-radius:50%; background:var(--warn-dot); flex:0 0 auto; font-style:normal;}
+.gap-note b{font-weight:800;}
+.gap-note .gn-go{margin-left:auto; color:#c2a878; font-weight:700; flex:0 0 auto;}
+
+/* 候選 B：把提示接在時間後面（不新增一行） */
+.gap-inline{font-size:12px; font-weight:800; color:var(--warn-ink); white-space:nowrap;
+  font-variant-numeric:tabular-nums; display:inline-flex; align-items:center; gap:4px;}
+.gap-inline i{width:5px; height:5px; border-radius:50%; background:var(--warn-dot); font-style:normal;}
+
+/* 候選 C：卡片左緣一道琥珀 + 時間旁一顆點（差多少留給詳細頁） */
+.stop-card.edge-late{box-shadow:var(--shadow), inset 3px 0 0 #e6b563;}
+.late-dot{width:7px; height:7px; border-radius:50%; background:var(--warn-dot); display:inline-block; flex:0 0 auto;}
+
+/* 2) rail：接不上的那一段線轉琥珀（零高度成本，捲動時一眼掃得到） */
+.rail .ln.to-late{background:var(--warn-dot); opacity:.85;}
+.stop.transit .rail .ln.to-late{background:none;
+  background-image:linear-gradient(var(--warn-dot) 55%, transparent 0); background-size:2px 7px; opacity:.9;}
+.rail .dot.is-late{box-shadow:0 0 0 3px var(--bg), 0 0 0 4.5px var(--warn-dot);}
+
+/* 3) 重排入口：只有「這一天真的接不上」時才存在 */
+.fix-bar{width:100%; display:flex; align-items:center; gap:10px; text-align:left;
+  min-height:54px; padding:9px 12px 9px 14px; margin:0 0 14px;
+  background:var(--warn-bg); border:1px solid var(--warn-line); border-radius:14px;}
+.fix-bar:active{background:#faeed4;}
+.fix-bar .fx-dot{width:8px; height:8px; border-radius:50%; background:var(--warn-dot); flex:0 0 auto;}
+.fix-bar .fx-tx{flex:1; min-width:0;}
+.fix-bar .fx-tx b{display:block; font-size:14px; font-weight:800; color:var(--warn-ink-deep);}
+.fix-bar .fx-tx span{display:block; font-size:12px; color:#9a7434; margin-top:2px; overflow-wrap:anywhere;}
+.fix-bar .fx-go{flex:0 0 auto; font-size:13.5px; font-weight:800; color:var(--warn-ink-deep);
+  background:#fff; border:1px solid var(--warn-line); border-radius:99px; min-height:38px;
+  display:flex; align-items:center; padding:0 13px;}
+
+/* 重排預覽 sheet 內的差異清單 */
+.rp-why{font-size:13.5px; color:#6b6154; line-height:1.6; background:#faf6ee;
+  border-radius:12px; padding:11px 13px; margin-bottom:6px;}
+.rp-why b{color:var(--warn-ink-deep);}
+.rp-sec{font-size:12px; font-weight:800; color:var(--muted); margin:16px 0 6px; letter-spacing:.02em;}
+.rp-row{display:flex; align-items:center; gap:10px; padding:10px 2px; border-bottom:1px solid #f2ecdf;}
+.rp-row .rp-nm{flex:1; min-width:0; font-size:14.5px; font-weight:700; overflow-wrap:anywhere;}
+.rp-row .rp-tm{flex:0 0 auto; font-size:14px; font-variant-numeric:tabular-nums; white-space:nowrap;}
+.rp-row .rp-tm s{color:#b3a996; text-decoration-thickness:1px; font-weight:600;}
+.rp-row .rp-tm i{font-style:normal; color:#c9beac; margin:0 3px;}
+.rp-row .rp-tm b{color:var(--warn-ink-deep); font-weight:800;}
+.rp-row .rp-dl{flex:0 0 auto; font-size:11.5px; font-weight:800; color:var(--warn-ink);
+  background:#fbf2df; border-radius:99px; padding:3px 7px; font-variant-numeric:tabular-nums;}
+.rp-buf{display:flex; align-items:flex-start; gap:8px; font-size:13px; color:#6b6154;
+  background:#faf6ee; border-radius:12px; padding:10px 12px; line-height:1.55;}
+.rp-buf b{color:var(--ink);}
+.rp-same{font-size:13px; color:var(--muted); padding:9px 2px 2px;}
+.rp-scope{display:flex; gap:8px; margin:14px 0 4px;}
+.rp-scope button{flex:1; min-height:46px; border-radius:12px; border:1.5px solid var(--line);
+  background:#fbfaf6; font-size:14px; font-weight:700; color:var(--muted); padding:0 6px;}
+.rp-scope button.on{border-color:#e6c98a; background:var(--warn-bg); color:var(--warn-ink-deep);}
+.rp-acts{display:flex; gap:10px; margin-top:16px;}
+.rp-acts .btn-ghost{flex:0 0 36%;}
+.rp-acts .btn-primary{flex:1; margin-top:0;}
+
+/* 就地預覽（候選 2）：時間軸上直接套上新時間 + 底部確認條 */
+.stop-card.previewing{box-shadow:0 0 0 2px #e6c98a, 0 6px 18px rgba(160,120,40,.16);}
+.pv-time{font-size:12.5px; font-weight:700; color:#b3a996; margin-left:6px; font-variant-numeric:tabular-nums;}
+.pv-time s{text-decoration-thickness:1px;}
+.pv-bar{position:fixed; left:0; right:0; bottom:0; margin:0 auto; max-width:480px; z-index:60;
+  background:rgba(255,255,255,.97); -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
+  border-top:1px solid var(--warn-line); padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+  display:flex; align-items:center; gap:10px; box-shadow:0 -6px 20px rgba(70,55,30,.1);}
+.pv-bar .pv-tx{flex:1; min-width:0; font-size:12.5px; line-height:1.45; color:#6b6154;}
+.pv-bar .pv-tx b{display:block; font-size:14.5px; color:var(--warn-ink-deep); font-weight:800;}
+.pv-bar button{flex:0 0 auto; min-height:46px; border-radius:13px; padding:0 15px; font-size:15px; font-weight:800;}
+.pv-bar .pv-no{color:var(--muted); border:1.5px solid var(--line); background:#fbfaf6;}
+.pv-bar .pv-yes{background:var(--acc); color:#fff;}
+
+/* ===== demo 控制台（刻意用完全不同的視覺語言，一眼看得出不是 App 的一部分） ===== */
+#dev{position:fixed; left:0; right:0; bottom:0; z-index:90; margin:0 auto; max-width:480px;
+  background:#26211b; color:#e7ded0; font-size:13px;
+  box-shadow:0 -8px 24px rgba(0,0,0,.28); padding-bottom:env(safe-area-inset-bottom);}
+#dev .dv-hd{min-height:46px; width:100%; display:flex; align-items:center; gap:8px; padding:0 16px;
+  font-size:13px; font-weight:800; color:#c9bda9; letter-spacing:.04em;}
+#dev .dv-hd .dv-ch{margin-left:auto; transition:transform .2s;}
+#dev.open .dv-hd .dv-ch{transform:rotate(180deg);}
+#dev .dv-bd{display:none; padding:2px 16px 16px; border-top:1px solid #3a332a; max-height:56dvh; overflow-y:auto;}
+#dev.open .dv-bd{display:block;}
+#dev .dv-lb{font-size:11.5px; color:#8d8272; font-weight:800; margin:13px 0 6px; letter-spacing:.06em;}
+#dev .dv-row{display:flex; gap:7px; flex-wrap:wrap;}
+#dev .dv-row button{min-height:40px; padding:0 12px; border-radius:10px; background:#372f26; color:#cdc0ab;
+  font-size:13px; font-weight:700; border:1px solid #453c31;}
+#dev .dv-row button.on{background:#e7ded0; color:#26211b; border-color:#e7ded0;}
+#dev .dv-row button.wide{flex:1; min-width:132px;}
+#dev .dv-note{font-size:11.5px; color:#8d8272; line-height:1.6; margin-top:10px;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast" class="hidden"></div>
+<div id="sheet-layer" style="display:none"></div>
+<div id="dev">
+  <button class="dv-hd" onclick="devToggle()">⚙ DEMO 設定<span class="dv-ch">⌄</span></button>
+  <div class="dv-bd" id="devbd"></div>
+</div>
+
+<script>
+/* =========================================================================
+   旅途手帳 — 「行程時間對不起來」UX demo
+   資料＝Benson 真實旅程 data/trips/mrxovz2t-本色季3rd.md（一個字都沒改）
+   ========================================================================= */
+
+var ICO = {
+  pin:'<svg viewBox="0 0 24 24" class="ico" aria-hidden="true" focusable="false">'
+    + '<path d="M3.4 7.6 9 5.2 15 7.8 20.6 5.4V16.4L15 18.8 9 16.2 3.4 18.6Z"/>'
+    + '<path d="M9 5.2v11M15 7.8v11"/></svg>',
+  route:'<svg viewBox="0 0 24 24" class="ico" aria-hidden="true" focusable="false">'
+    + '<circle cx="5.9" cy="18.5" r="2.3"/><circle cx="18.1" cy="5.5" r="2.3"/>'
+    + '<path d="M5.9 16.2c0-3.4 3.1-3.9 6.1-4.6s6.1-1.4 6.1-3.8"/></svg>'
+};
+var CATS = {
+  sight:{label:"景點", emoji:"📍", color:"#0d9488"},
+  food:{label:"美食", emoji:"🍜", color:"#ea8600"},
+  transport:{label:"交通", emoji:"🚃", color:"#2f6fed"},
+  stay:{label:"住宿", emoji:"🏨", color:"#8b5cf6"},
+  shop:{label:"購物", emoji:"🛍️", color:"#e0447f"},
+  other:{label:"其他", emoji:"✨", color:"#7a7265"}
+};
+var THEME_OCEAN = "linear-gradient(135deg,#38c3a7,#2f8fd6)";
+
+/* ---- 真資料 ---- */
+function seed(){ return {
+1:[
+ {id:"a1",title:"出發",time:"05:00",cat:"other"},
+ {id:"a2",type:"transit",note:"開車",stayMinutes:180},
+ {id:"a3",title:"秀水湯包",time:"08:00",cat:"food",note:"要先打電話訂",mapUrl:"x",addr:"504彰化縣秀水鄉安溪村彰水路一段590號秀水湯包",stayMinutes:40},
+ {id:"a4",type:"transit",note:"開車",stayMinutes:120},
+ {id:"a5",title:"好難吃養生紫米海苔飯捲",time:"10:40",cat:"food",place:"桃園",mapUrl:"x",addr:"24.9092566,121.1455988",stayMinutes:240},
+ {id:"a6",type:"transit",note:"開車",stayMinutes:40},
+ {id:"a7",title:"沐楓商旅",time:"14:45",cat:"stay",mapUrl:"x",addr:"桃園市中壢區中榮里博愛三路沐楓商旅 Hotel MU",stayMinutes:30},
+ {id:"a8",type:"transit",note:"開車",stayMinutes:30},
+ {id:"a9",title:"桃園陽光劇場",time:"15:45",cat:"sight",stayMinutes:540},
+ {id:"a10",title:"夜市 ( 宵夜 )",time:"01:45",cat:"food",note:"中原 ?\n中壢 ?"}
+],
+2:[
+ {id:"b1",title:"退房",time:"11:20",cat:"sight",place:"沐楓商旅"},
+ {id:"b2",type:"transit",note:"開車",stayMinutes:20},
+ {id:"b3",title:"M PAIN 麵包店",time:"11:40",cat:"sight",stayMinutes:30},
+ {id:"b4",type:"transit",note:"開車",stayMinutes:40},
+ {id:"b5",title:"本色季",time:"12:50",cat:"sight",place:"桃園陽光劇場",stayMinutes:530},
+ {id:"b6",title:"宵夜",time:"22:00",cat:"food",note:"大廟生炒羊肉\n串燒小棧(中壢)\n橋頭小吃"}
+]};}
+
+var DATA = seed();
+var ui = { day:1, edit:false, hint:"A", preview:"list", showBuffer:false, pv:null };
+
+/* ---- 既有小工具（照抄 public/app.js） ---- */
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function pad2(n){ return (n<10?"0":"")+n; }
+function num(v){ return Math.round(Number(v)||0); }
+function isTransit(s){ return s && s.type==="transit"; }
+function formatStay(min){
+  min = num(min); if(min<=0) return "";
+  if(min<60) return min+" 分";
+  if(min%30===0) return (min/60)+" 小時";
+  return Math.floor(min/60)+" 小時 "+(min%60)+" 分";
+}
+function minsOf(t){ var m=/^(\d{1,2}):(\d{2})$/.exec(String(t||"")); return m?(+m[1])*60+(+m[2]):null; }
+function timeOf(m){ m=((Math.round(m)%1440)+1440)%1440; return pad2(Math.floor(m/60))+":"+pad2(m%60); }
+function endTime(time,min){
+  var m=/^(\d{1,2}):(\d{2})$/.exec(String(time||"")); if(!m) return null;
+  min=num(min); if(min<=0) return null;
+  var tot=(+m[1])*60+(+m[2])+min, plus=Math.floor(tot/1440);
+  tot=((tot%1440)+1440)%1440;
+  return {txt:pad2(Math.floor(tot/60))+":"+pad2(tot%60), plus:plus};
+}
+function timeHtml(sp){
+  var e=endTime(sp.time,sp.stayMinutes);
+  if(e) return '<span class="stop-time">'+esc(sp.time)+'<span class="to">–'+e.txt+'</span>'
+    +(e.plus?'<span class="plus1">+'+e.plus+'</span>':'')+'</span>';
+  return '<span class="stop-time">'+(sp.time?esc(sp.time):"—")+'</span>'
+    +(sp.stayMinutes?'<span class="stop-stay">'+(sp.time?"・":"")+'停 '+formatStay(sp.stayMinutes)+'</span>':'');
+}
+/* v1.6 連鎖平移（照抄，demo 用來演「缺口為什麼被原封不動搬走」） */
+function shiftAfter(list, idx, delta){
+  if(!delta) return 0;
+  var n=0;
+  for(var i=idx+1;i<list.length;i++){
+    var s=list[i]; if(isTransit(s)||!s.time) continue;
+    var m=minsOf(s.time); if(m===null) continue;
+    s.time=timeOf(m+delta); n++;
+  }
+  return n;
+}
+function stopShiftDelta(oldTime,newTime,oldStay,newStay){
+  var dStay=num(newStay)-num(oldStay);
+  if(String(oldTime||"")===String(newTime||"")) return dStay;
+  var a=minsOf(oldTime), b=minsOf(newTime);
+  if(a===null||b===null) return 0;
+  var d=b-a; if(d>720) d-=1440; else if(d<=-720) d+=1440;
+  return d+dStay;
+}
+
+/* =========================================================================
+   ★ 新演算法 1：走一遍這一天，算出每一站「走得到的時間」
+   —— 這就是 App 目前完全沒有算過、所以缺口看不見的那一半。
+   rolling 分鐘可以超過 1440（跨午夜），lift() 把他填的時間抬到同一個時間框。
+   ========================================================================= */
+var GAP_MIN = 5;   /* 小於 5 分的差在真實移動誤差裡是噪音，標出來會讓提示變常態 */
+
+function lift(m, cursor){ return m + 1440*Math.round((cursor-m)/1440); }
+
+function analyze(list){
+  var out=[], cursor=null;
+  for(var i=0;i<list.length;i++){
+    var s=list[i];
+    if(isTransit(s)){
+      out.push({transit:true});
+      if(cursor!==null) cursor+=num(s.stayMinutes);
+      continue;
+    }
+    var m=minsOf(s.time);
+    var arrive=cursor;                                  /* 走得到的時間 */
+    var planned=(m===null)?null:((cursor===null)?m:lift(m,cursor));  /* 他填的時間 */
+    var gap=(planned!==null&&arrive!==null)?(arrive-planned):null;   /* >0 來不及、<0 空檔 */
+    out.push({transit:false, planned:planned, arrive:arrive, gap:gap});
+    if(planned!==null) cursor=planned+num(s.stayMinutes);
+    else if(cursor!==null) cursor+=num(s.stayMinutes);
+  }
+  return out;
+}
+function lateSet(list){
+  var a=analyze(list), set={};
+  for(var i=0;i<a.length;i++) if(a[i].gap!==null && a[i].gap>=GAP_MIN) set[i]=a[i];
+  return set;
+}
+
+/* =========================================================================
+   ★ 新演算法 2：重新排這一天 —— 規則是「只往後推，不往前拉」
+   newTime = max(他填的時間, 走得到的時間)
+   → 缺口被補上，而「他刻意留的空檔」只被吃掉需要的那一段，不會被壓平。
+     （壓實模式刻意不做：Benson v1.6 已拍板「重算會把刻意留的空檔壓掉」。）
+   ========================================================================= */
+function replan(list, startIdx){
+  var cursor=null, newT={}, changes=[];
+  for(var i=0;i<list.length;i++){
+    var s=list[i];
+    if(isTransit(s)){ if(cursor!==null) cursor+=num(s.stayMinutes); continue; }
+    var m=minsOf(s.time);
+    var planned=(m===null)?null:((cursor===null)?m:lift(m,cursor));
+    var val=planned;
+    if(i>=startIdx && planned!==null && cursor!==null && cursor>planned) val=cursor;
+    if(val!==null){
+      var t=timeOf(val);
+      if(t!==s.time) changes.push({idx:i,title:s.title,from:s.time,to:t,delta:val-planned});
+      newT[i]=t; cursor=val+num(s.stayMinutes);
+    }else if(cursor!==null){ cursor+=num(s.stayMinutes); }
+  }
+  return {newT:newT, changes:changes};
+}
+/* 套用之後，他刻意留的空檔各縮短多少 —— 這是最容易讓他不爽的副作用，一定要先講 */
+function bufferDiff(list, newT){
+  var before=analyze(list);
+  var after=analyze(list.map(function(s,i){
+    if(isTransit(s)) return s;
+    var c={}; for(var k in s) c[k]=s[k];
+    if(newT[i]) c.time=newT[i];
+    return c;
+  }));
+  var out=[];
+  for(var i=0;i<list.length;i++){
+    var b=before[i], a=after[i];
+    if(!b||b.transit||b.gap===null||a.gap===null) continue;
+    if(b.gap<0 && a.gap>b.gap) out.push({title:list[i].title, from:-b.gap, to:Math.max(0,-a.gap)});
+  }
+  return out;
+}
+function firstLateIdx(list){
+  var a=analyze(list);
+  for(var i=0;i<a.length;i++) if(a[i].gap!==null && a[i].gap>=GAP_MIN) return i;
+  return -1;
+}
+
+/* =========================================================================
+   畫面
+   ========================================================================= */
+function render(){
+  var list=DATA[ui.day]||[];
+  var late=lateSet(list);
+  var lateKeys=Object.keys(late);
+  var chips="";
+  var DAYINFO={1:{d:"8/29 週六"},2:{d:"8/30 週日"},3:{d:"8/31 週一"}};
+  for(var d=1;d<=3;d++){
+    chips+='<button class="day-chip '+(ui.day===d?"on":"")+'" onclick="setDay('+d+')">'
+      +'<b>Day '+d+'</b><span>'+DAYINFO[d].d+'</span></button>';
+  }
+
+  /* --- 重排入口：只有真的接不上時才長出來 --- */
+  var fix="";
+  if(lateKeys.length && !ui.pv){
+    var i0=+lateKeys[0];
+    var sub=esc(list[i0].title)+' 晚 '+formatStay(late[i0].gap);
+    if(lateKeys.length>1) sub+='，還有 '+(lateKeys.length-1)+' 處';
+    fix='<button class="fix-bar" onclick="openReplan('+i0+')">'
+      +'<span class="fx-dot"></span>'
+      +'<span class="fx-tx"><b>這一天有 '+lateKeys.length+' 處銜接不上</b><span>'+sub+'</span></span>'
+      +'<span class="fx-go">重新排 ›</span></button>';
+  }
+
+  var items = list.map(function(sp, idx){ return itemHtml(list, sp, idx, late); }).join("");
+
+  document.getElementById("app").innerHTML =
+     '<header class="trip-head" style="background:'+THEME_OCEAN+'">'
+   +   '<div class="head-top"><span class="back-btn">‹ 我的旅程</span>'
+   +     '<span class="head-edit">✎ 編輯</span></div>'
+   +   '<div class="trip-title"><span class="emo">🚕</span><h1>本色季3rd</h1></div>'
+   +   '<div class="trip-sub">桃園・8/29（六）– 8/31（一）</div>'
+   + '</header>'
+   + '<div class="tab-body">'
+   +   '<div class="day-bar"><div class="day-chips">'+chips+'</div>'
+   +     '<button class="edit-toggle '+(ui.edit?"on":"")+'" onclick="toggleEdit()">'+(ui.edit?"完成":"調整")+'</button></div>'
+   +   fix
+   +   '<div class="timeline" id="timeline">'+items+'</div>'
+   + '</div>'
+   + (ui.pv ? pvBarHtml() : "");
+  renderDev();
+}
+
+function itemHtml(list, sp, idx, late){
+  var g = late[idx];
+  var nextLate = late[idx+1] ? " to-late" : "";
+  var previewing = ui.pv && ui.pv.newT[idx] && ui.pv.newT[idx]!==sp.time;
+
+  if(isTransit(sp)){
+    var parts=[]; if(sp.note) parts.push(esc(sp.note));
+    if(sp.stayMinutes) parts.push(formatStay(sp.stayMinutes));
+    var txt=parts.join("・")||"移動";
+    var tools = ui.edit ? '<span class="stop-tools">'
+      +'<button class="tool-btn danger" aria-label="刪除">✕</button>'
+      +'<button class="drag-handle" aria-label="拖曳排序">☰</button></span>' : "";
+    var dir = (ui.edit||ui.pv) ? "" : '<a class="map-btn" href="#" onclick="event.stopPropagation();return false"'
+      +' aria-label="看這一段路線">'+ICO.route+'</a>';
+    return '<div class="stop transit">'
+      +'<div class="rail"><span class="dot mini"></span><span class="ln dash'+nextLate+'"></span></div>'
+      +'<div class="transit-bar'+((ui.edit||ui.pv)?"":" tappable")+'"'+((ui.edit||ui.pv)?"":' onclick="openEdit('+idx+')"')+'>'
+      +'<span class="tr-ico">🚶</span><span class="tr-txt">'+txt+'</span>'+dir+tools+'</div></div>';
+  }
+
+  var c = CATS[sp.cat]||CATS.other;
+  var right="";
+  if(ui.edit){
+    right='<span class="stop-tools">'
+      +'<button class="tool-btn danger" aria-label="刪除">✕</button>'
+      +'<button class="drag-handle" aria-label="拖曳排序">☰</button></span>';
+  }else if(!ui.pv && sp.mapUrl){
+    right='<a class="map-btn" href="#" onclick="event.stopPropagation();return false" aria-label="在地圖上看這個地點">'+ICO.pin+'</a>';
+  }
+
+  /* --- 三個提示樣式候選 --- */
+  var gapNote="", gapInline="", edgeCls="", dotCls = g ? " is-late" : "";
+  if(g && !ui.edit && !ui.pv){          /* 調整模式下不顯示（會改變卡片高度、干擾拖曳的讓位計算） */
+    if(ui.hint==="A"){
+      gapNote='<button class="gap-note" onclick="event.stopPropagation();openReplan('+idx+')">'
+        +'<i></i><span>晚 <b>'+formatStay(g.gap)+'</b>・'+timeOf(g.arrive)+' 才到得了</span>'
+        +'<span class="gn-go">重新排 ›</span></button>';
+    }else if(ui.hint==="B"){
+      gapInline='<span class="gap-inline"><i></i>'+timeOf(g.arrive)+' 才到・晚 '+formatStay(g.gap)+'</span>';
+    }else{
+      edgeCls=" edge-late";
+      gapInline='<span class="late-dot" title="接不上"></span>';
+    }
+  }
+  /* demo 專用：把「正的空檔」也標出來，看看為什麼不該標 */
+  var bufNote="";
+  if(ui.showBuffer && !ui.edit && !ui.pv){
+    var a=analyze(list)[idx];
+    if(a && a.gap!==null && a.gap<=-GAP_MIN){
+      bufNote='<div class="gap-note" style="color:#8f8578;border-bottom-color:#efe9dd">'
+        +'<i style="background:#cfc7b8"></i><span>空 '+formatStay(-a.gap)+'・'+timeOf(a.arrive)+' 就到了</span></div>';
+    }
+  }
+
+  var pvHtml="";
+  if(previewing){
+    pvHtml='<span class="pv-time"><s>'+esc(sp.time)+'</s> → </span>';
+  }
+  var shown = previewing ? Object.assign({}, sp, {time:ui.pv.newT[idx]}) : sp;
+
+  var tap = (ui.edit||ui.pv) ? "" : ' onclick="openEdit('+idx+')"';
+  return '<div class="stop">'
+    +'<div class="rail"><span class="dot'+dotCls+'" style="background:'+c.color+'"></span><span class="ln'+nextLate+'"></span></div>'
+    +'<div class="stop-card'+((ui.edit||ui.pv)?"":" tappable")+edgeCls+(previewing?" previewing":"")+'"'+tap+'>'
+    +  gapNote + bufNote
+    +  '<div class="stop-top">'+pvHtml+timeHtml(shown)
+    +    (gapInline&&ui.hint==="B"?gapInline:"")
+    +    '<span class="cat-pill" style="color:'+c.color+'; background:'+c.color+'1a">'+c.emoji+' '+c.label+'</span>'
+    +    (gapInline&&ui.hint==="C"?gapInline:"")
+    +    right+'</div>'
+    +  '<div class="stop-name">'+esc(sp.title)+'</div>'
+    +  (sp.place?'<div class="stop-place">📍 '+esc(sp.place)+'</div>':"")
+    +  (sp.note?'<div class="stop-note">'+esc(sp.note)+'</div>':"")
+    +'</div></div>';
+}
+
+function setDay(d){ ui.day=d; ui.pv=null; render(); }
+function toggleEdit(){ ui.edit=!ui.edit; ui.pv=null; render(); }
+
+/* =========================================================================
+   重排：預覽 → 確認 → 套用
+   ========================================================================= */
+var rp = null;   /* {startIdx, scope:'break'|'day'} */
+
+function openReplan(idx){
+  var list=DATA[ui.day]||[];
+  var first=firstLateIdx(list);
+  rp={ startIdx:(idx>=0?idx:first), scope:"break" };
+  if(ui.preview==="inline"){ startInlinePreview(); return; }
+  drawReplanSheet();
+}
+function replanNow(){
+  var list=DATA[ui.day]||[];
+  var start = rp.scope==="day" ? 0 : rp.startIdx;
+  return replan(list, start);
+}
+function drawReplanSheet(){
+  var list=DATA[ui.day]||[];
+  var r=replanNow();
+  var bufs=bufferDiff(list, r.newT);
+  var late=lateSet(list), lateKeys=Object.keys(late);
+  var i0 = late[rp.startIdx] ? rp.startIdx : +lateKeys[0];
+
+  var why='<div class="rp-why">'
+    + 'Day '+ui.day+' 的 <b>'+esc(list[i0].title)+'</b> 排在 '+esc(list[i0].time)
+    + '，但照前面的停留＋移動走，<b>'+timeOf(late[i0].arrive)+'</b> 才到得了。<br>'
+    + '重新排＝從這一站起，只把來不及的往後挪，<b>你刻意留的空檔會留著</b>。</div>';
+
+  var scope='<div class="rp-scope">'
+    + '<button class="'+(rp.scope==="break"?"on":"")+'" onclick="setScope(\'break\')">從「'+esc(shortName(list[rp.startIdx].title))+'」起</button>'
+    + '<button class="'+(rp.scope==="day"?"on":"")+'" onclick="setScope(\'day\')">整天重排</button></div>';
+
+  var rows="";
+  if(r.changes.length){
+    rows='<div class="rp-sec">會變動的 '+r.changes.length+' 筆</div>';
+    rows+=r.changes.map(function(ch){
+      return '<div class="rp-row"><span class="rp-nm">'+esc(ch.title)+'</span>'
+        +'<span class="rp-tm"><s>'+esc(ch.from)+'</s><i>→</i><b>'+esc(ch.to)+'</b></span>'
+        +'<span class="rp-dl">+'+ch.delta+'</span></div>';
+    }).join("");
+  }else{
+    rows='<div class="rp-sec">沒有東西需要變動</div>';
+  }
+
+  var stopCount=list.filter(function(s){return !isTransit(s);}).length;
+  var same=stopCount-r.changes.length;
+  var sameLine = same>0 ? '<div class="rp-same">其他 '+same+' 筆時間不動。</div>' : "";
+
+  var bufHtml="";
+  if(bufs.length){
+    bufHtml='<div class="rp-sec">你留的空檔</div><div class="rp-buf"><span>🫧</span><div>'
+      + bufs.map(function(b){
+          return '<b>'+esc(b.title)+'</b> 前面的空檔　'+formatStay(b.from)+' → '
+            + (b.to>0 ? formatStay(b.to) : '沒了');
+        }).join('<br>')
+      + '<br><span style="color:#8f8578">延誤被這段空檔吸收掉了，後面不用整串往後推。</span>'
+      + '</div></div>';
+  }
+
+  openSheet('重新排 Day '+ui.day, why+scope+rows+sameLine+bufHtml
+    + '<div class="rp-acts">'
+    +   '<button class="btn-ghost" onclick="closeSheet()">先不要</button>'
+    +   '<button class="btn-primary" onclick="applyReplan()">'+(r.changes.length?'就這樣排':'知道了')+'</button>'
+    + '</div>');
+}
+function shortName(t){ t=String(t||""); return t.length>7 ? t.slice(0,7)+"…" : t; }
+function setScope(s){ rp.scope=s; drawReplanSheet(); }
+
+function applyReplan(){
+  var list=DATA[ui.day]||[];
+  var r=replanNow();
+  var n=r.changes.length;
+  for(var i=0;i<list.length;i++) if(r.newT[i]) list[i].time=r.newT[i];
+  closeSheet(); ui.pv=null; render();
+  toast(n ? ('已重排・'+n+' 筆時間換過了') : '本來就接得上，沒有動任何時間');
+}
+
+/* --- 候選 2：就地預覽 --- */
+function startInlinePreview(){
+  var r=replanNow();
+  ui.pv={ newT:r.newT, n:r.changes.length };
+  render();
+  window.scrollTo({top:Math.max(0, document.getElementById("timeline").offsetTop-70), behavior:"smooth"});
+}
+function pvBarHtml(){
+  var list=DATA[ui.day]||[];
+  var bufs=bufferDiff(list, ui.pv.newT);
+  var sub = bufs.length
+    ? bufs[0].title+' 前的空檔 '+formatStay(bufs[0].from)+' → '+(bufs[0].to>0?formatStay(bufs[0].to):'沒了')
+    : '你留的空檔沒有被動到';
+  return '<div class="pv-bar"><div class="pv-tx"><b>這樣排？'+ui.pv.n+' 筆會變</b>'+esc(sub)+'</div>'
+    + '<button class="pv-no" onclick="cancelPreview()">取消</button>'
+    + '<button class="pv-yes" onclick="applyReplan()">套用</button></div>';
+}
+function cancelPreview(){ ui.pv=null; render(); }
+
+/* =========================================================================
+   編輯（精簡版）—— 用來演「連鎖平移把缺口原封不動搬走」
+   ========================================================================= */
+function openEdit(idx){
+  var list=DATA[ui.day]||[], sp=list[idx];
+  if(isTransit(sp)){
+    openSheet('移動', '<label class="field"><span class="fl">移動多久（分）</span>'
+      + '<input id="f-move" type="number" inputmode="numeric" value="'+num(sp.stayMinutes)+'"></label>'
+      + '<button class="btn-primary" onclick="saveEdit('+idx+',true)">儲存</button>');
+  }else{
+    openSheet(sp.title, '<label class="field"><span class="fl">時間</span>'
+      + '<input id="f-time" type="text" inputmode="numeric" placeholder="HH:MM" value="'+esc(sp.time||"")+'"></label>'
+      + '<label class="field"><span class="fl">預計停留（分）</span>'
+      + '<input id="f-stay" type="number" inputmode="numeric" value="'+num(sp.stayMinutes)+'"></label>'
+      + '<button class="btn-primary" onclick="saveEdit('+idx+',false)">儲存</button>');
+  }
+}
+function saveEdit(idx, isMove){
+  var list=DATA[ui.day]||[], sp=list[idx], delta=0;
+  if(isMove){
+    var nv=num(document.getElementById("f-move").value);
+    delta=nv-num(sp.stayMinutes); sp.stayMinutes=nv;
+  }else{
+    var nt=String(document.getElementById("f-time").value||"").trim();
+    var ns=num(document.getElementById("f-stay").value);
+    delta=stopShiftDelta(sp.time, nt, sp.stayMinutes, ns);
+    sp.time=nt; sp.stayMinutes=ns;
+  }
+  var n=shiftAfter(list, idx, delta);
+  closeSheet(); render();
+  if(n) toast('後面 '+n+' 筆時間已跟著'+(delta>0?'往後':'往前')+'移 '+formatStay(Math.abs(delta)));
+  else toast('已儲存');
+}
+
+/* =========================================================================
+   新增一站之後的提示（第 3 題）
+   ========================================================================= */
+function simAdd(mode){
+  var list=DATA[ui.day]||[];
+  var at, stop, mv;
+  if(mode==="mid"){                 /* 插在中間：後面會被推 */
+    at=3;                           /* 秀水湯包(2) 之後 */
+    stop={id:"n"+Date.now(),title:"午餐（臨時加的）",time:"08:40",cat:"food",stayMinutes:60};
+    mv={id:"m"+Date.now(),type:"transit",note:"開車",stayMinutes:15};
+    list.splice(at,0,stop,mv);
+    var push=60+15;
+    var n=shiftAfter(list, at+1, push);
+    render();
+    afterAddToast(n, push);
+  }else{                            /* 加在最後：不影響任何人 */
+    list.push({id:"n"+Date.now(),title:"便利商店補貨",time:"02:30",cat:"shop",stayMinutes:20});
+    render();
+    afterAddToast(0,0);
+  }
+}
+function afterAddToast(n, push){
+  var list=DATA[ui.day]||[];
+  var late=lateSet(list), k=Object.keys(late).length;
+  if(k){
+    /* ★ 建議：只有「加完之後這天接不上」時才升級成可點的 toast */
+    toast('已加入'+(n?('・後面 '+n+' 筆往後 '+formatStay(push)):'')+'，但這天有 '+k+' 處接不上',
+          '重新排', function(){ openReplan(-1); });
+  }else if(n){
+    toast('已加入「午餐（臨時加的）」・後面 '+n+' 筆往後 '+formatStay(push));
+  }else{
+    toast('已加入');
+  }
+}
+
+/* =========================================================================
+   sheet / toast
+   ========================================================================= */
+function openSheet(title, body){
+  var l=document.getElementById("sheet-layer");
+  l.style.display="";
+  l.innerHTML='<div class="backdrop" onclick="closeSheet()"></div>'
+    +'<div class="sheet"><div class="sheet-head"><h3>'+esc(title)+'</h3>'
+    +'<button onclick="closeSheet()" aria-label="關閉">✕</button></div>'+body+'</div>';
+}
+function closeSheet(){ var l=document.getElementById("sheet-layer"); l.style.display="none"; l.innerHTML=""; }
+
+var toastTimer=null;
+function toast(msg, actLabel, fn){
+  var el=document.getElementById("toast");
+  el.innerHTML='<span>'+esc(msg)+'</span>';
+  if(actLabel){
+    var b=document.createElement("button");
+    b.className="t-act"; b.textContent=actLabel;
+    b.onclick=function(){ el.className="hidden"; fn(); };
+    el.appendChild(b);
+  }
+  el.className="";
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(function(){ el.className="hidden"; }, actLabel?8000:2600);
+}
+
+/* =========================================================================
+   demo 控制台
+   ========================================================================= */
+function devToggle(){ document.getElementById("dev").classList.toggle("open"); }
+function setHint(v){ ui.hint=v; ui.pv=null; render(); }
+function setPrev(v){ ui.preview=v; renderDev(); }
+function toggleBuffer(){ ui.showBuffer=!ui.showBuffer; render(); }
+function resetData(){ DATA=seed(); ui.pv=null; ui.edit=false; render(); toast("已還原成他真正的行程"); }
+
+function renderDev(){
+  var b=function(on,label,fn){ return '<button class="'+(on?"on":"")+'" onclick="'+fn+'">'+label+'</button>'; };
+  document.getElementById("devbd").innerHTML =
+     '<div class="dv-lb">① 來不及的提示長什麼樣</div><div class="dv-row">'
+   +   b(ui.hint==="A","A 銜接條（推薦）","setHint(\'A\')")
+   +   b(ui.hint==="B","B 接在時間後","setHint(\'B\')")
+   +   b(ui.hint==="C","C 左緣記號","setHint(\'C\')")
+   + '</div>'
+   + '<div class="dv-lb">② 重排預覽怎麼看</div><div class="dv-row">'
+   +   b(ui.preview==="list","差異清單（推薦）","setPrev(\'list\')")
+   +   b(ui.preview==="inline","就地預覽","setPrev(\'inline\')")
+   + '</div>'
+   + '<div class="dv-lb">③ 新增一站之後</div><div class="dv-row">'
+   +   b(false,"插在中間（會推後面）","simAdd(\'mid\')")
+   +   b(false,"加在最後","simAdd(\'end\')")
+   + '</div>'
+   + '<div class="dv-lb">對照看看</div><div class="dv-row">'
+   +   b(ui.showBuffer,"連「空檔」也標出來","toggleBuffer()")
+   +   b(false,"↺ 還原真實行程","resetData()")
+   + '</div>'
+   + '<div class="dv-note">點卡片可以改時間／停留（會走現有的連鎖平移）。'
+   + '試試看把「開車 40 分」改成 5 分 —— 缺口還是 35 分，這就是問題本身。</div>';
+}
+
+render();
+</script>
+</body>
+</html>

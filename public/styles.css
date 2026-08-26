@@ -3,6 +3,10 @@
   --bg:#f7f4ee; --card:#ffffff; --ink:#2b2620; --muted:#8f8578; --line:#e8e1d5;
   --acc:#ff6b5e; --acc-deep:#e2503f; --ok:#2fa87a; --bad:#d64545;
   --shadow:0 2px 14px rgba(70,55,30,.08);
+  /* v2.8 銜接不上的提示＝琥珀。沿用 App 既有的「有新版本」語言（.ver-btn.hot／.ver-alert），
+     刻意不新開一套色；也刻意不用 --bad（那是「錯誤／刪除」的語言，這裡是提醒不是報錯）。 */
+  --warn-ink:#a9761f; --warn-ink-deep:#8a5b12; --warn-line:#f0e0bd;
+  --warn-bg:#fdf6e7; --warn-dot:#e0a33a;
 }
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
 html,body{margin:0; padding:0;}
@@ -301,8 +305,14 @@ ul{padding:0; list-style:none;}
   background:rgba(43,38,32,.94); color:#fff; font-size:14px; font-weight:600;
   padding:11px 18px; border-radius:99px; box-shadow:0 6px 18px rgba(0,0,0,.25);
   max-width:88vw; text-align:center; transition:opacity .25s; pointer-events:none;}
-#toast.hidden{opacity:0;}
+#toast.hidden{opacity:0; pointer-events:none;}
 #toast.err{background:rgba(180,52,52,.96);}
+/* v2.8：需要當場做決定時才會有動作鈕（toast 本體仍然 pointer-events:none，只有鈕收得到點擊） */
+#toast.has-act{display:flex; align-items:center; gap:10px; padding:7px 7px 7px 18px; text-align:left;}
+#toast .t-act{flex:0 0 auto; min-height:44px; padding:0 14px; border-radius:99px; pointer-events:auto;
+  background:#fff; color:#2b2620; font-size:13.5px; font-weight:800;}
+/* 淡出之後不可以還點得到（看不見卻攔截點擊是最難查的那種 bug） */
+#toast.hidden .t-act{pointer-events:none;}
 
 /* 刪除旅程（編輯 sheet 內的危險動作） */
 .btn-danger{width:100%; min-height:52px; border-radius:15px; background:#fbeeee; color:var(--bad);
@@ -427,3 +437,70 @@ ul{padding:0; list-style:none;}
 .m-edit input:focus{outline:none;}
 .m-done{min-height:46px; padding:0 14px; border-radius:13px; background:var(--ink); color:#fff;
   font-size:14.5px; font-weight:800; flex:0 0 auto;}
+
+/* ---------- v2.8：銜接不上的提示 ＋ 重新排（規格＝demo/reschedule.html、DESIGN.md 附錄 C） ----------
+ * 層級宣告（v2.7 的教訓：新元素要先想清楚它是哪一層）：
+ *   1. 銜接條 .gap-note ＝「這張卡的狀態」→ 無底色、hairline、12px，只借卡片既有的分隔線語言，
+ *      不借藥丸的底色語言（借了就會被提到跟內容同一階，v2.7 就是這樣壞掉的）。
+ *   2. rail 琥珀段 ＝「兩站之間的狀態」→ 零高度成本、只換顏色。
+ *   3. 重排入口 .fix-bar ＝「工具」→ 才給底色、才給 >=52px 的觸控目標。 */
+.gap-note{display:flex; align-items:center; gap:7px; width:100%; text-align:left;
+  font-size:12px; font-weight:700; color:var(--warn-ink); line-height:1.35;
+  padding:1px 0 8px; margin:0 0 8px; border-bottom:1px solid var(--warn-line);
+  position:relative; font-variant-numeric:tabular-nums;}
+/* 看起來只有一行 26px 的字，命中區用偽元素外擴回 ≥44px（沿用 .transit-bar .map-btn::before 那一招）。
+ * ⚠️ demo 的數值（top:-9/bottom:-1）實測只有 35.2px、不到 44px——**往上**外擴到 -18px 才夠
+ * （往下不能擴：會蓋到 .stop-top 那排的地圖鈕與時間，把「看詳細」偷成「重新排」）。
+ * 上方那 6px 落在卡片之間的空隙裡（死區），不會搶到上一條灰條的路線鈕（它只外擴 3px）。
+ * 實測命中高 45.2px。 */
+.gap-note::before{content:""; position:absolute; left:-14px; right:-14px; top:-18px; bottom:-1px;}
+.gap-note:active{color:var(--warn-ink-deep);}
+.gap-note i{width:6px; height:6px; border-radius:50%; background:var(--warn-dot); flex:0 0 auto; font-style:normal;}
+.gap-note b{font-weight:800;}
+.gap-note .gn-go{margin-left:auto; color:#c2a878; font-weight:700; flex:0 0 auto;}
+/* 銜接條是 position:relative，而卡片右上的地圖鈕有 margin-top:-10px ——它往上探進銜接條那一行，
+ * 於是被銜接條疊住：實測命中高從 44.0 被壓成 41.5px（v2.4/v2.7 訂死 44）。
+ * 修法＝讓地圖鈕自己也 positioned、贏回堆疊順序（純堆疊，零版面變化）。實測回到 44.0px。 */
+.stop-card .map-btn{position:relative;}
+/* rail：接不上的那一段線轉琥珀 */
+.rail .ln.to-late{background:var(--warn-dot); opacity:.85;}
+.stop.transit .rail .ln.to-late{background:none;
+  background-image:linear-gradient(var(--warn-dot) 55%, transparent 0); background-size:2px 7px; opacity:.9;}
+.rail .dot.is-late{box-shadow:0 0 0 3px var(--bg), 0 0 0 4.5px var(--warn-dot);}
+/* Day 層級摘要＋重排入口：只有「這一天真的接不上」時才存在 */
+.fix-bar{width:100%; display:flex; align-items:center; gap:10px; text-align:left;
+  min-height:54px; padding:9px 12px 9px 14px; margin:0 0 14px;
+  background:var(--warn-bg); border:1px solid var(--warn-line); border-radius:14px;}
+.fix-bar:active{background:#faeed4;}
+.fix-bar .fx-dot{width:8px; height:8px; border-radius:50%; background:var(--warn-dot); flex:0 0 auto;}
+.fix-bar .fx-tx{flex:1; min-width:0;}
+.fix-bar .fx-tx b{display:block; font-size:14px; font-weight:800; color:var(--warn-ink-deep);}
+.fix-bar .fx-tx span{display:block; font-size:12px; color:#9a7434; margin-top:2px; overflow-wrap:anywhere;}
+.fix-bar .fx-go{flex:0 0 auto; font-size:13.5px; font-weight:800; color:var(--warn-ink-deep);
+  background:#fff; border:1px solid var(--warn-line); border-radius:99px; min-height:38px;
+  display:flex; align-items:center; padding:0 13px;}
+/* 重排預覽 sheet 內的差異清單 */
+.rp-why{font-size:13.5px; color:#6b6154; line-height:1.6; background:#faf6ee;
+  border-radius:12px; padding:11px 13px; margin-bottom:6px;}
+.rp-why b{color:var(--warn-ink-deep);}
+.rp-sec{font-size:12px; font-weight:800; color:var(--muted); margin:16px 0 6px; letter-spacing:.02em;}
+.rp-row{display:flex; align-items:center; gap:10px; padding:10px 2px; border-bottom:1px solid #f2ecdf;}
+.rp-row .rp-nm{flex:1; min-width:0; font-size:14.5px; font-weight:700; overflow-wrap:anywhere;}
+.rp-row .rp-tm{flex:0 0 auto; font-size:14px; font-variant-numeric:tabular-nums; white-space:nowrap;}
+.rp-row .rp-tm s{color:#b3a996; text-decoration-thickness:1px; font-weight:600;}
+.rp-row .rp-tm i{font-style:normal; color:#c9beac; margin:0 3px;}
+.rp-row .rp-tm b{color:var(--warn-ink-deep); font-weight:800;}
+.rp-row .rp-dl{flex:0 0 auto; font-size:11.5px; font-weight:800; color:var(--warn-ink);
+  background:#fbf2df; border-radius:99px; padding:3px 7px; font-variant-numeric:tabular-nums;}
+.rp-buf{display:flex; align-items:flex-start; gap:8px; font-size:13px; color:#6b6154;
+  background:#faf6ee; border-radius:12px; padding:10px 12px; line-height:1.55;}
+.rp-buf b{color:var(--ink);}
+.rp-buf .rp-dim{color:var(--muted);}
+.rp-same{font-size:13px; color:var(--muted); padding:9px 2px 2px;}
+.rp-scope{display:flex; gap:8px; margin:14px 0 4px;}
+.rp-scope button{flex:1; min-height:46px; border-radius:12px; border:1.5px solid var(--line);
+  background:#fbfaf6; font-size:14px; font-weight:700; color:var(--muted); padding:0 6px;}
+.rp-scope button.on{border-color:#e6c98a; background:var(--warn-bg); color:var(--warn-ink-deep);}
+.rp-acts{display:flex; gap:10px; margin-top:16px;}
+.rp-acts .btn-ghost{flex:0 0 36%;}
+.rp-acts .btn-primary{flex:1; margin-top:0;}

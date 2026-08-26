@@ -103,6 +103,15 @@ UI/UX 以 `demo/index.html`（UX demo v3.1，Benson 拍板）為準，**勿自�
   - **值的載體是隱藏的 `<input name="mapUrl">`**，所以 `submitStopEdit`／`submitStop` 讀法（`f.mapUrl.value`）一行都不用改；**新增與編輯共用同一個元件**，不要複製第二份 UI。
   - **`mapUrl` 一有變動（含 ✕ 清空）就把 `addr` 清掉**，而且清除的時機在**「按下貼上／✕ 的當下」**（畫面立刻反映），不是等到存檔——`addr` 是 `mapUrl` 的衍生值，留著舊地址＝移動那條的路線鈕會用錯的起訖點。落盤那一道（submit 裡的 `if(newMap !== sp.mapUrl) sp.addr=""`）刻意留著當保險。**改到一半關掉 sheet 就是不存檔、資料一個位元組都不動**（跟表單其他欄位一致）。
   - **前端永遠不自己寫 `addr`**（只有 server／CI 展得開短連結），UI 只負責顯示與清空。**`transit` 一個欄位都不准加**，它的表單仍然只有 `note`＋移動時間。
+- **銜接提示與重新排（v2.8，`analyzeDay`／`lateSet`／`replanDay`／`bufferDiff`，定案；規格＝`demo/reschedule.html`＋`DESIGN.md` 附錄 C）＝擴充連鎖平移，不是取代它**：
+  - 病根：連鎖平移「後面全部加減同樣的分鐘數」，**保留原本的相對關係、包括原本就錯的**。他真實 Day 1 的飯捲（10:40 停 240 分）＋開車 40 分 ⇒ **15:20** 才到得了，沐楓商旅卻填 14:45 ——**少 35 分**；他改三次開車時間、每次平移都正確，那 35 分卻被原封不動搬著走。缺口是更早「新增／拖曳」造成的，那兩條路徑當時**不會推動後面**。
+  - **新算的那一半＝「這一站幾點才到得了」**（`analyzeDay`）：cursor 從頭走，**每站以他填的時間重新對錶**（跟 `nextTimeGuess` 同規則，否則第一個缺口會污染整天）；跨午夜用 `liftTime()` 把鐘面時刻抬到 cursor 那一圈（宵夜 01:45 才不會被誤判成晚 22 小時）。
+  - **只標負的差**（`gap>=5` 分才收）。**正的差是他刻意留的緩衝，絕對不標**——demo 裡「連空檔也標」那個開關是對照組，**刻意沒做進正式版**（全標＝提示變常態、失去意義）。
+  - **重新排的規則只有一條：`新時間 = max(他填的時間, 走得到的時間)`，只往後推不往前拉**（`replanDay`）。所以**只有來不及的會被挪，撞到他刻意留的空檔就被吸收掉、後面不用再推**（真實 Day 1：沐楓 14:45→15:20、陽光劇場 15:45→16:20、**宵夜不動**、夜市前的空檔 1 小時→25 分）。**不可以簡化成「後面全部 +N」**（那就是連鎖平移，等於沒做）。**壓實模式刻意不做**（v1.6 那條「重算會把刻意留的空檔壓掉」沒有變）。
+  - **一定要先預覽（差異清單）、他按「就這樣排」才套用**：`先不要`＝`closeSheet()`，資料一個位元組都不動、`persistTrip` 一次都不呼叫。範圍兩種：**從某一站起** / **整天重排**（同一支 `replanDay`，只差 `startIdx`）。預覽必須講「哪段空檔從多少變成多少」（`bufferDiff`）。
+  - **UI 層級（v2.7 的教訓）**：`.gap-note` 銜接條＝「這張卡的狀態」→ 無底色 hairline，**不准借藥丸的底色語言**；rail `.ln.to-late`＝「兩站之間的狀態」→ 只換顏色；`.fix-bar`＝「工具」→ 才給底色與 ≥54px。**配色是琥珀（`--warn-*`），沿用「有新版本」那套語言，刻意不用 `--bad`——語氣是提醒不是報錯。** 調整模式**不顯示銜接條**（會改卡片高度、干擾拖曳讓位），`.fix-bar` 照常顯示（在 timeline 之外）。
+  - **`.gap-note::before` 是 `top:-18px` 不是 demo 的 -9px**：demo 註解宣稱 44px，實測只有 35.2px；往下不能擴（會蓋到地圖鈕與時間、把「看詳細」偷成「重新排」）⇒ 往上補，實測 44.2px。連帶**新增 `.stop-card .map-btn{position:relative}`**：銜接條是 positioned、地圖鈕 `margin-top:-10px` 會探進它那一行被疊住，實測命中高被壓成 41.5px；讓地圖鈕自己也 positioned 就贏回堆疊順序（零版面變化，回到 44.0px）。**這兩條別當多餘的修飾刪掉。**
+  - **新增之後也要推**：`submitStop`／`submitTransit` 加完呼叫**既有的** `shiftAfter`（推的量＝新的停留／移動時間）。⚠️ 目前新增**一律加在最後**，所以實務上推到的筆數幾乎都是 0——這條是**為未來的「插在中間」先接好**。**拖曳排序後刻意不自動動**（意圖不明確），但排序後變成來不及時銜接條會自己出現。加完若這天接不上，toast 升級成可點的（`toast(msg,isErr,{label,fn})`＝v2.8 給既有 toast 加的**選配第三參數**，不帶就跟舊版一模一樣）。
 - **`.gitattributes` 強制 md/js/css/html/json/yml 為 LF**；前後端 parser 開頭都先 `replace(/\r\n/g,'\n')`。壞的 JSON 行 parser 會跳過該行（不整檔炸掉）。（`.yml` 是 v2.5 補的：workflow 的 `run:` 區塊在 ubuntu bash 跑，CRLF 會變成 `$'\r': command not found`。）
 
 ## 圖示語言（v2.7，Benson 拍板；**這條界線別誤讀成「把 emoji 都換掉」**）
@@ -121,7 +130,7 @@ UI/UX 以 `demo/index.html`（UX demo v3.1，Benson 拍板）為準，**勿自�
 ## PWA 鐵律（recipe-book 血淚，全部已做，別退步）
 - 所有資源、manifest `start_url`/`scope`、SW scope **一律相對路徑**（Pages 在 `/travel-book/` 子路徑）。
 - SW：`skipWaiting()`＋activate 清舊快取＋`clients.claim()`；`/api/data` network-first、寫入 network-only、殼 cache-first。
-- ⚠️ **`keyring-unlock.js` 走 network-first，刻意不跟 app shell 一起 cache-first**（2026-08-21 加）：它的正本在 keyring repo、由 CI 自動同步過來，**更新時不會跳這裡的 cache 版本號**；若走 cache-first，手機會永遠停在第一次快取到的那一版，模組的修正永遠到不了使用者手上。它仍在 `SHELL` 預先快取，所以離線時一定拿得到快取、不會落到 `offlineJson()`。**別為了「統一策略」把它併回 app shell。****改前端記得把 sw.js 的 cache 版本號 +1**（`travel-shell-vN`，目前 v17；**版本號是「比已經上線的那個大」不是「比我開工時看到的大」**——v2.7 這輪就撞到：開工時檔案是 v15，做到一半另一條線先用掉 v16 並推上線了，只好跳 v17；**`SHELL_CACHE` 與 `DATA_CACHE` 兩個都要跳，別只跳一個**）**並同步 `APP_VER`**（見下方「版本與更新」）。
+- ⚠️ **`keyring-unlock.js` 走 network-first，刻意不跟 app shell 一起 cache-first**（2026-08-21 加）：它的正本在 keyring repo、由 CI 自動同步過來，**更新時不會跳這裡的 cache 版本號**；若走 cache-first，手機會永遠停在第一次快取到的那一版，模組的修正永遠到不了使用者手上。它仍在 `SHELL` 預先快取，所以離線時一定拿得到快取、不會落到 `offlineJson()`。**別為了「統一策略」把它併回 app shell。****改前端記得把 sw.js 的 cache 版本號 +1**（`travel-shell-vN`，目前 **v18**；**版本號是「比已經上線的那個大」不是「比我開工時看到的大」**——v2.7 這輪就撞到：開工時檔案是 v15，做到一半另一條線先用掉 v16 並推上線了，只好跳 v17；**`SHELL_CACHE` 與 `DATA_CACHE` 兩個都要跳，別只跳一個**）**並同步 `APP_VER`**（見下方「版本與更新」）。
 - input/textarea/select `font-size ≥ 16px`（iOS 防自動放大）；觸控目標 ≥ 44px；Enter 送出全部走原生 `<form>` + `type=submit`。
 - 換 icon 後 iOS 已安裝的 PWA 要移除主畫面重加才會換。
 
