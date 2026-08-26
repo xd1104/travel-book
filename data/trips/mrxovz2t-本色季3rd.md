@@ -7,7 +7,7 @@ start: "2026-08-29"
 days: 3
 budget: 0
 createdAt: "2026-07-23T15:51:59.575Z"
-updatedAt: "2026-08-26T08:48:46.250Z"
+updatedAt: "2026-08-26T08:48:56.488Z"
 ---
 
 ## 行程
@@ -26,6 +26,7 @@ updatedAt: "2026-08-26T08:48:46.250Z"
 - {"id":"xmt9ue9whv5um","type":"transit","note":"開車","stayMinutes":30}
 - {"id":"xmt9uqjdir1fh","title":"沐楓商旅","time":"21:40","cat":"sight"}
 - {"id":"xmrycdc8xd1ue","title":"中壢夜市","time":"21:40","cat":"food"}
+- {"id":"xmt9uqw0jc61i","type":"transit","note":"走路","stayMinutes":10}
 
 ### Day 2
 
