@@ -7,7 +7,7 @@ start: "2026-08-29"
 days: 3
 budget: 0
 createdAt: "2026-07-23T15:51:59.575Z"
-updatedAt: "2026-08-27T14:59:25.771Z"
+updatedAt: "2026-08-27T14:59:32.524Z"
 ---
 
 ## 行程
@@ -46,7 +46,7 @@ updatedAt: "2026-08-27T14:59:25.771Z"
 - {"id":"xmrxovz2tx8bm","text":"悠遊卡","done":false,"zone":"carry"}
 - {"id":"xmrxovz2t755j","text":"行動電源","done":false,"zone":"carry"}
 - {"id":"xmrxovz2ta8dg","text":"水壺","done":false,"zone":"carry"}
-- {"id":"xmrxovz2tzpno","text":"換洗衣物","done":false,"zone":"checked"}
+- {"id":"xmrxovz2tzpno","text":"換洗衣物","done":true,"zone":"checked"}
 - {"id":"xmrxovz2tqqtt","text":"盥洗包","done":false,"zone":"checked"}
 - {"id":"xmrxovz2t55ct","text":"摺疊傘","done":false,"zone":"checked"}
 - {"id":"xmt2m04qbmpxm","text":"防水包","done":false,"zone":"checked"}
