@@ -223,8 +223,66 @@ function cleanStop(s) {
 function cleanExpense(e) {
   return { id: String(e.id || ''), amount: Number(e.amount) || 0, cat: String(e.cat || 'other'), desc: String(e.desc || '') };
 }
+/* 打包項目（v2.9 起多了 kind／bag 兩個選填欄位＝「包」）
+ * key 順序固定 id,text,done,zone,kind,bag；空值不寫 ⇒ 舊資料（沒有 kind/bag）零遷移、序列化後逐字不變 */
 function cleanPackItem(p) {
-  return { id: String(p.id || ''), text: String(p.text || ''), done: !!p.done, zone: p.zone === 'checked' ? 'checked' : 'carry' };
+  p = p || {};
+  const o = { id: String(p.id || ''), text: String(p.text || ''), done: !!p.done, zone: p.zone === 'checked' ? 'checked' : 'carry' };
+  if (p.kind === 'bag') o.kind = 'bag';        // 這一筆是一個包
+  else if (p.bag) o.bag = String(p.bag);       // 在哪個包裡（父包 id）；包不能在包裡
+  return o;
+}
+/* 打包清單 normalize（public/app.js mirror，改要一起改；必須冪等）
+ * 1. bag 指向不存在的 id → 降級成頂層（壞掉的參照要有 fallback，不整份炸掉）
+ * 2. kind==="bag" 強制沒有 bag（只允許兩層）
+ * 3. 包內物品的 zone 不是真值來源 —— 一律同步成父包的 zone
+ * 4. 輸出時包的小孩緊跟在包後面（parser 不依賴這個順序，但檔案要人讀得懂） */
+function normalizePacking(list) {
+  const items = (Array.isArray(list) ? list : []).map(cleanPackItem);
+  const bagZone = {};
+  for (const p of items) if (p.kind === 'bag' && p.id) bagZone[p.id] = p.zone;
+  for (const p of items) {
+    if (p.kind === 'bag') { delete p.bag; continue; }
+    if (p.bag && !(p.bag in bagZone)) delete p.bag;
+    if (p.bag) p.zone = bagZone[p.bag];
+  }
+  const out = [], emitted = [];
+  items.forEach((p, i) => {
+    if (p.bag) return;                          // 小孩跟著它的包一起輸出
+    out.push(p); emitted[i] = true;
+    if (p.kind === 'bag' && p.id) {
+      items.forEach((k, j) => { if (!emitted[j] && k.bag === p.id) { out.push(k); emitted[j] = true; } });
+    }
+  });
+  return out;
+}
+/* 模板項目（v2.9 起同樣可以有包）：{text,zone,kind?,bag?}
+ * ⚠️ bag 存的是「包的名字」不是 id —— 模板檔本來就沒有 id、是人可以手打的小清單 */
+function cleanTplItem(it) {
+  it = it || {};
+  const o = { text: String(it.text || ''), zone: it.zone === 'checked' ? 'checked' : 'carry' };
+  if (it.kind === 'bag') o.kind = 'bag';
+  else if (it.bag) o.bag = String(it.bag);
+  return o;
+}
+function normalizeTplItems(list) {
+  const items = (Array.isArray(list) ? list : []).map(cleanTplItem);
+  const bagZone = {};
+  for (const i of items) if (i.kind === 'bag' && i.text) bagZone[i.text] = i.zone;
+  for (const i of items) {
+    if (i.kind === 'bag') { delete i.bag; continue; }
+    if (i.bag && !(i.bag in bagZone)) delete i.bag;
+    if (i.bag) i.zone = bagZone[i.bag];
+  }
+  const out = [], emitted = [];
+  items.forEach((i, ix) => {
+    if (i.bag) return;
+    out.push(i); emitted[ix] = true;
+    if (i.kind === 'bag' && i.text) {
+      items.forEach((k, j) => { if (!emitted[j] && k.bag === i.text) { out.push(k); emitted[j] = true; } });
+    }
+  });
+  return out;
 }
 
 function serializeTrip(t) {
@@ -260,7 +318,7 @@ function serializeTrip(t) {
   L.push('');
   L.push('## 打包');
   L.push('');
-  for (const p of t.packing || []) L.push('- ' + JSON.stringify(cleanPackItem(p)));
+  for (const p of normalizePacking(t.packing)) L.push('- ' + JSON.stringify(p));
   L.push('');
   L.push('## 備註');
   L.push('');
@@ -332,6 +390,7 @@ function parseTrip(id, text) {
       t.packing.push(cleanPackItem(obj));
     }
   }
+  t.packing = normalizePacking(t.packing);
   t.notes = notesBuf.join('\n').trim();
   if (!(t.days >= 1)) t.days = 1;
   return t;
@@ -345,9 +404,7 @@ function serializeTemplate(tp) {
   L.push('');
   L.push('## 項目');
   L.push('');
-  for (const it of tp.items || []) {
-    L.push('- ' + JSON.stringify({ text: String(it.text || ''), zone: it.zone === 'checked' ? 'checked' : 'carry' }));
-  }
+  for (const it of normalizeTplItems(tp.items)) L.push('- ' + JSON.stringify(it));
   L.push('');
   return L.join('\n');
 }
@@ -369,9 +426,10 @@ function parseTemplate(id, text) {
     if (!im) continue;
     try {
       const obj = JSON.parse(im[1]);
-      tp.items.push({ text: String(obj.text || ''), zone: obj.zone === 'checked' ? 'checked' : 'carry' });
+      tp.items.push(cleanTplItem(obj));
     } catch { /* 壞列跳過 */ }
   }
+  tp.items = normalizeTplItems(tp.items);
   return tp;
 }
 

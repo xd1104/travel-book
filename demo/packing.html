@@ -1,0 +1,1028 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>旅途手帳 — 打包清單改版（UX demo）</title>
+<style>
+/* ===== 真色票（照 public/styles.css :root，一個都沒改） ===== */
+:root{
+  --bg:#f7f4ee; --card:#ffffff; --ink:#2b2620; --muted:#8f8578; --line:#e8e1d5;
+  --acc:#ff6b5e; --acc-deep:#e2503f; --ok:#2fa87a; --bad:#d64545;
+  --shadow:0 2px 14px rgba(70,55,30,.08);
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0; padding:0;}
+body{background:#e9e4da;
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+  color:var(--ink);}
+#app{max-width:480px; margin:0 auto; min-height:100dvh; background:var(--bg); position:relative; padding-bottom:150px;}
+button{font-family:inherit; border:none; background:none; cursor:pointer; color:inherit; padding:0; font-size:inherit;}
+h1,h2,h3,p,ul{margin:0;}
+
+/* ===== 抄自 public/styles.css（沿用既有視覺語言，未改動） ===== */
+.trip-head{padding:14px 18px 20px; color:#fff; border-radius:0 0 26px 26px;}
+.head-top{display:flex; align-items:center; justify-content:space-between;}
+.back-btn{display:inline-flex; align-items:center; gap:2px; color:#fff; font-size:15px; font-weight:600;
+  min-height:44px; padding:0 10px 0 0; text-shadow:0 1px 6px rgba(0,0,0,.25);}
+.head-edit{color:#fff; min-height:44px; padding:0 16px; border-radius:99px; background:rgba(255,255,255,.24);
+  font-size:13.5px; font-weight:700; display:inline-flex; align-items:center; gap:4px;}
+.trip-title{display:flex; align-items:center; gap:10px; margin-top:2px;}
+.trip-title .emo{font-size:34px; filter:drop-shadow(0 2px 5px rgba(0,0,0,.25));}
+.trip-title h1{font-size:24px; font-weight:800; text-shadow:0 1px 8px rgba(0,0,0,.3);}
+.trip-sub{font-size:13px; opacity:.95; margin-top:6px; text-shadow:0 1px 6px rgba(0,0,0,.3);}
+.tab-body{padding:16px 16px 40px; position:relative;}
+.seg{display:flex; background:#ece5d6; border-radius:14px; padding:3px; margin-bottom:14px;}
+.seg button{flex:1; min-height:44px; border-radius:11px; font-size:14.5px; font-weight:700; color:var(--muted);}
+.seg button.on{background:#fff; color:var(--ink); box-shadow:0 1px 4px rgba(0,0,0,.08);}
+.pack-head{display:flex; align-items:center; justify-content:space-between; margin:2px 4px 10px;}
+.pack-head .t{font-size:15px; font-weight:800;}
+/* demo：tabbar 墊高 46px 讓開下面的 demo 控制台（正式版是貼底 bottom:0） */
+.tabbar{position:fixed; bottom:46px; left:0; right:0; margin:0 auto; max-width:480px; z-index:20;
+  background:rgba(255,255,255,.93); -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
+  border-top:1px solid var(--line); display:flex; padding-bottom:env(safe-area-inset-bottom);}
+.tabbar button{flex:1; min-height:58px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+  font-size:10.5px; font-weight:700; color:#b0a493;}
+.tabbar button .ico{font-size:21px; line-height:1;}
+.tabbar button.on{color:var(--acc-deep);}
+.x-btn{min-width:44px; min-height:44px; display:flex; align-items:center; justify-content:center; color:#c9beac; font-size:17px; flex:0 0 auto;}
+.btn-primary{width:100%; min-height:52px; border-radius:15px; background:var(--acc); color:#fff; font-size:16px; font-weight:800;}
+.btn-ghost{width:100%; min-height:50px; border-radius:15px; background:#fbfaf6; border:1.5px solid var(--line); color:#6b6154; font-size:15px; font-weight:700;}
+.empty{text-align:center; padding:44px 20px 30px; color:var(--muted);}
+.empty .big{font-size:44px; margin-bottom:10px;}
+.empty p{font-size:14.5px; line-height:1.7; margin-bottom:16px;}
+.hint{font-size:12.5px; color:var(--muted); line-height:1.6;}
+/* sheet */
+#sheet-layer{position:fixed; inset:0; z-index:50;}
+.backdrop{position:absolute; inset:0; background:rgba(35,28,18,.4); animation:fadeIn .2s;}
+.sheet{position:absolute; bottom:0; left:0; right:0; margin:0 auto; max-width:480px;
+  background:#fff; border-radius:22px 22px 0 0; padding:16px 18px calc(20px + env(safe-area-inset-bottom));
+  max-height:88dvh; overflow-y:auto; animation:slideUp .26s cubic-bezier(.2,.8,.3,1);}
+@keyframes slideUp{from{transform:translateY(60%); opacity:.4;} to{transform:none; opacity:1;}}
+@keyframes fadeIn{from{opacity:0;} to{opacity:1;}}
+.sheet-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; gap:8px;}
+.sheet-head h3{font-size:19px; font-weight:800; overflow-wrap:anywhere;}
+.sheet-head button{min-width:44px; min-height:44px; font-size:18px; color:var(--muted); display:flex; align-items:center; justify-content:center; flex:0 0 auto;}
+.field{display:block; margin-bottom:13px;}
+.field .fl{display:block; font-size:13px; font-weight:700; color:var(--muted); margin-bottom:6px;}
+.field input{width:100%; font-size:16px; font-family:inherit; color:var(--ink);
+  padding:12px 13px; border:1.5px solid var(--line); border-radius:13px; background:#fbfaf6; appearance:none; -webkit-appearance:none;}
+.field input:focus{outline:none; border-color:var(--acc); background:#fff;}
+.d-acts{display:flex; flex-direction:column; gap:9px; margin-top:16px;}
+.d-empty{color:#b8ad9c; font-size:14px; padding:16px 4px; text-align:center;}
+#toast{position:fixed; left:50%; bottom:96px; transform:translateX(-50%); z-index:80;
+  background:rgba(43,38,32,.95); color:#fff; font-size:14px; font-weight:600; padding:12px 18px; border-radius:14px;
+  max-width:86vw; box-shadow:0 8px 24px rgba(0,0,0,.25); transition:opacity .2s;}
+#toast.hidden{opacity:0; pointer-events:none;}
+
+/* =========================================================================
+   ↓↓↓ 這次新增的（打包分頁改版）。所有顏色都取自既有色票，沒有新開一組。
+   ========================================================================= */
+
+/* 頂部工具列：取代舊的「輸入框一列 + 模板兩顆一列」，兩列併成一列 */
+.pk-top{display:flex; gap:8px; margin-bottom:16px;}
+.pk-top .pk-new{flex:1; min-height:50px; border-radius:15px; background:var(--acc); color:#fff;
+  font-size:15.5px; font-weight:800; display:flex; align-items:center; justify-content:center; gap:6px;
+  box-shadow:0 3px 10px rgba(226,80,63,.24);}
+.pk-top .pk-new:active{background:var(--acc-deep);}
+.pk-top .pk-tpl{flex:0 0 auto; min-height:50px; padding:0 15px; border-radius:15px; background:var(--card);
+  box-shadow:var(--shadow); font-size:13.5px; font-weight:700; color:#6b6154;}
+
+/* 區標題右邊的「已打包 3 / 8」＝可點的篩選（零新增元素換到篩選能力） */
+.pk-cnt{min-height:44px; display:flex; align-items:center; gap:5px; padding:0 4px; margin-right:-4px;
+  font-size:13px; color:var(--muted); font-variant-numeric:tabular-nums; font-weight:600;}
+.pk-cnt.on{color:var(--acc-deep); font-weight:800;}
+.pk-cnt .fdot{width:6px; height:6px; border-radius:50%; background:var(--acc); display:none;}
+.pk-cnt.on .fdot{display:block;}
+
+.pk-list{position:relative;}
+/* 落點錨：零高度、但要有寬度（display:block）才量得到位置；不佔任何版面 */
+.pk-slot{display:block; height:0; font-size:0; line-height:0;}
+
+/* 一般物品＝一張白卡（跟舊的 .pack-item 同一組尺寸／圓角／陰影） */
+.pk-card{background:var(--card); border-radius:16px; box-shadow:var(--shadow); margin-bottom:10px;}
+.pk-row{display:flex; align-items:center; min-width:0;}
+.pk-ck{width:44px; min-height:56px; flex:0 0 auto; display:flex; align-items:center; justify-content:center; margin-left:3px;}
+.pk-box{width:27px; height:27px; border-radius:50%; border:2px solid #d6cbb8; flex:0 0 auto;
+  display:flex; align-items:center; justify-content:center; color:#fff; font-size:14px; transition:all .15s;}
+.pk-row.done .pk-box{background:var(--acc); border-color:var(--acc);}
+.pk-txt{flex:1; min-width:0; text-align:left; padding:8px 4px 8px 6px; min-height:56px; display:flex;
+  flex-direction:column; justify-content:center; gap:2px;}
+.pk-txt .t{font-size:16px; overflow-wrap:anywhere; line-height:1.35;}
+.pk-row.done .pk-txt .t{color:#b8ad9c; text-decoration:line-through;}
+.pk-grip{width:44px; min-height:56px; flex:0 0 auto; display:flex; align-items:center; justify-content:center;
+  color:#cbc0ad; font-size:19px; touch-action:none; margin-right:2px;}
+.pk-grip:active{color:#8f8578;}
+
+/* 包＝同一張白卡長高，層級靠「同一張卡 + 左側 rail」不靠縮排（省水平空間） */
+.pk-bag{overflow:hidden;}
+.pk-bag .pk-head-row{min-height:60px;}
+.pk-bag .pk-emo{font-size:17px; margin-right:1px;}
+/* ⚠️ 一定要綁 .pk-head-row：寫成 .pk-bag .t 會連包「裡面」每一列的 .t 一起選到
+   （實測：內層整片變粗體；勾了包之後連裡面也被畫上刪除線＝跟「各勾各的」矛盾） */
+.pk-bag .pk-head-row .t{font-weight:700;}
+.pk-sub{font-size:12.5px; color:var(--muted); display:flex; align-items:center; gap:6px; font-variant-numeric:tabular-nums;}
+.pk-sub .bar{width:34px; height:4px; border-radius:99px; background:#ece5d6; overflow:hidden; flex:0 0 auto;}
+.pk-sub .bar i{display:block; height:100%; background:var(--acc); border-radius:99px;}
+.pk-sub .all{color:var(--ok); font-weight:700;}
+.pk-chev{font-size:14px; color:#b0a493; margin-left:7px; transition:transform .2s; display:inline-block; font-weight:700;}
+.pk-bag.open .pk-chev{transform:rotate(180deg);}
+/* 同上：只畫包自己那一列，裡面的東西不跟著劃線（各勾各的） */
+.pk-bag.done .pk-head-row .t{color:#b8ad9c; text-decoration:line-through;}
+
+/* 包的內容：不是新的一張卡，是同一張卡的下半部 */
+.pk-inner{border-top:1px solid #f2ecdf; padding:2px 6px 8px 14px; position:relative;}
+.pk-inner::before{content:""; position:absolute; left:18px; top:4px; bottom:10px; width:2px; border-radius:2px; background:#efe8db;}
+.pk-sub-row{display:flex; align-items:center; min-width:0; padding-left:16px; border-bottom:1px solid #f7f2e7;}
+.pk-sub-row:last-of-type{border-bottom:none;}
+.pk-sub-row .pk-ck{width:44px; min-height:50px; margin-left:0;}
+.pk-sub-row .pk-box{width:23px; height:23px; font-size:12px;}
+.pk-sub-row .pk-txt{min-height:50px; font-size:15.5px;}
+.pk-sub-row .pk-txt .t{font-size:15.5px;}
+.pk-sub-row .pk-grip{min-height:50px; width:44px; font-size:17px; margin-right:0;}
+.pk-inner-empty{font-size:13px; color:#b8ad9c; padding:10px 4px 4px 16px;}
+
+/* 就地快速加：每個容器自己的底部都有一條（「加到哪」由位置決定，不用選） */
+.pk-add{display:flex; align-items:center; gap:8px; width:100%; min-height:46px; padding:0 12px;
+  border:1.5px dashed #ded5c4; border-radius:14px; color:#a89d8d; font-size:14.5px; font-weight:600;
+  background:none; margin:2px 0 14px; text-align:left;}
+.pk-add:active{border-color:var(--acc); color:var(--acc-deep);}
+.pk-inner .pk-add{margin:6px 0 2px; min-height:44px; font-size:14px;}
+.pk-form{display:flex; gap:8px; margin:2px 0 14px;}
+.pk-inner .pk-form{margin:6px 0 2px;}
+.pk-form input{flex:1; min-width:0; font-size:16px; padding:11px 13px; border:1.5px solid var(--acc);
+  border-radius:14px; background:var(--card); font-family:inherit; color:var(--ink);}
+.pk-form input:focus{outline:none;}
+.pk-form button{flex:0 0 auto; min-height:46px; min-width:56px; padding:0 14px; border-radius:14px;
+  background:var(--ink); color:#fff; font-size:15px; font-weight:700;}
+
+/* 拖曳中 */
+/* 被拿起來的那一列：用 visibility 不用 display —— 位置留著，清單就不會在「按下去的那一瞬間」
+   整個往上跳一列（實測：用 display:none 時下面的東西會位移 66px，手指底下的落點跟著換人）。
+   拖一整個包時才把內容收起來（否則會留一個很大的洞）。 */
+.pk-card.is-dragging, .pk-sub-row.is-dragging{visibility:hidden;}
+.pk-bag.is-dragging .pk-inner{display:none;}
+/* 浮起來的那一張：刻意「浮在手指上方」而不是壓在手指底下 ——
+   壓在底下的話，它會剛好蓋住你正要放進去的那個包（實測截圖抓到：高亮完全看不見）。 */
+#pk-ghost{position:fixed; z-index:70; pointer-events:none; left:0; top:0;
+  box-shadow:0 10px 26px rgba(70,55,30,.28); border-radius:14px; background:var(--card); overflow:hidden;
+  border:1.5px solid var(--acc);}
+#pk-ghost .pk-row{min-height:46px;}
+#pk-ghost .pk-ck,#pk-ghost .pk-grip{min-height:46px;}
+#pk-ghost .pk-grip{color:var(--acc);}
+#pk-ghost .pk-txt{min-height:46px; padding-right:2px;}
+#pk-ghost .pk-txt .t{white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block;}
+#pk-ghost .pk-sub{display:none;}
+/* 手指與浮卡之間的一條細線，看得出「這張卡是我手上這一根手指拿著的」 */
+#pk-ghost::after{content:""; position:absolute; right:20px; bottom:-1px; width:2px; height:0;}
+/* 落點①：插到兩列之間 —— 實線 + 目的地標籤 */
+.pk-line{position:absolute; height:0; left:0; right:0; z-index:6; pointer-events:none;}
+.pk-line i{position:absolute; left:0; right:0; top:-2px; height:3px; border-radius:3px; background:var(--acc);}
+.pk-line b{position:absolute; right:0; top:-13px; background:var(--acc); color:#fff; font-size:11px; font-weight:800;
+  padding:4px 9px; border-radius:99px; white-space:nowrap; box-shadow:0 2px 8px rgba(226,80,63,.35);}
+.pk-line .dot{position:absolute; left:-3px; top:-5px; width:9px; height:9px; border-radius:50%; background:var(--acc);}
+/* 落點②：放進這個包 —— 整張包卡進入 target 狀態（跟「插入線」長得完全不一樣） */
+.pk-bag.drop-into{box-shadow:0 0 0 2.5px var(--acc), 0 6px 18px rgba(226,80,63,.2);}
+.pk-bag.drop-into .pk-head-row{background:#fff1ef;}
+.pk-bag.drop-into .pk-inner{background:#fffaf9;}
+/* 拖曳中固定在頂部的「會掉到哪」—— 手指擋不到、不會抖 */
+#pk-dragbar{position:fixed; top:0; left:0; right:0; margin:0 auto; max-width:480px; z-index:72;
+  background:var(--acc); color:#fff; min-height:40px; display:flex; align-items:center; justify-content:center; gap:7px;
+  font-size:13.5px; font-weight:800; padding:0 14px; box-shadow:0 4px 14px rgba(226,80,63,.3);
+  padding-top:env(safe-area-inset-top);}
+#pk-dragbar .w{opacity:.8; font-weight:600;}
+
+/* 長按選單／編輯 sheet 裡的「放在哪」 */
+.loc-list{display:flex; flex-direction:column; gap:7px; margin-top:2px;}
+.loc{display:flex; align-items:center; gap:9px; min-height:48px; padding:0 12px; border-radius:13px;
+  border:1.5px solid var(--line); background:#fbfaf6; font-size:15px; text-align:left; width:100%;}
+.loc.sub{padding-left:26px; font-size:14.5px;}
+.loc.sub .arw{color:#c9beac; margin-left:-14px;}
+.loc.on{border-color:var(--acc); background:#fff1ef; color:var(--acc-deep); font-weight:800;}
+.loc .ck{margin-left:auto; color:var(--acc); font-weight:800;}
+.act-row{display:flex; align-items:center; gap:11px; width:100%; min-height:54px; padding:0 6px;
+  font-size:16px; font-weight:600; border-bottom:1px solid #f5f0e6; text-align:left;}
+.act-row .ai{width:26px; text-align:center; font-size:17px; flex:0 0 auto;}
+.act-row.danger{color:var(--bad);}
+.act-row:last-child{border-bottom:none;}
+.bag-toggle{display:flex; align-items:center; gap:10px; min-height:54px; padding:0 12px; border-radius:14px;
+  border:1.5px solid var(--line); background:#fbfaf6; width:100%; text-align:left; margin-bottom:13px;}
+.bag-toggle .bt-t{flex:1; min-width:0;}
+.bag-toggle .bt-t b{font-size:15px; display:block; font-weight:700;}
+.bag-toggle .bt-t span{font-size:12px; color:var(--muted);}
+.bag-toggle .sw{width:46px; height:28px; border-radius:99px; background:#ded5c4; position:relative; flex:0 0 auto; transition:background .18s;}
+.bag-toggle .sw i{position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:50%; background:#fff;
+  box-shadow:0 1px 3px rgba(0,0,0,.2); transition:transform .18s;}
+.bag-toggle.on{border-color:var(--acc); background:#fff1ef;}
+.bag-toggle.on .sw{background:var(--acc);}
+.bag-toggle.on .sw i{transform:translateX(18px);}
+.tpl-card{display:flex; align-items:center; gap:10px; padding:12px 4px; border-bottom:1px solid #f2ecdf;}
+.tpl-info{flex:1; min-width:0;}
+.tpl-info b{font-size:16px; display:block; overflow-wrap:anywhere;}
+.tpl-info span{font-size:12.5px; color:var(--muted); margin-top:3px; display:block;}
+.tpl-apply{min-height:44px; padding:0 16px; border-radius:12px; background:var(--acc); color:#fff; font-size:14px; font-weight:700; flex:0 0 auto;}
+.sk{background:linear-gradient(90deg,#efe9dd 25%,#f7f3ea 50%,#efe9dd 75%); background-size:200% 100%;
+  animation:sk 1.1s infinite; border-radius:16px; height:66px; margin-bottom:10px;}
+@keyframes sk{from{background-position:200% 0;} to{background-position:-200% 0;}}
+
+/* ===== demo 控制台（刻意用完全不同的視覺語言，一眼看得出不是 App 的一部分） ===== */
+#dev{position:fixed; left:0; right:0; bottom:0; z-index:90; margin:0 auto; max-width:480px;
+  background:#26211b; color:#e7ded0; font-size:13px;
+  box-shadow:0 -8px 24px rgba(0,0,0,.28); padding-bottom:env(safe-area-inset-bottom);}
+#dev .dv-hd{min-height:46px; width:100%; display:flex; align-items:center; gap:8px; padding:0 16px;
+  font-size:13px; font-weight:800; color:#c9bda9; letter-spacing:.04em;}
+#dev .dv-hd .dv-ch{margin-left:auto; transition:transform .2s;}
+#dev.open .dv-hd .dv-ch{transform:rotate(180deg);}
+#dev .dv-bd{display:none; padding:2px 16px 16px; border-top:1px solid #3a332a; max-height:52dvh; overflow-y:auto;}
+#dev.open .dv-bd{display:block;}
+#dev .dv-lb{font-size:11.5px; color:#8d8272; font-weight:800; margin:13px 0 6px; letter-spacing:.06em;}
+#dev .dv-row{display:flex; gap:7px; flex-wrap:wrap;}
+#dev .dv-row button{min-height:40px; padding:0 12px; border-radius:10px; background:#372f26; color:#cdc0ab;
+  font-size:13px; font-weight:700; border:1px solid #453c31;}
+#dev .dv-row button.on{background:#e7ded0; color:#26211b; border-color:#e7ded0;}
+#dev .dv-note{font-size:11.5px; color:#8d8272; line-height:1.6; margin-top:10px;}
+#dev.drag-hide{display:none;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast" class="hidden"></div>
+<div id="sheet-layer" style="display:none"></div>
+<div id="dev">
+  <button class="dv-hd" onclick="devToggle()">⚙ DEMO 設定<span class="dv-ch">⌄</span></button>
+  <div class="dv-bd" id="devbd"></div>
+</div>
+
+<script>
+/* =========================================================================
+   旅途手帳 — 打包清單改版 UX demo
+   資料底：Benson 真實旅程「本色季3rd」的打包清單（10 筆原樣保留），
+   再補到 24 筆＋三個真的裝了東西的包（盥洗包 6 樣／3C 小包 5 樣／防水包 4 樣），
+   刻意含長名稱 —— 樣板資料會讓版面問題消失，這裡不放三筆假資料。
+   ========================================================================= */
+var THEME = "linear-gradient(135deg,#5eead4,#3b82f6)";
+var ZONES = [
+  {key:"carry",   emoji:"🎒", label:"隨身",     sub:"上飛機帶著"},
+  {key:"checked", emoji:"🧳", label:"行李托運", sub:"丟進行李箱"}
+];
+var uidN = 0;
+function uid(){ return "x" + (++uidN) + Math.random().toString(36).slice(2,6); }
+
+/* 資料結構＝建議的正式格式（平的清單 + kind/bag 兩個新欄位；見 DESIGN.md 附錄 D）
+   {id, text, done, zone, kind?:"bag", bag?:"<父包 id>"} */
+function seed(){
+  var L = [], bagId;
+  function it(text, zone, done, bag){ L.push({id:uid(), text:text, done:!!done, zone:zone, bag:bag||""}); }
+  function bag(text, zone, done){ var id=uid(); L.push({id:id, text:text, done:!!done, zone:zone, kind:"bag", bag:""}); return id; }
+
+  /* --- 🎒 隨身 --- */
+  it("身分證／健保卡", "carry", true);
+  it("悠遊卡", "carry", true);
+  it("行動電源", "carry", false);
+  bagId = bag("3C 小包", "carry", false);
+  it("Type-C 充電線 ×2", "carry", true, bagId);
+  it("快充頭 20W", "carry", true, bagId);
+  it("有線耳機", "carry", false, bagId);
+  it("相機備用電池", "carry", false, bagId);
+  it("SD 記憶卡（128G）", "carry", true, bagId);
+  it("水壺", "carry", false);
+  it("門票（電子票存好了）", "carry", true);
+  it("小冰箱", "carry", false);
+
+  /* --- 🧳 行李托運 --- */
+  it("換洗衣物", "checked", true);
+  bagId = bag("盥洗包", "checked", false);
+  it("牙刷牙膏", "checked", true, bagId);
+  it("洗面乳（旅行罐）", "checked", true, bagId);
+  it("洗髮精＋沐浴乳分裝瓶", "checked", true, bagId);
+  it("刮鬍刀＋備用刀片", "checked", false, bagId);
+  it("隱形眼鏡藥水（100ml 以下）", "checked", true, bagId);
+  it("面膜 ×2", "checked", false, bagId);
+  it("摺疊傘", "checked", false);
+  bagId = bag("防水包", "checked", false);
+  it("泳褲", "checked", false, bagId);
+  it("快乾毛巾", "checked", true, bagId);
+  it("夾腳拖", "checked", false, bagId);
+  it("防水手機袋", "checked", false, bagId);
+  it("常備藥（腸胃藥／普拿疼）", "checked", true);
+  it("行李秤", "checked", false);
+  return L;
+}
+var DATA = seed();
+
+/* 模板（示範「模板也要能有包」：出國基本款自帶一個排好的盥洗包） */
+var TEMPLATES = [
+  {id:"intl-basic", name:"出國基本款", items:[
+    {text:"護照＋影本", zone:"carry"},
+    {text:"外幣現金＋信用卡", zone:"carry"},
+    {text:"eSIM／網卡設定好", zone:"carry"},
+    {text:"行動電源＋充電線", zone:"carry"},
+    {text:"換洗衣物", zone:"checked"},
+    {text:"盥洗包", zone:"checked", kind:"bag"},
+    {text:"牙刷牙膏", zone:"checked", bag:"盥洗包"},
+    {text:"洗面乳（旅行罐）", zone:"checked", bag:"盥洗包"},
+    {text:"洗髮精＋沐浴乳分裝瓶", zone:"checked", bag:"盥洗包"},
+    {text:"刮鬍刀＋備用刀片", zone:"checked", bag:"盥洗包"},
+    {text:"常備藥", zone:"checked", bag:"盥洗包"},
+    {text:"萬用轉接頭", zone:"checked"},
+    {text:"裝髒衣的袋子", zone:"checked"}
+  ]},
+  {id:"beach", name:"海邊／溫泉", items:[
+    {text:"防曬乳", zone:"carry"},
+    {text:"墨鏡", zone:"carry"},
+    {text:"防水包", zone:"checked", kind:"bag"},
+    {text:"泳衣", zone:"checked", bag:"防水包"},
+    {text:"快乾毛巾", zone:"checked", bag:"防水包"},
+    {text:"夾腳拖", zone:"checked", bag:"防水包"}
+  ]}
+];
+
+/* ui 狀態 */
+var ui = {
+  opt:{ tap:"A", seg:"off", grip:"always" },   /* 三組待拍板的方向 */
+  edit:false,                                   /* grip:"edit" 時才有意義 */
+  segZone:"carry",
+  open:{},                                      /* bagId -> true 展開 */
+  filter:{carry:false, checked:false},          /* 只看未打包 */
+  adding:null,                                  /* {zone, bag} 就地新增中 */
+  pending:"",
+  state:"ready"                                 /* ready | loading | empty */
+};
+
+/* ---------- 小工具 ---------- */
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g, function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+function byId(id){ for(var i=0;i<DATA.length;i++) if(DATA[i].id===id) return DATA[i]; return null; }
+function isBag(p){ return p && p.kind==="bag"; }
+function zoneOf(k){ for(var i=0;i<ZONES.length;i++) if(ZONES[i].key===k) return ZONES[i]; return ZONES[0]; }
+/* 某一區的「頂層項目」＝直接放在區裡的（含包本身）；包內物品不算在這裡 */
+function topOf(z){ return DATA.filter(function(p){ return p.zone===z && !p.bag; }); }
+function childrenOf(id){ return DATA.filter(function(p){ return p.bag===id; }); }
+function bagList(){ return DATA.filter(isBag); }
+
+var toastTimer;
+function toast(msg){
+  var el=document.getElementById("toast");
+  el.textContent=msg; el.className="";
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(function(){ el.className="hidden"; }, 2400);
+}
+
+/* =========================================================================
+   資料操作
+   ========================================================================= */
+/* 把 item（若是包，連同小孩）搬到 (zone, bagId) 的 refId 之前；refId 空＝放最後 */
+function moveTo(item, zone, bagId, refId){
+  var kids = isBag(item) ? childrenOf(item.id) : [];
+  var moving = [item].concat(kids);
+  DATA = DATA.filter(function(p){ return moving.indexOf(p)<0; });
+
+  var parentBag = bagId ? byId(bagId) : null;
+  var newZone = parentBag ? parentBag.zone : zone;
+  item.zone = newZone; item.bag = parentBag ? parentBag.id : "";
+  kids.forEach(function(k){ k.zone = newZone; });
+
+  var idx;
+  var ref = refId ? byId(refId) : null;
+  if(ref && ref!==item){
+    idx = DATA.indexOf(ref);
+  }else{
+    var list = bagId ? childrenOf(bagId) : topOf(newZone);
+    if(!list.length){
+      idx = parentBag ? DATA.indexOf(parentBag)+1 : DATA.length;
+    }else{
+      var last = list[list.length-1];
+      idx = isBag(last) ? tailIdx(last) : DATA.indexOf(last)+1;
+    }
+  }
+  if(idx<0) idx = DATA.length;
+  DATA.splice.apply(DATA, [idx,0].concat(moving));
+}
+/* 一個包在 DATA 裡的尾端 index（含它的小孩） */
+function tailIdx(bagItem){
+  var i = DATA.indexOf(bagItem), last = i;
+  childrenOf(bagItem.id).forEach(function(k){ last = Math.max(last, DATA.indexOf(k)); });
+  return last+1;
+}
+function addItem(text, zone, bagId, asBag){
+  var b = bagId ? byId(bagId) : null;
+  var o = {id:uid(), text:text, done:false, zone:(b?b.zone:zone), bag:(b?b.id:"")};
+  if(asBag){ o.kind="bag"; o.bag=""; }
+  DATA.push(o);
+  moveTo(o, o.zone, o.bag, "");
+  return o;
+}
+function removeItem(item){
+  var kids = isBag(item) ? childrenOf(item.id) : [];
+  /* 刪掉一個包＝裡面的東西「倒出來」留在同一區，不會跟著消失 */
+  kids.forEach(function(k){ k.bag=""; });
+  DATA = DATA.filter(function(p){ return p!==item; });
+  if(kids.length) toast("已刪掉「"+item.text+"」，裡面 "+kids.length+" 樣東西留在 "+zoneOf(item.zone).label);
+  else toast("已刪掉「"+item.text+"」");
+}
+
+/* =========================================================================
+   畫面
+   ========================================================================= */
+function render(){
+  var body;
+  if(ui.state==="loading"){
+    body = '<div class="pk-top"><div class="sk" style="flex:1;height:50px;margin:0"></div></div>'
+         + '<div class="sk"></div><div class="sk" style="width:88%"></div><div class="sk"></div>';
+  }else if(!DATA.length){
+    body = topBar()
+      + '<div class="empty"><div class="big">🧳</div>'
+      + '<p>還沒有要帶的東西。<br>想到什麼就直接加，或整套帶入。</p>'
+      + '<button class="btn-primary" onclick="openTplPicker()">📦 從模板帶入一套</button>'
+      + '<div style="height:9px"></div>'
+      + '<button class="btn-ghost" onclick="startAdd(\'carry\',\'\')">＋ 自己加第一樣</button></div>';
+  }else{
+    var zs = (ui.opt.seg==="view") ? [zoneOf(ui.segZone)] : ZONES;
+    body = topBar() + zs.map(sectionHtml).join("");
+  }
+
+  document.getElementById("app").innerHTML =
+     '<header class="trip-head" style="background:'+THEME+'">'
+   +   '<div class="head-top"><span class="back-btn">‹ 我的旅程</span>'
+   +     '<span class="head-edit">✎ 編輯</span></div>'
+   +   '<div class="trip-title"><span class="emo">🚕</span><h1>本色季3rd</h1></div>'
+   +   '<div class="trip-sub">桃園・8/29（六）– 8/31（一）</div>'
+   + '</header>'
+   + '<div class="tab-body" id="tabbody">' + body + '</div>'
+   + '<nav class="tabbar">'
+   +   '<button><span class="ico">🗓️</span>行程</button>'
+   +   '<button><span class="ico">💰</span>花費</button>'
+   +   '<button class="on"><span class="ico">🎒</span>打包</button>'
+   +   '<button><span class="ico">📝</span>備註</button>'
+   + '</nav>';
+
+  if(ui.adding){
+    var inp = document.getElementById("pk-input");
+    if(inp){ inp.value = ui.pending || ""; inp.focus({preventScroll:true}); }
+  }
+  renderDev();
+}
+
+function topBar(){
+  var seg = "";
+  if(ui.opt.seg!=="off"){
+    seg = '<div class="seg">'+ZONES.map(function(z){
+      var on = (ui.opt.seg==="view") ? (ui.segZone===z.key) : (ui.segZone===z.key);
+      return '<button type="button" class="'+(on?"on":"")+'" onclick="setSeg(\''+z.key+'\')">'+z.emoji+' '+z.label+'</button>';
+    }).join("")+'</div>';
+  }
+  var gripToggle = (ui.opt.grip==="edit")
+    ? '<button class="pk-tpl'+(ui.edit?" on":"")+'" style="'+(ui.edit?"background:var(--acc);color:#fff;box-shadow:none":"")+'" onclick="toggleEdit()">'+(ui.edit?"完成":"☰ 調整")+'</button>' : "";
+  return seg
+    + '<div class="pk-top">'
+    +   '<button class="pk-new" onclick="openItemSheet()">＋ 新增物品</button>'
+    +   gripToggle
+    +   '<button class="pk-tpl" onclick="openTplPicker()">📦 模板</button>'
+    + '</div>';
+}
+
+function sectionHtml(z){
+  var top = topOf(z.key);
+  var done = top.filter(function(p){return p.done;}).length;
+  var filtered = ui.filter[z.key] ? top.filter(function(p){return !p.done;}) : top;
+  var rows = filtered.map(function(p){ return rowHtml(p, z); }).join("");
+
+  var empty = "";
+  if(!top.length) empty = '<div class="pk-inner-empty" style="padding-left:4px">這區還沒有東西</div>';
+  else if(!filtered.length) empty = '<div class="pk-inner-empty" style="padding-left:4px">這區都打包好了 🎉</div>';
+
+  var addRow = (ui.adding && ui.adding.zone===z.key && !ui.adding.bag)
+    ? addFormHtml("加到「"+z.emoji+" "+z.label+"」")
+    : '<button class="pk-add" onclick="startAdd(\''+z.key+'\',\'\')">＋　加東西到「'+z.emoji+' '+z.label+'」</button>';
+
+  return '<section class="pack-sec">'
+    + '<div class="pack-head"><span class="t">'+z.emoji+' '+z.label+'（'+z.sub+'）</span>'
+    +   '<button class="pk-cnt'+(ui.filter[z.key]?" on":"")+'" onclick="toggleFilter(\''+z.key+'\')">'
+    +     '<span class="fdot"></span>'+(ui.filter[z.key]?"只看沒打包的":"已打包 "+done+" / "+top.length)+'</button>'
+    + '</div>'
+    + '<div class="pk-list" data-zone="'+z.key+'">'
+    +   slotHtml(z.key,"", filtered.length?filtered[0].id:"")
+    +   rows + empty
+    +   addRow
+    + '</div></section>';
+}
+
+/* 落點錨（零高度，不佔版面）：拖曳時用它算「會掉到哪」 */
+function slotHtml(zone, bag, refId){
+  return '<i class="pk-slot" data-z="'+zone+'" data-b="'+bag+'" data-ref="'+refId+'"></i>';
+}
+
+function rowHtml(p, z){
+  if(isBag(p)) return bagHtml(p, z);
+  var tapWhole = (ui.opt.tap==="B");
+  var onMain = tapWhole ? 'onclick="toggleDone(\''+p.id+'\')"' : 'onclick="openItemSheet(\''+p.id+'\')"';
+  return '<div class="pk-card" data-id="'+p.id+'">'
+    + '<div class="pk-row'+(p.done?" done":"")+'" data-lp="'+p.id+'">'
+    +   ckHtml(p)
+    +   '<button class="pk-txt" '+onMain+'><span class="t">'+esc(p.text)+'</span></button>'
+    +   gripHtml(p.id)
+    + '</div></div>'
+    + slotHtml(z.key, "", nextTopRef(p, z.key));
+}
+
+function ckHtml(p){
+  return '<button class="pk-ck" onclick="toggleDone(\''+p.id+'\')" aria-label="打勾">'
+    + '<span class="pk-box">'+(p.done?"✓":"")+'</span></button>';
+}
+function gripHtml(id){
+  if(ui.opt.grip==="edit" && !ui.edit) return '<span style="width:10px;flex:0 0 auto"></span>';
+  return '<button class="pk-grip" aria-label="拖曳移動" oncontextmenu="return false"'
+    + ' onpointerdown="dragStart(event,\''+id+'\')" onpointermove="dragMove(event)"'
+    + ' onpointerup="dragEnd(event)" onpointercancel="dragCancel(event)">☰</button>';
+}
+function nextTopRef(p, zoneKey){
+  var list = ui.filter[zoneKey] ? topOf(zoneKey).filter(function(x){return !x.done;}) : topOf(zoneKey);
+  var i = list.indexOf(p);
+  return (i>=0 && list[i+1]) ? list[i+1].id : "";
+}
+
+function bagHtml(p, z){
+  var kids = childrenOf(p.id);
+  var dn = kids.filter(function(k){return k.done;}).length;
+  var open = !!ui.open[p.id] && !p.done;
+  var pct = kids.length ? Math.round(dn/kids.length*100) : 0;
+  var sub = kids.length
+    ? (dn===kids.length
+        ? '<span class="all">✓ 都裝好了・'+kids.length+' 樣</span>'
+        : '<span class="bar"><i style="width:'+pct+'%"></i></span><span>已裝 '+dn+' / '+kids.length+'</span>')
+    : '<span>還是空的</span>';
+
+  var inner = "";
+  if(open){
+    var addRow = (ui.adding && ui.adding.bag===p.id)
+      ? addFormHtml("加到「"+p.text+"」")
+      : '<button class="pk-add" onclick="startAdd(\''+p.zone+'\',\''+p.id+'\')">＋　加東西到「'+esc(p.text)+'」</button>';
+    inner = '<div class="pk-inner">'
+      + slotHtml(p.zone, p.id, kids.length?kids[0].id:"")
+      + (kids.length ? kids.map(function(k,i){
+          var tapWhole = (ui.opt.tap==="B");
+          var onMain = tapWhole ? 'onclick="toggleDone(\''+k.id+'\')"' : 'onclick="openItemSheet(\''+k.id+'\')"';
+          /* 一定要帶 pk-row：所有「已打包」的樣式（實心勾、刪除線）都掛在 .pk-row.done 上，
+             少了它 → 包裡面勾起來畫面完全沒反應（資料是對的，所以功能測試抓不到） */
+          return '<div class="pk-row pk-sub-row'+(k.done?" done":"")+'" data-id="'+k.id+'" data-lp="'+k.id+'">'
+            + ckHtml(k)
+            + '<button class="pk-txt" '+onMain+'><span class="t">'+esc(k.text)+'</span></button>'
+            + gripHtml(k.id)
+            + '</div>'
+            + slotHtml(p.zone, p.id, kids[i+1]?kids[i+1].id:"");
+        }).join("")
+        : '<div class="pk-inner-empty">這個包還是空的，加點東西進去</div>')
+      + addRow
+      + '<button class="act-row" style="min-height:44px;font-size:13.5px;color:var(--muted);border:none;padding-left:16px" onclick="openItemSheet(\''+p.id+'\')">✎　這個包的設定（改名／換區／刪掉）</button>'
+      + '</div>';
+  }
+
+  return '<div class="pk-card pk-bag'+(open?" open":"")+(p.done?" done":"")+'" data-id="'+p.id+'" data-bag="'+p.id+'">'
+    + '<div class="pk-row pk-head-row'+(p.done?" done":"")+'" data-lp="'+p.id+'">'
+    +   ckHtml(p)
+    +   '<button class="pk-txt" onclick="toggleBag(\''+p.id+'\')">'
+    +     '<span class="t"><span class="pk-emo">📦</span> '+esc(p.text)+'<span class="pk-chev">⌄</span></span>'
+    +     '<span class="pk-sub">'+sub+'</span></button>'
+    +   gripHtml(p.id)
+    + '</div>'
+    + inner
+    + '</div>'
+    + slotHtml(z.key, "", nextTopRef(p, z.key));
+}
+
+function addFormHtml(ph){
+  return '<form class="pk-form" onsubmit="submitAdd(event)">'
+    + '<input id="pk-input" placeholder="'+esc(ph)+'" autocomplete="off" enterkeyhint="done" required>'
+    + '<button type="submit">加入</button></form>';
+}
+
+/* =========================================================================
+   互動
+   ========================================================================= */
+function toggleDone(id){
+  var p = byId(id); if(!p) return;
+  p.done = !p.done;
+  /* 各勾各的：勾「盥洗包」＝這包丟進行李箱了，裡面的東西一個都不動 */
+  if(isBag(p) && p.done) ui.open[p.id] = false;
+  render();
+}
+function toggleBag(id){ ui.open[id] = !ui.open[id]; render(); }
+function toggleFilter(z){ ui.filter[z] = !ui.filter[z]; render(); }
+function toggleEdit(){ ui.edit = !ui.edit; render(); }
+function setSeg(z){
+  ui.segZone = z;
+  if(ui.opt.seg==="legacy"){ render(); toast("（舊行為）這只改了新增的目標區，畫面沒變 —— 這就是問題"); }
+  else render();
+}
+function startAdd(zone, bag){
+  ui.adding = {zone:zone, bag:bag}; ui.pending="";
+  if(bag) ui.open[bag] = true;
+  render();
+}
+function submitAdd(ev){
+  ev.preventDefault();
+  var inp = document.getElementById("pk-input");
+  var text = (inp.value||"").trim();
+  if(!text) return;
+  addItem(text, ui.adding.zone, ui.adding.bag, false);
+  ui.pending = "";
+  render();                       /* 連續加：輸入框留在原位、focus 不放掉 */
+  var again = document.getElementById("pk-input");
+  if(again) again.focus({preventScroll:true});
+}
+document.addEventListener("click", function(e){
+  if(!ui.adding || !e.target.closest) return;
+  /* 注意：render() 之後 e.target 已經被換掉（脫離 DOM），但 closest 仍讀得到它自己的 class */
+  if(e.target.closest(".pk-form") || e.target.closest(".pk-add")
+     || e.target.closest("#dev") || e.target.closest(".sheet")) return;
+  var inp = document.getElementById("pk-input");
+  if(inp && (inp.value||"").trim()) return;   /* 打到一半不要被關掉 */
+  ui.adding = null; render();
+});
+
+/* ---------- 長按＝這一筆的動作選單（拖拉之外的第二條路） ---------- */
+var lp = null, lpFired = false;
+document.addEventListener("pointerdown", function(e){
+  var row = e.target.closest && e.target.closest("[data-lp]");
+  if(!row || e.target.closest(".pk-grip")) return;
+  var id = row.getAttribute("data-lp");
+  lp = {id:id, x:e.clientX, y:e.clientY, t:setTimeout(function(){
+    lp = null; lpFired = true;
+    if(navigator.vibrate) navigator.vibrate(12);
+    openActions(id);
+  }, 450)};
+}, true);
+/* 長按開了選單之後，那一下的 click 不可以再去勾／開編輯 */
+document.addEventListener("click", function(e){
+  if(!lpFired) return;
+  lpFired = false;
+  if(e.target.closest && e.target.closest(".sheet")) return;
+  e.preventDefault(); e.stopPropagation();
+}, true);
+document.addEventListener("pointermove", function(e){
+  if(!lp) return;
+  if(Math.abs(e.clientX-lp.x)>8 || Math.abs(e.clientY-lp.y)>8){ clearTimeout(lp.t); lp=null; }
+}, true);
+["pointerup","pointercancel"].forEach(function(ev){
+  document.addEventListener(ev, function(){ if(lp){ clearTimeout(lp.t); lp=null; } }, true);
+});
+
+/* =========================================================================
+   拖曳（pointer events、只有把手可拖、touch-action:none、邊緣自動捲動）
+   —— 手感沿用行程分頁那一套；差別在「落點」不只是排序，還有「進包／出包／換區」
+   ========================================================================= */
+var drag = null;
+function dragStart(ev, id){
+  if(drag) return;
+  ev.preventDefault();
+  try{ ev.currentTarget.setPointerCapture(ev.pointerId); }catch(e){}
+  var item = byId(id); if(!item) return;
+  var el = document.querySelector('[data-id="'+id+'"]');
+  if(!el) return;
+  var r = el.getBoundingClientRect();
+
+  var ghost = el.cloneNode(true);
+  ghost.id = "pk-ghost";
+  ghost.className = el.className.replace("is-dragging","");
+  var gi = ghost.querySelector(".pk-inner");   /* 拖一整個包時，浮起來的只有包的那一列 */
+  if(gi) gi.remove();
+  ghost.style.width = Math.min(r.width*0.72, 250) + "px";
+  if(el.classList.contains("pk-sub-row")){ ghost.style.background="#fff"; ghost.style.paddingLeft="6px"; }
+  document.body.appendChild(ghost);
+
+  var bar = document.createElement("div");
+  bar.id = "pk-dragbar"; bar.innerHTML = "";
+  document.body.appendChild(bar);
+  document.getElementById("dev").classList.add("drag-hide");
+
+  /* 浮卡的落位：右緣貼在手指右邊一點、底緣在手指上方 14px（＝手指與落點都看得見） */
+  var gw = ghost.offsetWidth, gh = ghost.offsetHeight;
+  drag = { id:id, item:item, el:el, ghost:ghost, bar:bar, gw:gw, gh:gh,
+           x:ev.clientX, y:ev.clientY, h:r.height,
+           target:null, raf:0, moved:false };
+  el.classList.add("is-dragging");
+  paintDrag();
+}
+function dragMove(ev){
+  if(!drag) return;
+  ev.preventDefault();
+  drag.x = ev.clientX; drag.y = ev.clientY; drag.moved = true;
+  paintDrag();
+  dragAutoScroll();
+}
+function dragAutoScroll(){
+  /* 沿用行程那組門檻：距上下邊緣 80px 內自動捲動，速度 9 */
+  if(!drag || drag.raf) return;
+  var TH=80, SPEED=9;
+  var step=function(){
+    if(!drag){ return; }
+    var vh = window.innerHeight;
+    var dir = drag.y<TH+40 ? -1 : (drag.y>vh-TH ? 1 : 0);
+    if(!dir){ drag.raf=0; return; }
+    window.scrollBy(0, dir*SPEED);
+    paintDrag();
+    drag.raf = requestAnimationFrame(step);
+  };
+  drag.raf = requestAnimationFrame(step);
+}
+function paintDrag(){
+  if(!drag) return;
+  var gx = Math.max(8, Math.min(drag.x - drag.gw + 22, window.innerWidth - drag.gw - 8));
+  var gy = Math.max(52, drag.y - drag.gh - 14);
+  drag.ghost.style.transform = "translate("+gx+"px,"+gy+"px)";
+
+  /* --- 落點判定 --- */
+  var draggingBag = isBag(drag.item);
+  var y = drag.y;
+  var t = null;
+
+  /* ① 先看「有沒有壓在某個包的頭上」＝放進去（包不能放進包，只有兩層） */
+  if(!draggingBag){
+    var bags = [].slice.call(document.querySelectorAll(".pk-bag"));
+    for(var i=0;i<bags.length;i++){
+      var b = bags[i];
+      var hr = b.querySelector(".pk-head-row").getBoundingClientRect();
+      if(!hr.height) continue;
+      /* 中間 60% ＝進包；上下各 20% 留給「排在它前／後」 */
+      var pad = hr.height*0.2;
+      if(y > hr.top+pad && y < hr.bottom-pad){
+        t = {kind:"into", bagId:b.getAttribute("data-bag")};
+        break;
+      }
+    }
+  }
+
+  /* ② 否則找最近的插入錨 */
+  if(!t){
+    var slots = [].slice.call(document.querySelectorAll(".pk-slot"));
+    var best=null, bestD=Infinity;
+    for(var j=0;j<slots.length;j++){
+      var s = slots[j];
+      var sr = s.getBoundingClientRect();
+      if(!sr.width) continue;                                  /* 藏起來的（在被拖的包裡面）跳過 */
+      if(draggingBag && s.getAttribute("data-b")) continue;     /* 包不能插進包裡 */
+      var d = Math.abs(sr.top - y);
+      if(d<bestD){ bestD=d; best=s; }
+    }
+    if(best) t = {kind:"before", zone:best.getAttribute("data-z"), bagId:best.getAttribute("data-b"),
+                  ref:best.getAttribute("data-ref"), el:best};
+  }
+  drag.target = t;
+
+  /* --- 落點提示 --- */
+  document.querySelectorAll(".drop-into").forEach(function(e){ e.classList.remove("drop-into"); });
+  var old = document.querySelector(".pk-line"); if(old) old.remove();
+
+  var label = "";
+  if(t && t.kind==="into"){
+    var bg = document.querySelector('.pk-bag[data-bag="'+t.bagId+'"]');
+    if(bg) bg.classList.add("drop-into");
+    var bagItem = byId(t.bagId);
+    label = '放進　📦 '+esc(bagItem?bagItem.text:"") + '　<span class="w">（'+zoneOf(bagItem?bagItem.zone:"carry").emoji+' '+zoneOf(bagItem?bagItem.zone:"carry").label+'）</span>';
+  }else if(t){
+    var line = document.createElement("div");
+    line.className = "pk-line";
+    var host = t.el.parentNode;
+    var hostR = host.getBoundingClientRect(), sr2 = t.el.getBoundingClientRect();
+    line.style.top = (t.el.offsetTop)+"px";
+    host.style.position = "relative";
+    var pb = t.bagId ? byId(t.bagId) : null;
+    var where = pb ? ('📦 '+esc(pb.text)+' 裡') : (zoneOf(t.zone).emoji+' '+zoneOf(t.zone).label);
+    line.innerHTML = '<span class="dot"></span><i></i><b>'+where+'</b>';
+    host.appendChild(line);
+    label = '排到　'+where;
+  }
+  drag.bar.innerHTML = label ? ('→　'+label) : '放開取消';
+}
+function dragEnd(){
+  if(!drag) return;
+  if(drag.raf) cancelAnimationFrame(drag.raf);
+  var t = drag.target, item = drag.item, moved = drag.moved;
+  cleanupDrag();
+  if(t && moved){
+    if(t.kind==="into"){
+      var bag = byId(t.bagId);
+      moveTo(item, bag.zone, bag.id, "");
+      ui.open[bag.id] = true;
+      toast("已放進「"+bag.text+"」");
+    }else{
+      var before = {zone:item.zone, bag:item.bag};
+      moveTo(item, t.zone, t.bagId, t.ref);
+      if(before.bag && !t.bagId) toast("已從包裡拿出來，放在 "+zoneOf(item.zone).label);
+      else if(before.zone!==item.zone) toast("已移到 "+zoneOf(item.zone).emoji+" "+zoneOf(item.zone).label);
+    }
+  }
+  render();
+}
+function dragCancel(){ if(!drag) return; if(drag.raf) cancelAnimationFrame(drag.raf); cleanupDrag(); render(); }
+function cleanupDrag(){
+  if(!drag) return;
+  if(drag.ghost) drag.ghost.remove();
+  if(drag.bar) drag.bar.remove();
+  if(drag.el) drag.el.classList.remove("is-dragging");
+  document.getElementById("dev").classList.remove("drag-hide");
+  var l = document.querySelector(".pk-line"); if(l) l.remove();
+  document.querySelectorAll(".drop-into").forEach(function(e){ e.classList.remove("drop-into"); });
+  drag = null;
+}
+
+/* =========================================================================
+   sheet：新增／編輯物品、動作選單、模板
+   ========================================================================= */
+function openSheet(title, html){
+  var lay = document.getElementById("sheet-layer");
+  document.getElementById("dev").classList.add("drag-hide");  /* demo 控制台不要蓋住 sheet 底部的鈕 */
+  lay.style.display = "block";
+  lay.innerHTML = '<div class="backdrop" onclick="closeSheet()"></div>'
+    + '<div class="sheet"><div class="sheet-head"><h3>'+title+'</h3>'
+    + '<button onclick="closeSheet()" aria-label="關閉">✕</button></div>'+html+'</div>';
+}
+function closeSheet(){
+  var lay = document.getElementById("sheet-layer");
+  lay.style.display="none"; lay.innerHTML="";
+  document.getElementById("dev").classList.remove("drag-hide");
+}
+
+var draft = null;
+function openItemSheet(id){
+  var src = id ? byId(id) : null;
+  draft = src
+    ? {id:src.id, text:src.text, zone:src.zone, bag:src.bag, isBag:isBag(src),
+       kids:(isBag(src)?childrenOf(src.id).length:0)}
+    : {id:null, text:"", zone:(ui.opt.seg==="view"?ui.segZone:"carry"), bag:"", isBag:false, kids:0};
+  paintItemSheet();
+}
+function syncDraft(){
+  var n = document.getElementById("it-name"); if(n) draft.text = n.value;
+}
+function paintItemSheet(){
+  var locked = draft.isBag && draft.kids>0;
+  openSheet(draft.id ? (draft.isBag?"編輯這個包":"編輯物品") : "新增物品",
+    '<label class="field"><span class="fl">名稱</span>'
+  + '<input id="it-name" value="'+esc(draft.text)+'" placeholder="要帶什麼？" autocomplete="off"></label>'
+  + '<button class="bag-toggle'+(draft.isBag?" on":"")+'" onclick="toggleDraftBag()"'+(locked?' disabled style="opacity:.75"':'')+'>'
+  +   '<span style="font-size:20px">📦</span>'
+  +   '<span class="bt-t"><b>這是一個包</b><span>'
+  +     (locked ? '裡面有 '+draft.kids+' 樣東西，要先清空才能取消'
+             : '包自己也有一個勾（＝整包丟進行李箱了），可以打開編輯裡面的東西')
+  +   '</span></span><span class="sw"><i></i></span></button>'
+  + '<div class="fl" style="font-size:13px;font-weight:700;color:var(--muted);margin:16px 0 7px">放在哪</div>'
+  + locList(draft.bag ? draft.bag : draft.zone, draft.isBag, draft.id)
+  + '<div class="d-acts">'
+  +   '<button class="btn-primary" onclick="submitItem()">'+(draft.id?"儲存":"加進清單")+'</button>'
+  +   (draft.id ? '<button class="btn-ghost" style="color:var(--bad);border-color:#f0d9d9" onclick="delFromSheet()">刪掉這一'+(draft.isBag?"個包":"樣")+'</button>' : "")
+  + '</div>');
+}
+/* 「放在哪」＝拖拉之外一定要有的第二條路（單手／清單很長／不想拖時） */
+function locList(cur, asBag, selfId){
+  var out = "";
+  ZONES.forEach(function(z){
+    var on = (cur===z.key);
+    out += '<button class="loc'+(on?" on":"")+'" onclick="pickLoc(\''+z.key+'\',\'\')">'
+        +  '<span>'+z.emoji+'</span><span>'+z.label+'</span>'+(on?'<span class="ck">✓</span>':'')+'</button>';
+    if(asBag) return;                       /* 包只能放在區裡（只允許兩層） */
+    DATA.filter(function(p){ return isBag(p) && p.zone===z.key && p.id!==selfId; }).forEach(function(b){
+      var bon = (cur===b.id);
+      out += '<button class="loc sub'+(bon?" on":"")+'" onclick="pickLoc(\''+z.key+'\',\''+b.id+'\')">'
+          +  '<span class="arw">↳</span><span>📦</span><span>'+esc(b.text)+'</span>'+(bon?'<span class="ck">✓</span>':'')+'</button>';
+    });
+  });
+  return '<div class="loc-list">'+out+'</div>';
+}
+function pickLoc(zone, bag){ syncDraft(); draft.zone=zone; draft.bag=bag; paintItemSheet(); }
+function toggleDraftBag(){
+  syncDraft();
+  if(draft.isBag && draft.kids>0) return;
+  draft.isBag = !draft.isBag;
+  if(draft.isBag) draft.bag = "";
+  paintItemSheet();
+}
+function submitItem(){
+  syncDraft();
+  var text = (draft.text||"").trim();
+  if(!text){ toast("先給它一個名字"); return; }
+  if(draft.id){
+    var p = byId(draft.id);
+    p.text = text;
+    if(draft.isBag && !isBag(p)) p.kind = "bag";
+    if(!draft.isBag && isBag(p)) delete p.kind;
+    moveTo(p, draft.zone, draft.bag, "");
+    toast("已更新");
+  }else{
+    var o = addItem(text, draft.zone, draft.bag, draft.isBag);
+    if(o.kind==="bag") ui.open[o.id] = true;
+    if(draft.bag) ui.open[draft.bag] = true;
+    toast("已加入");
+  }
+  draft = null; closeSheet(); render();
+}
+function delFromSheet(){
+  var p = byId(draft.id);
+  if(p) removeItem(p);
+  draft = null; closeSheet(); render();
+}
+
+/* 長按選單 */
+function openActions(id){
+  var p = byId(id); if(!p) return;
+  openSheet(esc(p.text),
+    '<button class="act-row" onclick="closeSheet();openItemSheet(\''+id+'\')"><span class="ai">✎</span>改名字／換位置</button>'
+  + (isBag(p) ? '<button class="act-row" onclick="closeSheet();toggleBag(\''+id+'\')"><span class="ai">📦</span>'+(ui.open[id]?"收起來":"打開看裡面")+'</button>' : "")
+  + '<button class="act-row" onclick="closeSheet();toggleDone(\''+id+'\')"><span class="ai">'+(p.done?"○":"✓")+'</span>'+(p.done?"取消打勾":"標成已打包")+'</button>'
+  + '<button class="act-row" onclick="dupItem(\''+id+'\')"><span class="ai">⧉</span>複製一份</button>'
+  + '<button class="act-row danger" onclick="delItem(\''+id+'\')"><span class="ai">🗑</span>刪掉</button>');
+}
+function dupItem(id){
+  var p = byId(id); if(!p) return;
+  var o = addItem(p.text, p.zone, p.bag, false);
+  moveTo(o, p.zone, p.bag, "");
+  closeSheet(); render(); toast("已複製一份");
+}
+function delItem(id){
+  var p = byId(id); if(!p) return;
+  removeItem(p); closeSheet(); render();
+}
+
+/* 模板（示範「模板也能有包」＋合併規則） */
+function openTplPicker(){
+  var rows = TEMPLATES.map(function(tp){
+    var bags = tp.items.filter(function(i){return i.kind==="bag";}).length;
+    var n = tp.items.length;
+    return '<div class="tpl-card"><div class="tpl-info"><b>'+esc(tp.name)+'</b>'
+      + '<span>'+n+' 樣'+(bags?('・含 '+bags+' 個包'):'')+'</span></div>'
+      + '<button class="tpl-apply" onclick="applyTpl(\''+tp.id+'\')">帶入</button></div>';
+  }).join("");
+  openSheet("從模板帶入", rows
+    + '<div class="hint" style="margin-top:12px">同名的東西會自動跳過。<br>模板裡的包如果你已經有了（例如「盥洗包」），<b>不會多開一個</b>，會把缺的東西補進你原本那個包裡。</div>'
+    + '<div class="d-acts"><button class="btn-ghost" onclick="toast(\'demo 略：管理模板沿用現有畫面\')">管理模板</button></div>');
+}
+function applyTpl(id){
+  var tp=null; TEMPLATES.forEach(function(t){ if(t.id===id) tp=t; });
+  if(!tp) return;
+  var added=0, merged=0;
+  var bagMap = {};   /* 模板裡的包名 -> 這趟旅程實際的包 id */
+  /* 先處理包本身 */
+  tp.items.filter(function(i){return i.kind==="bag";}).forEach(function(i){
+    var exist=null;
+    DATA.forEach(function(p){ if(isBag(p) && p.text.trim()===i.text.trim()) exist=p; });
+    if(exist){ bagMap[i.text] = exist.id; merged++; }
+    else { var o = addItem(i.text, i.zone, "", true); bagMap[i.text]=o.id; added++; ui.open[o.id]=true; }
+  });
+  /* 再處理一般項目 */
+  tp.items.filter(function(i){return i.kind!=="bag";}).forEach(function(i){
+    var targetBag = i.bag ? (bagMap[i.bag]||"") : "";
+    var dup = DATA.some(function(p){
+      return p.text.trim()===i.text.trim() && (p.bag||"")===(targetBag||"") && !isBag(p);
+    });
+    if(dup) return;
+    addItem(i.text, i.zone, targetBag, false); added++;
+  });
+  closeSheet(); render();
+  toast("帶入 "+added+" 樣"+(merged?("，"+merged+" 個包直接合併"):""));
+}
+
+/* =========================================================================
+   demo 控制台
+   ========================================================================= */
+function devToggle(){ document.getElementById("dev").classList.toggle("open"); }
+function setOpt(k,v){ ui.opt[k]=v; if(k==="grip") ui.edit=false; render(); }
+function resetData(){ uidN=0; DATA=seed(); ui.open={}; ui.filter={carry:false,checked:false}; ui.state="ready"; render(); toast("已還原"); }
+function emptyData(){ DATA=[]; ui.state="ready"; render(); }
+function loadingState(){ ui.state="loading"; render(); setTimeout(function(){ ui.state="ready"; render(); }, 1600); }
+function openAllBags(){ bagList().forEach(function(b){ ui.open[b.id]=true; }); render(); }
+
+function renderDev(){
+  var b=function(on,label,fn){ return '<button class="'+(on?"on":"")+'" onclick="'+fn+'">'+label+'</button>'; };
+  var el = document.getElementById("devbd");
+  if(!el) return;
+  el.innerHTML =
+     '<div class="dv-lb">① 點一列的時候發生什麼事</div><div class="dv-row">'
+   +   b(ui.opt.tap==="A","A 點框＝勾／點字＝編輯（推薦）","setOpt(\'tap\',\'A\')")
+   +   b(ui.opt.tap==="B","B 點整條＝勾（維持現在）","setOpt(\'tap\',\'B\')")
+   + '</div>'
+   + '<div class="dv-lb">② 上面那條 🎒／🧳 切換要不要留</div><div class="dv-row">'
+   +   b(ui.opt.seg==="off","A 拿掉（推薦）","setOpt(\'seg\',\'off\')")
+   +   b(ui.opt.seg==="view","B 改成只看一區","setOpt(\'seg\',\'view\')")
+   +   b(ui.opt.seg==="legacy","C 維持現在（只換新增目標）","setOpt(\'seg\',\'legacy\')")
+   + '</div>'
+   + '<div class="dv-lb">③ 拖曳把手要不要常駐</div><div class="dv-row">'
+   +   b(ui.opt.grip==="always","A 一直都在（推薦）","setOpt(\'grip\',\'always\')")
+   +   b(ui.opt.grip==="edit","B 比照行程，要先按「調整」","setOpt(\'grip\',\'edit\')")
+   + '</div>'
+   + '<div class="dv-lb">看看各種狀態</div><div class="dv-row">'
+   +   b(false,"全部打開","openAllBags()")
+   +   b(false,"空清單","emptyData()")
+   +   b(false,"載入中","loadingState()")
+   +   b(false,"↺ 還原","resetData()")
+   + '</div>'
+   + '<div class="dv-note">試試看：① 按住「摺疊傘」右邊的 ☰ 往上拖到「盥洗包」那一列<b>中間</b>＝放進去；'
+   + '拖到它<b>上緣／下緣</b>＝排在它前後。頂部橫條隨時告訴你會掉到哪。<br>'
+   + '② 把「行動電源」拖到下面 🧳 那一區＝換區。<br>'
+   + '③ 不想拖：<b>長按任何一列</b>有選單，或點名字進編輯視窗直接選「放在哪」。<br>'
+   + '④ 勾「盥洗包」自己＝整包丟進行李箱了（裡面的勾一個都不會動）。</div>';
+}
+
+render();
+</script>
+</body>
+</html>

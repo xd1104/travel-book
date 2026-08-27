@@ -11,7 +11,7 @@
 /* ============ 常數 ============ */
 /* 版本號的唯一來源：首頁 footer 與「版本」sheet 都讀它。
  * 改前端時跟 sw.js 的 cache 版本號一起 +1（見「版本與更新」段）。 */
-var APP_VER="2.8";
+var APP_VER="2.9";
 
 /* ---- 功能鈕的 inline SVG 圖示（吃 currentColor、每台裝置長得一樣）----
  * ⚠️ 界線（別擴大解釋）：只有「系統給的功能鈕」用 SVG。
@@ -405,8 +405,38 @@ function cleanStop(s){
 function cleanExpense(e){
   return { id:String(e.id||""), amount:Number(e.amount)||0, cat:String(e.cat||"other"), desc:String(e.desc||"") };
 }
+/* 打包項目（v2.9 起多了 kind／bag 兩個選填欄位＝「包」）
+ * key 順序固定 id,text,done,zone,kind,bag；空值不寫 ⇒ 舊資料（沒有 kind/bag）零遷移、序列化後逐字不變 */
 function cleanPackItem(p){
-  return { id:String(p.id||""), text:String(p.text||""), done:!!p.done, zone:(p.zone==="checked"?"checked":"carry") };
+  p = p || {};
+  var o = { id:String(p.id||""), text:String(p.text||""), done:!!p.done, zone:(p.zone==="checked"?"checked":"carry") };
+  if(p.kind==="bag") o.kind="bag";                    /* 這一筆是一個包 */
+  else if(p.bag) o.bag=String(p.bag);                 /* 在哪個包裡（父包 id）；包不能在包裡 */
+  return o;
+}
+/* 打包清單 normalize（server.js mirror，改要一起改；必須冪等）
+ * 1. bag 指向不存在的 id → 降級成頂層（壞掉的參照要有 fallback，不整份炸掉）
+ * 2. kind==="bag" 強制沒有 bag（只允許兩層）
+ * 3. 包內物品的 zone 不是真值來源 —— 一律同步成父包的 zone
+ * 4. 輸出時包的小孩緊跟在包後面（parser 不依賴這個順序，但檔案要人讀得懂） */
+function normalizePacking(list){
+  var items = (Array.isArray(list)?list:[]).map(cleanPackItem);
+  var bagZone = {};
+  items.forEach(function(p){ if(p.kind==="bag" && p.id) bagZone[p.id]=p.zone; });
+  items.forEach(function(p){
+    if(p.kind==="bag"){ delete p.bag; return; }
+    if(p.bag && !(p.bag in bagZone)) delete p.bag;
+    if(p.bag) p.zone = bagZone[p.bag];
+  });
+  var out=[], emitted=[];
+  items.forEach(function(p,i){
+    if(p.bag) return;                                  /* 小孩跟著它的包一起輸出 */
+    out.push(p); emitted[i]=true;
+    if(p.kind==="bag" && p.id){
+      items.forEach(function(k,j){ if(!emitted[j] && k.bag===p.id){ out.push(k); emitted[j]=true; } });
+    }
+  });
+  return out;
 }
 function fmString(v){ return JSON.stringify(String(v==null?"":v)); }
 function fmNumber(v){ var n=Number(v); return String(isFinite(n)?n:0); }
@@ -436,7 +466,7 @@ function serializeTrip(t){
   L.push("## 花費","");
   (t.expenses||[]).forEach(function(e){ L.push("- "+JSON.stringify(cleanExpense(e))); });
   L.push("","## 打包","");
-  (t.packing||[]).forEach(function(p){ L.push("- "+JSON.stringify(cleanPackItem(p))); });
+  normalizePacking(t.packing).forEach(function(p){ L.push("- "+JSON.stringify(p)); });
   L.push("","## 備註","");
   var notes=String(t.notes||"").replace(/\r\n/g,"\n");
   if(notes.trim()) L.push(notes.replace(/\s+$/,""));
@@ -495,15 +525,43 @@ function parseTrip(id, text){
     }else if(section==="exp"){ t.expenses.push(cleanExpense(obj)); }
     else if(section==="pack"){ t.packing.push(cleanPackItem(obj)); }
   });
+  t.packing = normalizePacking(t.packing);
   t.notes=notesBuf.join("\n").trim();
   if(!(t.days>=1)) t.days=1;
   return t;
 }
+/* 模板項目（v2.9 起同樣可以有包）：{text,zone,kind?,bag?}
+ * ⚠️ bag 存的是「包的名字」不是 id —— 模板檔本來就沒有 id、是人可以手打的小清單 */
+function cleanTplItem(it){
+  it = it || {};
+  var o = { text:String(it.text||""), zone:(it.zone==="checked"?"checked":"carry") };
+  if(it.kind==="bag") o.kind="bag";
+  else if(it.bag) o.bag=String(it.bag);
+  return o;
+}
+/* 同 normalizePacking 的四條規則，只是父參照換成名字（server.js mirror；冪等） */
+function normalizeTplItems(list){
+  var items = (Array.isArray(list)?list:[]).map(cleanTplItem);
+  var bagZone = {};
+  items.forEach(function(i){ if(i.kind==="bag" && i.text) bagZone[i.text]=i.zone; });
+  items.forEach(function(i){
+    if(i.kind==="bag"){ delete i.bag; return; }
+    if(i.bag && !(i.bag in bagZone)) delete i.bag;
+    if(i.bag) i.zone = bagZone[i.bag];
+  });
+  var out=[], emitted=[];
+  items.forEach(function(i,ix){
+    if(i.bag) return;
+    out.push(i); emitted[ix]=true;
+    if(i.kind==="bag" && i.text){
+      items.forEach(function(k,j){ if(!emitted[j] && k.bag===i.text){ out.push(k); emitted[j]=true; } });
+    }
+  });
+  return out;
+}
 function serializeTemplate(tp){
   var L=["---","name: "+fmString(tp.name),"---","","## 項目",""];
-  (tp.items||[]).forEach(function(it){
-    L.push("- "+JSON.stringify({text:String(it.text||""), zone:(it.zone==="checked"?"checked":"carry")}));
-  });
+  normalizeTplItems(tp.items).forEach(function(it){ L.push("- "+JSON.stringify(it)); });
   L.push("");
   return L.join("\n");
 }
@@ -524,9 +582,10 @@ function parseTemplate(id, text){
     if(!im) return;
     try{
       var obj=JSON.parse(im[1]);
-      tp.items.push({text:String(obj.text||""), zone:(obj.zone==="checked"?"checked":"carry")});
+      tp.items.push(cleanTplItem(obj));
     }catch(e){}
   });
+  tp.items = normalizeTplItems(tp.items);
   return tp;
 }
 /* 類別清單序列化（server.js mirror；單一檔 data/categories.md） */
@@ -839,6 +898,7 @@ function migrate(d){
   if(!d) d={};
   if(!Array.isArray(d.trips)) d.trips=[];
   if(!Array.isArray(d.templates)) d.templates=[];
+  d.templates.forEach(function(tp){ tp.items = normalizeTplItems(tp.items); });
   /* 類別：來源沒有（舊資料/Pages 上檔案還沒建）就用內建六類；並保證「其他」存在 */
   d.categories = (Array.isArray(d.categories) && d.categories.length)
     ? normalizeCategories(d.categories) : defaultCategories();
@@ -847,15 +907,16 @@ function migrate(d){
     if(!Array.isArray(t.expenses)) t.expenses=[];
     if(!Array.isArray(t.packing)) t.packing=[];
     if(t.notes==null) t.notes="";
-    (t.packing||[]).forEach(function(p){
-      if(p.zone!=="carry" && p.zone!=="checked") p.zone="carry"; /* 舊資料沒分區 -> 歸隨身 */
-    });
+    /* 舊資料沒分區 -> 歸隨身；v2.9 起順便把包的參照補正（壞掉的 bag 降級成頂層） */
+    t.packing = normalizePacking(t.packing);
   });
   return d;
 }
 
 /* ============ UI 狀態 ============ */
-var ui = { screen:"home", tripId:null, tab:"plan", day:1, edit:false, packZone:"carry", showEnded:false };
+var ui = { screen:"home", tripId:null, tab:"plan", day:1, edit:false, showEnded:false,
+  /* 打包分頁（v2.9）：open＝哪些包展開著、filter＝只看沒打包的、adding＝就地新增中的容器 */
+  pk: { open:{}, filter:{checked:false, carry:false}, adding:null, pending:"" } };
 function curTrip(){
   for(var i=0;i<db.trips.length;i++) if(db.trips[i].id===ui.tripId) return db.trips[i];
   return null;
@@ -871,6 +932,7 @@ function render(keepScroll){
   var y = keepScroll ? window.scrollY : 0;
   appEl.innerHTML = (ui.screen==="home") ? viewHome() : viewTrip();
   window.scrollTo(0, y);
+  pkAfterRender();   /* 打包的就地新增：render 之後把輸入框的內容與 focus 接回來 */
 }
 
 /* ---- 首頁（進行中/未出發 主區 + 旅行回憶歸檔卡） ---- */
@@ -1516,56 +1578,243 @@ function viewBudget(t){
     + '<div class="sec-title">花費紀錄</div>' + rows;
 }
 
-/* ---- 打包（行李／隨身 兩區 + 模板） ---- */
+/* ============================================================================
+   打包（v2.9 改版）：區 → 包 → 物品
+   規格＝DESIGN.md 附錄 D，視覺與拖拉手感＝demo/packing.html（Benson 拍板，別自行改設計）
+   ── 病根：「這一筆東西的歸屬」從頭到尾沒有地方可以改（沒有編輯、加錯區只能刪掉重加、
+      想要「盥洗包」只能打成一行純文字）。所以這一版把「歸屬」變成一等公民：可看、可拖、可選、可改。
+   ── 拍板的六件事（不要改回去）：
+      ① 包同時是容器也是一件物品（有自己的勾，也能展開編輯內容）
+      ② 各勾各的：勾包 ⇄ 勾包內物品完全不連動（連視覺都不准連動，見 styles.css 的 ⚠️）
+      ③ 只允許兩層（包不能放進包）
+      ④ 模板也要能有包
+      ⑤ 點方塊＝勾、點文字＝編輯
+      ⑥ 拿掉上面那排區域 segmented（兩區同時顯示）、拖曳把手 ☰ 常駐（不用進調整模式）
+   ── 兩種進度、分母不同：區的「已打包 x / y」分母＝這一區的**頂層**項目（包算 1 件，包內物品不計）
+      ＝「行李箱裝好沒」；包的「已裝 x / y」分母才是包內物品＝「這個包裝好沒」。
+   ============================================================================ */
+function pkAll(){ var t=curTrip(); return (t&&t.packing)||[]; }
+function pkById(id){ var L=pkAll(); for(var i=0;i<L.length;i++) if(L[i].id===id) return L[i]; return null; }
+function pkIsBag(p){ return !!p && p.kind==="bag"; }
+function pkZoneOf(k){ for(var i=0;i<ZONES.length;i++) if(ZONES[i].key===k) return ZONES[i]; return ZONES[0]; }
+function pkTop(z){ return pkAll().filter(function(p){ return p.zone===z && !p.bag; }); }
+function pkKids(id){ return pkAll().filter(function(p){ return p.bag===id; }); }
+
 function viewPack(t){
-  var zone = ZONES.filter(function(z){return z.key===ui.packZone;})[0] || ZONES[1];
-  var seg = '<div class="seg">'+ZONES.map(function(z){
-    return '<button type="button" class="'+(ui.packZone===z.key?"on":"")+'" onclick="setPackZone(\''+z.key+'\')">'
-      + z.emoji+' '+z.label+'</button>';
-  }).join("")+'</div>';
-  var tplRow = '<div class="tpl-row">'
-    + '<button onclick="openTplPicker()">📦 從模板帶入</button>'
-    + '<button onclick="openTplManager()">管理模板</button></div>';
-  var emptyCta = !t.packing.length
-    ? '<button class="btn-ghost" style="margin-top:14px" onclick="openTplPicker()">📦 清單空空的，從模板帶入一套</button>' : "";
-  var secs = ZONES.map(function(z){
-    var items = t.packing.filter(function(p){return p.zone===z.key;});
-    var done = items.filter(function(p){return p.done;}).length;
-    var rows;
-    if(!items.length){
-      rows = '<div class="pack-sec-empty">這區還沒有東西</div>';
-    }else{
-      rows = '<ul>'+items.map(function(p){
-        return '<li class="pack-item '+(p.done?"done":"")+'">'
-          + '<button class="pack-main" onclick="togglePack(\''+p.id+'\')">'
-          +   '<span class="pk-box">'+(p.done?"✓":"")+'</span><span class="txt">'+esc(p.text)+'</span></button>'
-          + '<button class="x-btn" onclick="delPack(\''+p.id+'\')" aria-label="刪除">✕</button>'
-          + '</li>';
-      }).join("")+'</ul>';
-    }
-    return '<section class="pack-sec">'
-      + '<div class="pack-head"><span class="t">'+z.emoji+' '+z.label+'（'+z.sub+'）</span>'
-      + '<span class="n">已打包 '+done+' / '+items.length+'</span></div>'
-      + rows + '</section>';
-  }).join("");
-  return seg
-    + '<form class="pack-add" onsubmit="addPack(event)">'
-    +   '<input id="pack-input" name="text" placeholder="要帶什麼？加到「'+zone.emoji+' '+zone.label+'」" autocomplete="off" required>'
-    +   '<button type="submit">加入</button></form>'
-    + tplRow + emptyCta + secs;
+  if(!t.packing.length){
+    return pkTopBar()
+      + '<div class="empty"><div class="big">🧳</div>'
+      + '<p>還沒有要帶的東西。<br>想到什麼就直接加，或整套帶入。</p>'
+      + '<button class="btn-primary" onclick="openTplPicker()">📦 從模板帶入一套</button>'
+      + '<div style="height:9px"></div>'
+      + '<button class="btn-ghost" onclick="pkStartAdd(\''+ZONES[0].key+'\',\'\')">＋ 自己加第一樣</button></div>';
+  }
+  return pkTopBar() + ZONES.map(function(z){ return pkSectionHtml(z); }).join("");
 }
-function setPackZone(z){
-  var inp = document.getElementById("pack-input");
-  var v = inp ? inp.value : "";
-  ui.packZone = z;
+/* 頂部一列：主按鈕（結構）＋模板（一整套）。舊的 segmented 與獨立輸入列已砍掉，
+ * 「加到哪」改由就地新增的位置決定（segmented 想做卻做不到的事）。 */
+function pkTopBar(){
+  return '<div class="pk-top">'
+    + '<button class="pk-new" onclick="openPackSheet()">＋ 新增物品</button>'
+    + '<button class="pk-tpl" onclick="openTplPicker()">📦 模板</button>'
+    + '</div>';
+}
+function pkSectionHtml(z){
+  var top = pkTop(z.key);
+  var done = top.filter(function(p){return p.done;}).length;
+  var filtered = ui.pk.filter[z.key] ? top.filter(function(p){return !p.done;}) : top;
+  var rows = filtered.map(function(p){ return pkRowHtml(p, z); }).join("");
+  var empty = "";
+  if(!top.length) empty = '<div class="pk-inner-empty" style="padding-left:4px">這區還沒有東西</div>';
+  else if(!filtered.length) empty = '<div class="pk-inner-empty" style="padding-left:4px">這區都打包好了 🎉</div>';
+  var addRow = (ui.pk.adding && ui.pk.adding.zone===z.key && !ui.pk.adding.bag)
+    ? pkAddForm("加到「"+z.emoji+" "+z.label+"」")
+    : '<button class="pk-add" onclick="pkStartAdd(\''+z.key+'\',\'\')">＋　加東西到「'+z.emoji+' '+z.label+'」</button>';
+  return '<section class="pack-sec">'
+    + '<div class="pack-head"><span class="t">'+z.emoji+' '+z.label+'（'+z.sub+'）</span>'
+    +   '<button class="pk-cnt'+(ui.pk.filter[z.key]?" on":"")+'" onclick="pkToggleFilter(\''+z.key+'\')">'
+    +     '<span class="fdot"></span>'
+    +     (ui.pk.filter[z.key] ? "只看沒打包的" : "已打包 "+done+" / "+top.length)
+    +   '</button>'
+    + '</div>'
+    + '<div class="pk-list" data-zone="'+z.key+'">'
+    +   pkSlot(z.key, "", filtered.length?filtered[0].id:"")
+    +   rows + empty + addRow
+    + '</div></section>';
+}
+/* 落點錨：零高度、不佔版面，但要 display:block 才量得到寬度。
+ * data-ref＝「插在哪一筆之前」（不是 index —— 移除來源之後 index 會失準）。 */
+function pkSlot(zone, bag, refId){
+  return '<i class="pk-slot" data-z="'+zone+'" data-b="'+bag+'" data-ref="'+refId+'"></i>';
+}
+function pkRowHtml(p, z){
+  if(pkIsBag(p)) return pkBagHtml(p, z);
+  return '<div class="pk-card" data-id="'+p.id+'">'
+    + '<div class="pk-row'+(p.done?" done":"")+'" data-lp="'+p.id+'">'
+    +   pkCkHtml(p)
+    +   '<button class="pk-txt" onclick="openPackSheet(\''+p.id+'\')"><span class="t">'+esc(p.text)+'</span></button>'
+    +   pkGripHtml(p.id)
+    + '</div></div>'
+    + pkSlot(z.key, "", pkNextTopRef(p, z.key));
+}
+function pkCkHtml(p){
+  return '<button class="pk-ck" onclick="togglePack(\''+p.id+'\')" aria-label="打勾">'
+    + '<span class="pk-box">'+(p.done?"✓":"")+'</span></button>';
+}
+function pkGripHtml(id){
+  return '<button class="pk-grip" aria-label="拖曳移動" oncontextmenu="return false"'
+    + ' onpointerdown="packDragStart(event,\''+id+'\')" onpointermove="packDragMove(event)"'
+    + ' onpointerup="packDragEnd(event)" onpointercancel="packDragCancel(event)">☰</button>';
+}
+function pkNextTopRef(p, zoneKey){
+  var list = ui.pk.filter[zoneKey] ? pkTop(zoneKey).filter(function(x){return !x.done;}) : pkTop(zoneKey);
+  var i = list.indexOf(p);
+  return (i>=0 && list[i+1]) ? list[i+1].id : "";
+}
+/* 包＝同一張白卡長高（上半是包自己那一列，下半是內容）：層級靠「同一張卡＋左側 rail」不靠縮排，
+ * 手機的水平空間才不會被吃掉。 */
+function pkBagHtml(p, z){
+  var kids = pkKids(p.id);
+  var dn = kids.filter(function(k){return k.done;}).length;
+  /* 勾起來＝丟進去了就自動收合（收合那一下在 togglePack 做），但**還是點得開**
+   * ⚠️ 這裡不可以寫成 `&& !p.done`：那會讓已打包的包永遠打不開（demo 有這個瑕疵，實測抓到） */
+  var open = !!ui.pk.open[p.id];
+  var pct = kids.length ? Math.round(dn/kids.length*100) : 0;
+  var sub = kids.length
+    ? (dn===kids.length
+        ? '<span class="all">✓ 都裝好了・'+kids.length+' 樣</span>'
+        : '<span class="bar"><i style="width:'+pct+'%"></i></span><span>已裝 '+dn+' / '+kids.length+'</span>')
+    : '<span>還是空的</span>';
+  var inner = "";
+  if(open){
+    var addRow = (ui.pk.adding && ui.pk.adding.bag===p.id)
+      ? pkAddForm("加到「"+p.text+"」")
+      : '<button class="pk-add" onclick="pkStartAdd(\''+p.zone+'\',\''+p.id+'\')">＋　加東西到「'+esc(p.text)+'」</button>';
+    inner = '<div class="pk-inner">'
+      + pkSlot(p.zone, p.id, kids.length?kids[0].id:"")
+      + (kids.length ? kids.map(function(k,i){
+          /* ⚠️ 一定要帶 pk-row：所有「已打包」的樣式都掛在 .pk-row.done 上，
+             少了它 → 包裡面勾起來畫面完全沒反應（資料是對的，功能測試抓不到） */
+          return '<div class="pk-row pk-sub-row'+(k.done?" done":"")+'" data-id="'+k.id+'" data-lp="'+k.id+'">'
+            + pkCkHtml(k)
+            + '<button class="pk-txt" onclick="openPackSheet(\''+k.id+'\')"><span class="t">'+esc(k.text)+'</span></button>'
+            + pkGripHtml(k.id)
+            + '</div>'
+            + pkSlot(p.zone, p.id, kids[i+1]?kids[i+1].id:"");
+        }).join("")
+        : '<div class="pk-inner-empty">這個包還是空的，加點東西進去</div>')
+      + addRow
+      + '<button class="act-row pk-bagset" onclick="openPackSheet(\''+p.id+'\')">✎　這個包的設定（改名／換區／刪掉）</button>'
+      + '</div>';
+  }
+  return '<div class="pk-card pk-bag'+(open?" open":"")+(p.done?" done":"")+'" data-id="'+p.id+'" data-bag="'+p.id+'">'
+    + '<div class="pk-row pk-head-row'+(p.done?" done":"")+'" data-lp="'+p.id+'">'
+    +   pkCkHtml(p)
+    +   '<button class="pk-txt" onclick="pkToggleBag(\''+p.id+'\')">'
+    +     '<span class="t"><span class="pk-emo">📦</span> '+esc(p.text)+'<span class="pk-chev">⌄</span></span>'
+    +     '<span class="pk-sub">'+sub+'</span></button>'
+    +   pkGripHtml(p.id)
+    + '</div>'
+    + inner
+    + '</div>'
+    + pkSlot(z.key, "", pkNextTopRef(p, z.key));
+}
+function pkAddForm(ph){
+  return '<form class="pk-form" onsubmit="pkSubmitAdd(event)">'
+    + '<input id="pk-input" placeholder="'+esc(ph)+'" autocomplete="off" enterkeyhint="done"'
+    + ' oninput="ui.pk.pending=this.value" required>'
+    + '<button type="submit">加入</button></form>';
+}
+
+/* ---- 打包：資料操作（都會落盤；moveTo 是「歸屬」的唯一入口） ---- */
+/* 把 item（若是包，連同它的小孩）搬到 (zone, bagId) 的 refId 之前；refId 空＝放最後 */
+function pkMoveTo(item, zone, bagId, refId){
+  var t=curTrip(); if(!t || !item) return;
+  var kids = pkIsBag(item) ? pkKids(item.id) : [];
+  var moving = [item].concat(kids);
+  var parentBag = bagId ? pkById(bagId) : null;
+  if(parentBag && (moving.indexOf(parentBag)>=0 || !pkIsBag(parentBag))) parentBag = null;
+  if(pkIsBag(item)) parentBag = null;                    /* 只允許兩層：包永遠直接放在區裡 */
+  var ref = refId ? pkById(refId) : null;
+  if(ref && moving.indexOf(ref)>=0) ref = null;
+  t.packing = t.packing.filter(function(p){ return moving.indexOf(p)<0; });
+  var newZone = parentBag ? parentBag.zone : (zone==="checked"?"checked":"carry");
+  item.zone = newZone;
+  item.bag = parentBag ? parentBag.id : "";
+  kids.forEach(function(k){ k.zone = newZone; });        /* 包內物品的 zone 跟著父包走 */
+  var idx;
+  if(ref){ idx = t.packing.indexOf(ref); }
+  else{
+    var list = parentBag ? pkKids(parentBag.id) : pkTop(newZone);
+    if(!list.length){ idx = parentBag ? t.packing.indexOf(parentBag)+1 : t.packing.length; }
+    else{
+      var last = list[list.length-1];
+      idx = pkIsBag(last) ? pkTailIdx(last) : t.packing.indexOf(last)+1;
+    }
+  }
+  if(idx<0) idx = t.packing.length;
+  t.packing.splice.apply(t.packing, [idx,0].concat(moving));
+}
+/* 一個包在 packing 陣列裡的尾端 index（含它的小孩） */
+function pkTailIdx(bagItem){
+  var t=curTrip(); if(!t) return 0;
+  var i=t.packing.indexOf(bagItem), last=i;
+  pkKids(bagItem.id).forEach(function(k){ last=Math.max(last, t.packing.indexOf(k)); });
+  return last+1;
+}
+function pkAddItem(text, zone, bagId, asBag){
+  var t=curTrip(); if(!t) return null;
+  var b = (bagId && !asBag) ? pkById(bagId) : null;
+  var o = {id:uid(), text:text, done:false, zone:(b?b.zone:(zone==="checked"?"checked":"carry")), bag:(b?b.id:"")};
+  if(asBag){ o.kind="bag"; o.bag=""; }
+  t.packing.push(o);
+  pkMoveTo(o, o.zone, o.bag, "");
+  return o;
+}
+/* 刪掉一個包＝裡面的東西「倒出來」留在同一區，不會跟著消失（toast 要講清楚） */
+function pkRemove(item){
+  var t=curTrip(); if(!t || !item) return;
+  var kids = pkIsBag(item) ? pkKids(item.id) : [];
+  kids.forEach(function(k){ k.bag=""; });
+  t.packing = t.packing.filter(function(p){ return p!==item; });
+  if(kids.length) toast("已刪掉「"+item.text+"」，裡面 "+kids.length+" 樣東西留在 "+pkZoneOf(item.zone).label);
+  else toast("已刪掉「"+item.text+"」");
+}
+
+/* ---- 打包：互動 ---- */
+function pkToggleBag(id){ ui.pk.open[id] = !ui.pk.open[id]; render(true); }
+function pkToggleFilter(z){ ui.pk.filter[z] = !ui.pk.filter[z]; render(true); }
+function pkStartAdd(zone, bag){
+  if(!requireWrite("加打包項目")) return;
+  ui.pk.adding = {zone:zone, bag:bag||""}; ui.pk.pending = "";
+  if(bag) ui.pk.open[bag] = true;
   render(true);
-  var again = document.getElementById("pack-input");
-  if(again) again.value = v;
+}
+function pkSubmitAdd(ev){
+  ev.preventDefault();
+  if(!requireWrite("加打包項目")) return;
+  var inp = document.getElementById("pk-input");
+  var text = (inp ? inp.value : "").trim();
+  if(!text || !ui.pk.adding) return;
+  pkAddItem(text, ui.pk.adding.zone, ui.pk.adding.bag, false);
+  ui.pk.pending = "";
+  persistTrip(curTrip());
+  render(true);                 /* 連續加：輸入框留在原位、focus 不放掉（render 後由 pkAfterRender 補回） */
+}
+/* render() 之後把就地新增的輸入框接回來（內容 + 游標） */
+function pkAfterRender(){
+  if(!ui.pk || !ui.pk.adding) return;
+  var inp = document.getElementById("pk-input");
+  if(!inp) return;
+  inp.value = ui.pk.pending || "";
+  try{ inp.focus({preventScroll:true}); }catch(e){ inp.focus(); }
 }
 
 /* ---- 打包模板：帶入 / 管理 / 編輯 ---- */
 function tplCounts(tp){
-  return "🧳 "+zoneCount(tp.items,"checked")+" ・ 🎒 "+zoneCount(tp.items,"carry");
+  var bags = (tp.items||[]).filter(function(i){ return i.kind==="bag"; }).length;
+  return "🧳 "+zoneCount(tp.items,"checked")+" ・ 🎒 "+zoneCount(tp.items,"carry")
+    + (bags ? "・含 "+bags+" 個包" : "");
 }
 function openTplPicker(){
   var rows = db.templates.map(function(tp){
@@ -1575,21 +1824,44 @@ function openTplPicker(){
   if(!rows) rows = '<p class="d-empty">還沒有模板，先去「管理模板」建一個</p>';
   openSheet("從模板帶入",
     rows
-    + '<div class="hint" style="margin-top:12px">帶入時會自動跳過清單裡已經有的同名項目。</div>'
+    + '<div class="hint" style="margin-top:12px">同名的東西會自動跳過。<br>'
+    + '模板裡的包如果你已經有了（例如「盥洗包」），<b>不會多開一個</b>，會把缺的東西補進你原本那個包裡。</div>'
     + '<div class="d-acts"><button class="btn-ghost" onclick="openTplManager()">管理模板</button></div>');
 }
+/* 帶入模板（v2.9 合併規則，比舊的「同名跳過」多一層）：
+ * ① 模板裡的包，旅程裡已經有同名的包 → 不新增第二個，把缺的東西補進他原本那個包
+ * ② 一般項目的同名判定要「連容器一起比」（同名且在同一個包裡才算重複）
+ *    —— 「常備藥」放在盥洗包裡跟放在行李箱底層是兩件事
+ * 帶入兩次的第二次必須是「0 樣、N 個包合併」（冪等）。 */
 function applyTemplate(id){
   if(!requireWrite("套用打包模板")) return;
   var t=curTrip(); if(!t) return;
   var tp=null; db.templates.forEach(function(x){ if(x.id===id) tp=x; });
   if(!tp) return;
-  var existing = {};
-  t.packing.forEach(function(p){ existing[p.text.trim()] = true; });
-  tp.items.forEach(function(it){
-    if(existing[it.text.trim()]) return;
-    t.packing.push({id:uid(), text:it.text, done:false, zone:(it.zone==="checked"?"checked":"carry")});
+  var added=0, merged=0, bagMap={};   /* 模板裡的包名 -> 這趟旅程實際的包 id */
+  (tp.items||[]).filter(function(i){ return i.kind==="bag"; }).forEach(function(i){
+    var name = String(i.text||"").trim();
+    if(!name) return;
+    var exist=null;
+    t.packing.forEach(function(p){ if(pkIsBag(p) && String(p.text||"").trim()===name) exist=p; });
+    if(exist){ bagMap[i.text]=exist.id; merged++; }
+    else{
+      var o = pkAddItem(name, i.zone, "", true);
+      if(o){ bagMap[i.text]=o.id; added++; ui.pk.open[o.id]=true; }
+    }
+  });
+  (tp.items||[]).filter(function(i){ return i.kind!=="bag"; }).forEach(function(i){
+    var name = String(i.text||"").trim();
+    if(!name) return;
+    var targetBag = i.bag ? (bagMap[i.bag]||"") : "";
+    var dup = t.packing.some(function(p){
+      return !pkIsBag(p) && String(p.text||"").trim()===name && (p.bag||"")===(targetBag||"");
+    });
+    if(dup) return;
+    pkAddItem(name, i.zone, targetBag, false); added++;
   });
   persistTrip(t); closeSheet(); render(true);
+  toast("帶入 "+added+" 樣"+(merged?("，"+merged+" 個包直接合併"):""));
 }
 function openTplManager(){
   var rows = db.templates.map(function(tp){
@@ -1614,59 +1886,119 @@ function openTplEdit(id){
   var src=null;
   if(id){ db.templates.forEach(function(t){ if(t.id===id) src=t; }); }
   tplDraft = src
-    ? {id:src.id, name:src.name, zone:"carry", pending:"", items:src.items.map(function(i){return {text:i.text, zone:i.zone};})}
-    : {id:null, name:"", zone:"carry", pending:"", items:[]};
+    ? {id:src.id, name:src.name, zone:ZONES[0].key, bag:"", asBag:false, pending:"",
+       items:src.items.map(function(i){ return cleanTplItem(i); })}
+    : {id:null, name:"", zone:ZONES[0].key, bag:"", asBag:false, pending:"", items:[]};
   renderTplEdit();
 }
 function syncTplDraft(){
   var n=document.getElementById("tpl-name"); if(n) tplDraft.name=n.value;
   var i=document.getElementById("tpl-item-input"); if(i) tplDraft.pending=i.value;
 }
+/* 模板編輯（v2.9：模板也要能有包）
+ * ⚠️ 模板項目的 bag 存的是「包的名字」不是 id（模板檔沒有 id、是人可以手打的小清單） */
+function tplBagsIn(z){ return tplDraft.items.filter(function(i){ return i.kind==="bag" && i.zone===z; }); }
+function tplKidsOf(name){ return tplDraft.items.filter(function(i){ return i.kind!=="bag" && i.bag===name; }); }
 function renderTplEdit(){
-  var segHtml = '<div class="seg">'+ZONES.map(function(z){
-    return '<button type="button" class="'+(tplDraft.zone===z.key?"on":"")+'" onclick="setTplZone(\''+z.key+'\')">'
-      + z.emoji+' '+z.label+'</button>';
-  }).join("")+'</div>';
+  var target = tplDraft.bag ? tplDraft.bag : tplDraft.zone;
+  var locs = "";
+  ZONES.forEach(function(z){
+    var on = (target===z.key);
+    locs += '<button class="loc'+(on?" on":"")+'" onclick="setTplLoc(\''+z.key+'\',-1)">'
+         +  '<span>'+z.emoji+'</span><span>'+z.label+'</span>'+(on?'<span class="ck">✓</span>':'')+'</button>';
+    if(tplDraft.asBag) return;                       /* 包只能放在區裡（只允許兩層） */
+    /* ⚠️ 傳 index 不傳名字：包名是使用者打的自由文字，塞進 onclick 的字串裡會被引號炸掉 */
+    tplBagsIn(z.key).forEach(function(b){
+      var bon = (target===b.text);
+      locs += '<button class="loc sub'+(bon?" on":"")+'" onclick="setTplLoc(\''+z.key+'\','+tplDraft.items.indexOf(b)+')">'
+           +  '<span class="arw">↳</span><span>📦</span><span>'+esc(b.text)+'</span>'+(bon?'<span class="ck">✓</span>':'')+'</button>';
+    });
+  });
+  function itemRow(it, i, sub){
+    return '<div class="tpl-item'+(sub?" sub":"")+'">'
+      + '<span>'+(it.kind==="bag"?"📦":(sub?"↳":pkZoneOf(it.zone).emoji))+'</span>'
+      + '<span class="tx">'+esc(it.text)+'</span>'
+      + '<button class="x-btn" onclick="delTplItem('+i+')" aria-label="刪除">✕</button></div>';
+  }
   var lists = ZONES.map(function(z){
-    var rows = tplDraft.items.map(function(it,i){ return {it:it, i:i}; })
-      .filter(function(x){ return x.it.zone===z.key; })
-      .map(function(x){
-        return '<div class="tpl-item"><span>'+z.emoji+'</span><span class="tx">'+esc(x.it.text)+'</span>'
-          + '<button class="x-btn" onclick="delTplItem('+x.i+')" aria-label="刪除">✕</button></div>';
-      }).join("");
+    var rows = "";
+    tplDraft.items.forEach(function(it,i){
+      if(it.zone!==z.key || it.bag) return;          /* 小孩跟著它的包一起畫 */
+      rows += itemRow(it, i, false);
+      if(it.kind==="bag"){
+        tplKidsOf(it.text).forEach(function(k){ rows += itemRow(k, tplDraft.items.indexOf(k), true); });
+      }
+    });
     return '<div class="tpl-sec-h">'+z.emoji+' '+z.label+'（'+z.sub+'）</div>'
       + (rows || '<div class="tpl-none">還沒有項目</div>');
   }).join("");
+  var where = tplDraft.bag ? ("📦 "+tplDraft.bag) : (pkZoneOf(tplDraft.zone).emoji+" "+pkZoneOf(tplDraft.zone).label);
   openSheet(tplDraft.id ? "編輯模板" : "新增模板",
     '<label class="field"><span class="fl">模板名稱 *</span><input id="tpl-name" value="'+esc(tplDraft.name)+'" placeholder="例：露營裝備" autocomplete="off"></label>'
-    + segHtml
+    + '<div class="fl pk-loc-lb">新增到哪</div><div class="loc-list">'+locs+'</div>'
+    + '<button class="bag-toggle'+(tplDraft.asBag?" on":"")+'" style="margin-top:13px" onclick="toggleTplBag()">'
+    +   '<span style="font-size:20px">📦</span>'
+    +   '<span class="bt-t"><b>加進去的是一個包</b><span>包裡面可以再放東西（帶入時同名的包會自動合併）</span></span>'
+    +   '<span class="sw"><i></i></span></button>'
     + '<form class="pack-add" onsubmit="addTplItem(event)">'
-    +   '<input id="tpl-item-input" value="'+esc(tplDraft.pending)+'" placeholder="新增項目到「'+(tplDraft.zone==="checked"?"🧳 行李":"🎒 隨身")+'」" autocomplete="off" required>'
+    +   '<input id="tpl-item-input" value="'+esc(tplDraft.pending)+'" placeholder="新增'+(tplDraft.asBag?"包":"項目")+'到「'+esc(where)+'」" autocomplete="off" required>'
     +   '<button type="submit">加入</button></form>'
     + lists
     + '<div class="d-acts"><button class="btn-primary" onclick="saveTpl()">儲存模板</button></div>');
 }
-function setTplZone(z){ syncTplDraft(); tplDraft.zone=z; renderTplEdit(); }
+function setTplLoc(z, bagIdx){
+  syncTplDraft();
+  var b = (bagIdx>=0) ? tplDraft.items[bagIdx] : null;
+  tplDraft.zone = z;
+  tplDraft.bag = (b && b.kind==="bag") ? b.text : "";
+  renderTplEdit();
+}
+function toggleTplBag(){
+  syncTplDraft();
+  tplDraft.asBag = !tplDraft.asBag;
+  if(tplDraft.asBag) tplDraft.bag = "";
+  renderTplEdit();
+}
 function addTplItem(ev){
   ev.preventDefault();
   syncTplDraft();
   var text=(tplDraft.pending||"").trim(); if(!text) return;
-  tplDraft.items.push({text:text, zone:tplDraft.zone});
+  if(tplDraft.asBag){
+    /* 同名的包不開第二個（模板用名字當參照，重名會讓歸屬變模糊） */
+    var dup = tplDraft.items.some(function(i){ return i.kind==="bag" && i.text===text; });
+    if(!dup) tplDraft.items.push({text:text, zone:tplDraft.zone, kind:"bag"});
+    tplDraft.asBag=false; tplDraft.bag=text;        /* 建完包直接把新增目標切進去，接著加內容 */
+  }else{
+    var it = {text:text, zone:tplDraft.zone};
+    if(tplDraft.bag) it.bag = tplDraft.bag;
+    tplDraft.items.push(it);
+  }
   tplDraft.pending="";
   renderTplEdit();
   var inp=document.getElementById("tpl-item-input");
   if(inp) inp.focus({preventScroll:true});
 }
-function delTplItem(i){ syncTplDraft(); tplDraft.items.splice(i,1); renderTplEdit(); }
+/* 刪掉模板裡的包＝裡面的東西倒出來留在同一區（跟旅程清單同一套哲學） */
+function delTplItem(i){
+  syncTplDraft();
+  var it = tplDraft.items[i];
+  if(it && it.kind==="bag"){
+    tplDraft.items.forEach(function(k){ if(k.bag===it.text) delete k.bag; });
+    if(tplDraft.bag===it.text) tplDraft.bag="";
+  }
+  tplDraft.items.splice(i,1);
+  renderTplEdit();
+}
 function saveTpl(){
   if(!requireWrite()) return;
   syncTplDraft();
   var name=(tplDraft.name||"").trim() || "未命名模板";
+  var items = normalizeTplItems(tplDraft.items);
   var saved=null;
   if(tplDraft.id){
-    db.templates.forEach(function(t){ if(t.id===tplDraft.id){ t.name=name; t.items=tplDraft.items; saved=t; } });
+    db.templates.forEach(function(t){ if(t.id===tplDraft.id){ t.name=name; t.items=items; saved=t; } });
   }else{
-    saved = {id:Date.now().toString(36)+"-"+slugify(name), name:name, items:tplDraft.items};
+    saved = {id:Date.now().toString(36)+"-"+slugify(name), name:name, items:items};
     db.templates.push(saved);
   }
   if(saved) persistTemplate(saved);
@@ -1767,29 +2099,333 @@ function delStop(idx){
   var list=curList(); if(!list) return;
   list.splice(idx,1); persistTrip(curTrip()); render(true);
 }
+/* 勾／取消勾。⚠️ 各勾各的：勾一個包只動包自己那一筆，裡面的東西一個位元組都不碰。 */
 function togglePack(id){
   if(!requireWrite("勾打包清單")) return;
-  var t=curTrip();
-  t.packing.forEach(function(p){ if(p.id===id) p.done=!p.done; });
+  var t=curTrip(); if(!t) return;
+  var p = pkById(id); if(!p) return;
+  p.done = !p.done;
+  if(pkIsBag(p) && p.done) ui.pk.open[p.id] = false;   /* 丟進去了就不用看裡面（還是點得開） */
   persistTrip(t); render(true);
 }
-function delPack(id){
-  if(!requireWrite("刪掉打包項目")) return;
-  var t=curTrip();
-  t.packing = t.packing.filter(function(p){return p.id!==id;});
-  persistTrip(t); render(true);
-}
-function addPack(ev){
+
+/* ============================================================================
+   打包的拖曳（跟行程分頁那一套「index 位移＋讓位動畫」是兩套，刻意不共用）
+   手感沿用行程：pointer events／只有把手可拖（touch-action:none）／setPointerCapture／
+   preventDefault／邊緣自動捲動 TH=80、SPEED=9（跟 dragAutoScroll 同一組數字）。
+   差別在落點：行程只有「排序」，打包還有「進包／出包／換區」⇒ 改用 slot 制。
+   ⚠️ 座標用 client 座標是**對的**：每一次 pointermove 都重新 getBoundingClientRect（沒有
+      「開始時的基準」），自動捲動之後 rect 自己就更新了。
+      若有人把它改回 transform 位移法，就必須回到 page 座標（clientY+scrollY），別混用。
+   ============================================================================ */
+var pkDrag = null;
+function packDragStart(ev, id){
+  if(pkDrag) return;
+  if(!requireWrite("搬動打包項目")) return;
   ev.preventDefault();
-  if(!requireWrite("加打包項目")) return;
-  var t=curTrip();
-  var input=document.getElementById("pack-input");
-  var text=(input.value||"").trim(); if(!text) return;
-  t.packing.push({id:uid(), text:text, done:false, zone:ui.packZone});
-  persistTrip(t); render(true);
-  var again=document.getElementById("pack-input");
-  if(again) again.focus({preventScroll:true});
+  try{ ev.currentTarget.setPointerCapture(ev.pointerId); }catch(e){}
+  var item = pkById(id); if(!item) return;
+  var el = document.querySelector('.pk-list [data-id="'+id+'"]');
+  if(!el) return;
+  var r = el.getBoundingClientRect();
+
+  var ghost = el.cloneNode(true);
+  ghost.id = "pk-ghost";
+  ghost.className = el.className.replace("is-dragging","");
+  var gi = ghost.querySelector(".pk-inner");     /* 拖一整個包時，浮起來的只有包那一列 */
+  if(gi) gi.remove();
+  ghost.style.width = Math.min(r.width*0.72, 250) + "px";
+  if(el.classList.contains("pk-sub-row")){ ghost.style.background="#fff"; ghost.style.paddingLeft="6px"; }
+  document.body.appendChild(ghost);
+
+  var bar = document.createElement("div");
+  bar.id = "pk-dragbar"; bar.innerHTML = "";
+  document.body.appendChild(bar);
+
+  pkDrag = { id:id, item:item, el:el, ghost:ghost, bar:bar,
+             gw:ghost.offsetWidth, gh:ghost.offsetHeight,
+             x:ev.clientX, y:ev.clientY, target:null, raf:0, moved:false };
+  el.classList.add("is-dragging");
+  pkPaintDrag();
 }
+function packDragMove(ev){
+  if(!pkDrag) return;
+  ev.preventDefault();
+  pkDrag.x = ev.clientX; pkDrag.y = ev.clientY; pkDrag.moved = true;
+  pkPaintDrag();
+  pkDragAutoScroll();
+}
+function pkDragAutoScroll(){
+  if(!pkDrag || pkDrag.raf) return;
+  var TH=80, SPEED=9;
+  var step=function(){
+    if(!pkDrag) return;
+    var vh = window.innerHeight;
+    /* 上緣多讓 40px：頂部那條「會掉到哪」的固定橫條擋住了最上面一段 */
+    var dir = pkDrag.y < TH+40 ? -1 : (pkDrag.y > vh-TH ? 1 : 0);
+    if(!dir){ pkDrag.raf=0; return; }
+    window.scrollBy(0, dir*SPEED);
+    pkPaintDrag();
+    pkDrag.raf = requestAnimationFrame(step);
+  };
+  pkDrag.raf = requestAnimationFrame(step);
+}
+function pkPaintDrag(){
+  if(!pkDrag) return;
+  /* 浮起來的那張卡刻意「浮在手指上方」而不是壓在手指底下 ——
+     壓在底下時它剛好完整蓋住你正要放進去的那個包，高亮等於沒做（UX 實測截圖抓到）。 */
+  var gx = Math.max(8, Math.min(pkDrag.x - pkDrag.gw + 22, window.innerWidth - pkDrag.gw - 8));
+  var gy = Math.max(52, pkDrag.y - pkDrag.gh - 14);
+  pkDrag.ghost.style.transform = "translate("+gx+"px,"+gy+"px)";
+
+  var draggingBag = pkIsBag(pkDrag.item);
+  var y = pkDrag.y, t = null, i;
+
+  /* ① 先看有沒有壓在某個包的「包頭那一列」中間 60% ＝放進去（包不能放進包） */
+  if(!draggingBag){
+    var bags = [].slice.call(document.querySelectorAll(".pk-bag"));
+    for(i=0;i<bags.length;i++){
+      var head = bags[i].querySelector(".pk-head-row");
+      if(!head) continue;
+      var hr = head.getBoundingClientRect();
+      if(!hr.height) continue;
+      var pad = hr.height*0.2;                     /* 上下各 20% 留給「排在它前／後」 */
+      if(y > hr.top+pad && y < hr.bottom-pad){
+        t = {kind:"into", bagId:bags[i].getAttribute("data-bag")};
+        break;
+      }
+    }
+  }
+  /* ② 否則找最近的插入錨 */
+  if(!t){
+    var slots = [].slice.call(document.querySelectorAll(".pk-slot"));
+    var best=null, bestD=Infinity;
+    for(i=0;i<slots.length;i++){
+      var sr = slots[i].getBoundingClientRect();
+      if(!sr.width) continue;                                    /* 藏起來的（被拖的包裡面）跳過 */
+      if(draggingBag && slots[i].getAttribute("data-b")) continue; /* 包不能插進包裡 */
+      var d = Math.abs(sr.top - y);
+      if(d<bestD){ bestD=d; best=slots[i]; }
+    }
+    if(best) t = {kind:"before", zone:best.getAttribute("data-z"), bagId:best.getAttribute("data-b"),
+                  ref:best.getAttribute("data-ref"), el:best};
+  }
+  pkDrag.target = t;
+
+  /* 落點提示三個一起上（缺一個都不夠）：頂部固定橫條／整卡珊瑚環／插入線＋目的地藥丸 */
+  var olds = document.querySelectorAll(".drop-into");
+  for(i=0;i<olds.length;i++) olds[i].classList.remove("drop-into");
+  var oldLine = document.querySelector(".pk-line"); if(oldLine) oldLine.remove();
+
+  var label = "";
+  if(t && t.kind==="into"){
+    var bg = document.querySelector('.pk-bag[data-bag="'+t.bagId+'"]');
+    if(bg) bg.classList.add("drop-into");
+    var bagItem = pkById(t.bagId);
+    var bz = pkZoneOf(bagItem?bagItem.zone:ZONES[0].key);
+    label = '放進　📦 '+esc(bagItem?bagItem.text:"")+'　<span class="w">（'+bz.emoji+' '+bz.label+'）</span>';
+  }else if(t){
+    /* 插入線是零高度的疊層（不是插進去撐開間隙）—— 撐開會讓所有 slot 在手指底下跳動、來回抖 */
+    var line = document.createElement("div");
+    line.className = "pk-line";
+    var host = t.el.parentNode;
+    line.style.top = t.el.offsetTop + "px";
+    host.style.position = "relative";
+    var pb = t.bagId ? pkById(t.bagId) : null;
+    var where = pb ? ('📦 '+esc(pb.text)+' 裡') : (pkZoneOf(t.zone).emoji+' '+pkZoneOf(t.zone).label);
+    line.innerHTML = '<span class="dot"></span><i></i><b>'+where+'</b>';
+    host.appendChild(line);
+    label = '排到　'+where;
+  }
+  pkDrag.bar.innerHTML = label ? ('→　'+label) : '放開取消';
+}
+function packDragEnd(){
+  if(!pkDrag) return;
+  if(pkDrag.raf) cancelAnimationFrame(pkDrag.raf);
+  var t = pkDrag.target, item = pkDrag.item, moved = pkDrag.moved;
+  pkCleanupDrag();
+  if(t && moved){
+    var before = {zone:item.zone, bag:item.bag};
+    if(t.kind==="into"){
+      var bag = pkById(t.bagId);
+      if(bag){
+        pkMoveTo(item, bag.zone, bag.id, "");
+        ui.pk.open[bag.id] = true;
+        toast("已放進「"+bag.text+"」");
+      }
+    }else{
+      pkMoveTo(item, t.zone, t.bagId, t.ref);
+      if(before.bag && !item.bag) toast("已從包裡拿出來，放在 "+pkZoneOf(item.zone).label);
+      else if(before.zone!==item.zone) toast("已移到 "+pkZoneOf(item.zone).emoji+" "+pkZoneOf(item.zone).label);
+    }
+    persistTrip(curTrip());
+  }
+  render(true);
+}
+function packDragCancel(){
+  if(!pkDrag) return;
+  if(pkDrag.raf) cancelAnimationFrame(pkDrag.raf);
+  pkCleanupDrag();
+  render(true);
+}
+function pkCleanupDrag(){
+  if(!pkDrag) return;
+  if(pkDrag.ghost) pkDrag.ghost.remove();
+  if(pkDrag.bar) pkDrag.bar.remove();
+  if(pkDrag.el) pkDrag.el.classList.remove("is-dragging");
+  var l = document.querySelector(".pk-line"); if(l) l.remove();
+  var olds = document.querySelectorAll(".drop-into");
+  for(var i=0;i<olds.length;i++) olds[i].classList.remove("drop-into");
+  pkDrag = null;
+}
+
+/* ============================================================================
+   打包的 sheet：新增／編輯（共用一張）、長按動作選單
+   拖拉不可以是唯一的路（單手／清單很長／不想拖）⇒ 編輯視窗裡的「放在哪」是第二條路，
+   長按是隱藏手勢、只當捷徑。
+   ============================================================================ */
+var pkDraft = null;
+function openPackSheet(id){
+  if(!requireWrite(id?"改打包項目":"加打包項目")) return;
+  var src = id ? pkById(id) : null;
+  pkDraft = src
+    ? {id:src.id, text:src.text, zone:src.zone, bag:src.bag||"", isBag:pkIsBag(src), kids:(pkIsBag(src)?pkKids(src.id).length:0)}
+    : {id:null, text:"", zone:ZONES[0].key, bag:"", isBag:false, kids:0};
+  pkPaintSheet();
+}
+function pkSyncDraft(){
+  var n = document.getElementById("pk-name");
+  if(n && pkDraft) pkDraft.text = n.value;
+}
+function pkPaintSheet(){
+  var locked = pkDraft.isBag && pkDraft.kids>0;
+  openSheet(pkDraft.id ? (pkDraft.isBag?"編輯這個包":"編輯物品") : "新增物品",
+    '<label class="field"><span class="fl">名稱</span>'
+  + '<input id="pk-name" value="'+esc(pkDraft.text)+'" placeholder="要帶什麼？" autocomplete="off"></label>'
+  + '<button class="bag-toggle'+(pkDraft.isBag?" on":"")+'" onclick="pkToggleDraftBag()"'+(locked?' disabled style="opacity:.75"':'')+'>'
+  +   '<span style="font-size:20px">📦</span>'
+  +   '<span class="bt-t"><b>這是一個包</b><span>'
+  +     (locked ? '裡面有 '+pkDraft.kids+' 樣東西，要先清空才能取消'
+              : '包自己也有一個勾（＝整包丟進行李箱了），可以打開編輯裡面的東西')
+  +   '</span></span><span class="sw"><i></i></span></button>'
+  + '<div class="fl pk-loc-lb">放在哪</div>'
+  + pkLocList(pkDraft.bag ? pkDraft.bag : pkDraft.zone, pkDraft.isBag, pkDraft.id)
+  + '<div class="d-acts">'
+  +   '<button class="btn-primary" onclick="pkSubmitSheet()">'+(pkDraft.id?"儲存":"加進清單")+'</button>'
+  +   (pkDraft.id ? '<button class="btn-ghost pk-del" onclick="pkDelFromSheet()">刪掉這一'+(pkDraft.isBag?"個包":"樣")+'</button>' : "")
+  + '</div>');
+}
+/* 「放在哪」＝把所有目的地攤平成一份可點清單（區／區裡的每個包）。包本身只列得到區（只允許兩層）。 */
+function pkLocList(cur, asBag, selfId){
+  var out = "";
+  ZONES.forEach(function(z){
+    var on = (cur===z.key);
+    out += '<button class="loc'+(on?" on":"")+'" onclick="pkPickLoc(\''+z.key+'\',\'\')">'
+        +  '<span>'+z.emoji+'</span><span>'+z.label+'</span>'+(on?'<span class="ck">✓</span>':'')+'</button>';
+    if(asBag) return;
+    pkAll().filter(function(p){ return pkIsBag(p) && p.zone===z.key && p.id!==selfId; }).forEach(function(b){
+      var bon = (cur===b.id);
+      out += '<button class="loc sub'+(bon?" on":"")+'" onclick="pkPickLoc(\''+z.key+'\',\''+b.id+'\')">'
+          +  '<span class="arw">↳</span><span>📦</span><span>'+esc(b.text)+'</span>'+(bon?'<span class="ck">✓</span>':'')+'</button>';
+    });
+  });
+  return '<div class="loc-list">'+out+'</div>';
+}
+function pkPickLoc(zone, bag){ pkSyncDraft(); pkDraft.zone=zone; pkDraft.bag=bag; pkPaintSheet(); }
+function pkToggleDraftBag(){
+  pkSyncDraft();
+  if(pkDraft.isBag && pkDraft.kids>0) return;
+  pkDraft.isBag = !pkDraft.isBag;
+  if(pkDraft.isBag) pkDraft.bag = "";
+  pkPaintSheet();
+}
+function pkSubmitSheet(){
+  pkSyncDraft();
+  var t=curTrip(); if(!t || !pkDraft) return;
+  var text = (pkDraft.text||"").trim();
+  if(!text){ toast("先給它一個名字", true); return; }
+  if(pkDraft.id){
+    var p = pkById(pkDraft.id);
+    if(p){
+      p.text = text;
+      if(pkDraft.isBag && !pkIsBag(p)) p.kind = "bag";
+      if(!pkDraft.isBag && pkIsBag(p)) delete p.kind;
+      var tgBag = pkDraft.isBag ? "" : (pkDraft.bag||"");
+      /* 只在「歸屬真的改了」時才搬。否則光是改個名字就會讓它跳到容器的最後一筆
+       * ——他抱怨的就是「改東西很麻煩」，不能改完名字還得再把它拖回原位。 */
+      if(p.zone!==pkDraft.zone || (p.bag||"")!==tgBag) pkMoveTo(p, pkDraft.zone, tgBag, "");
+      toast("已更新");
+    }
+  }else{
+    var o = pkAddItem(text, pkDraft.zone, pkDraft.bag, pkDraft.isBag);
+    if(o && o.kind==="bag") ui.pk.open[o.id] = true;
+    if(pkDraft.bag) ui.pk.open[pkDraft.bag] = true;
+    toast("已加入");
+  }
+  pkDraft = null; persistTrip(t); closeSheet(); render(true);
+}
+function pkDelFromSheet(){
+  var t=curTrip(); if(!t || !pkDraft) return;
+  var p = pkById(pkDraft.id);
+  if(p) pkRemove(p);
+  pkDraft = null; persistTrip(t); closeSheet(); render(true);
+}
+/* 長按選單（隱藏手勢、只當捷徑） */
+function openPackActions(id){
+  var p = pkById(id); if(!p) return;
+  openSheet(esc(p.text),
+    '<button class="act-row" onclick="closeSheet();openPackSheet(\''+id+'\')"><span class="ai">✎</span>改名字／換位置</button>'
+  + (pkIsBag(p) ? '<button class="act-row" onclick="closeSheet();pkToggleBag(\''+id+'\')"><span class="ai">📦</span>'+(ui.pk.open[id]?"收起來":"打開看裡面")+'</button>' : "")
+  + '<button class="act-row" onclick="closeSheet();togglePack(\''+id+'\')"><span class="ai">'+(p.done?"○":"✓")+'</span>'+(p.done?"取消打勾":"標成已打包")+'</button>'
+  + '<button class="act-row" onclick="pkDupItem(\''+id+'\')"><span class="ai">⧉</span>複製一份</button>'
+  + '<button class="act-row danger" onclick="pkDelItem(\''+id+'\')"><span class="ai">🗑</span>刪掉</button>');
+}
+function pkDupItem(id){
+  if(!requireWrite("複製打包項目")) return;
+  var p = pkById(id); if(!p) return;
+  var o = pkAddItem(p.text, p.zone, p.bag, false);
+  if(o) pkMoveTo(o, p.zone, p.bag, "");
+  persistTrip(curTrip()); closeSheet(); render(true); toast("已複製一份");
+}
+function pkDelItem(id){
+  if(!requireWrite("刪掉打包項目")) return;
+  var p = pkById(id); if(!p) return;
+  pkRemove(p); persistTrip(curTrip()); closeSheet(); render(true);
+}
+
+/* ---- 打包：全域監聽（長按 450ms ＝動作選單；點空白處收掉就地新增） ---- */
+var pkLp = null, pkLpFired = false;
+document.addEventListener("pointerdown", function(e){
+  var row = e.target.closest && e.target.closest("[data-lp]");
+  if(!row || e.target.closest(".pk-grip")) return;
+  var id = row.getAttribute("data-lp");
+  pkLp = {id:id, x:e.clientX, y:e.clientY, t:setTimeout(function(){
+    pkLp = null; pkLpFired = true;
+    if(navigator.vibrate) navigator.vibrate(12);
+    openPackActions(id);
+  }, 450)};
+}, true);
+/* 長按開了選單之後，那一下的 click 必須吞掉，否則會順便勾起來／開編輯 */
+document.addEventListener("click", function(e){
+  if(!pkLpFired) return;
+  pkLpFired = false;
+  if(e.target.closest && e.target.closest(".sheet")) return;
+  e.preventDefault(); e.stopPropagation();
+}, true);
+document.addEventListener("pointermove", function(e){
+  if(!pkLp) return;
+  if(Math.abs(e.clientX-pkLp.x)>8 || Math.abs(e.clientY-pkLp.y)>8){ clearTimeout(pkLp.t); pkLp=null; }
+}, true);
+["pointerup","pointercancel"].forEach(function(evName){
+  document.addEventListener(evName, function(){ if(pkLp){ clearTimeout(pkLp.t); pkLp=null; } }, true);
+});
+document.addEventListener("click", function(e){
+  if(!ui.pk || !ui.pk.adding || !e.target.closest) return;
+  if(e.target.closest(".pk-form") || e.target.closest(".pk-add") || e.target.closest(".sheet")) return;
+  var inp = document.getElementById("pk-input");
+  if(inp && (inp.value||"").trim()) return;      /* 打到一半不要被關掉 */
+  ui.pk.adding = null; render(true);
+});
 function delExpense(id){
   if(!requireWrite("刪掉這筆花費")) return;
   var t=curTrip();
@@ -1819,7 +2455,7 @@ function openSheet(title, bodyHtml){
     + '<button onclick="closeSheet()" aria-label="關閉">✕</button></div>'+bodyHtml+'</div>';
   sheetLayer.hidden = false;
 }
-function closeSheet(){ sheetLayer.hidden=true; sheetLayer.innerHTML=""; tplDraft=null; rp=null; }
+function closeSheet(){ sheetLayer.hidden=true; sheetLayer.innerHTML=""; tplDraft=null; rp=null; pkDraft=null; }
 
 function catOptions(selectedId){
   return (db.categories||[]).map(function(c){
@@ -2129,11 +2765,15 @@ function submitTrip(ev){
   var packing = [];
   if(f.tpl && f.tpl.value){
     db.templates.forEach(function(tp){
-      if(tp.id===f.tpl.value){
-        packing = tp.items.map(function(it){
-          return {id:uid(), text:it.text, done:false, zone:(it.zone==="checked"?"checked":"carry")};
-        });
-      }
+      if(tp.id!==f.tpl.value) return;
+      /* v2.9：模板可以有包 —— 包名（模板的參照）在這裡換成新旅程裡的 id */
+      var bagMap = {};
+      normalizeTplItems(tp.items).forEach(function(it){
+        var o = {id:uid(), text:it.text, done:false, zone:(it.zone==="checked"?"checked":"carry")};
+        if(it.kind==="bag"){ o.kind="bag"; bagMap[it.text]=o.id; }
+        else if(it.bag && bagMap[it.bag]) o.bag = bagMap[it.bag];
+        packing.push(o);
+      });
     });
   }
   var name = f.name.value.trim();

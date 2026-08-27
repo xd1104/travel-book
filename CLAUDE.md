@@ -2,6 +2,7 @@
 
 手機優先的旅遊行程 PWA。Benson 自用：一趟旅程 = 逐日行程 + 花費 + 打包清單 + 自由備註。
 UI/UX 以 `demo/index.html`（UX demo v3.1，Benson 拍板）為準，**勿自行改設計**；設計規格見 `DESIGN.md`。
+**打包分頁**另有一版拍板的 demo：`demo/packing.html`（v2.9 改版，規格＝`DESIGN.md` 附錄 D）。
 
 ## 架構（三層，比照 recipe-book — 別打破）
 - **電腦本機 Node App＝真本**：`server.js`（零執行期依賴，**port 3618**），服務 `public/` 前端＋`/api` CRUD，資料存本機 md 檔。
@@ -56,9 +57,15 @@ UI/UX 以 `demo/index.html`（UX demo v3.1，Benson 拍板）為準，**勿自�
 - 結構：frontmatter（`name/dest/emoji/theme/start/days/budget/createdAt/updatedAt`，字串 JSON-quoted、數字裸寫）＋ 四段 body：
   - `## 行程` → `### Day N` → 每行 `- {一筆行程點的單行 JSON}`（key 順序固定、空值不寫；欄位：id/title/time/cat/place/note/mapUrl/addr/cost/bookingRef/phone/url/hoursOpen/hoursClose/hours24/hours）
   - `## 花費` → 每行 `- {id,amount,cat,desc}`
-  - `## 打包` → 每行 `- {id,text,done,zone}`（zone: `carry`｜`checked`）
+  - `## 打包` → 每行 `- {id,text,done,zone,kind,bag}`（zone: `carry`｜`checked`；**key 順序固定、空值不寫**）
+    - **`kind:"bag"`（v2.9）＝這一筆是一個「包」**（盥洗包／3C 小包）；**缺值＝一般物品，舊資料零遷移**。
+    - **`bag:"<父包 id>"`（v2.9）＝這一筆在哪個包裡**；**缺值＝直接放在區裡**。
+    - 刻意**維持平的一行一筆、不用巢狀 JSON**（`{...,"items":[...]}` 會讓一行變很長、git diff 讀不了、衝突機率上升，而且前後端 parser 與所有既有的 `t.packing.filter(...)` 都要重寫）；也刻意**不獨立成 `## 包` 一段**（兩段之間的排序要同步，更痛）。
+    - **normalize 四條（`normalizePacking`，前後端各一套、必須冪等）**：① `bag` 指向不存在的 id → 降級成頂層（壞掉的參照要有 fallback，跟類別的 `other` 同一個哲學）；② `kind==="bag"` 強制沒有 `bag`（**只允許兩層**）；③ **包內物品的 `zone` 不是真值來源**，序列化前一律同步成父包的 zone（一個數值不可以兼兩份工作，否則會長出「包在行李、內容標隨身」的矛盾狀態）；④ 輸出時**包的小孩緊跟在包後面**（parser 不依賴這個順序，但檔案要人讀得懂）。
   - `## 備註` → **永遠最後一段、整段原樣文字**（parser 進入後不再解析 heading，所以備註裡打 `##` 不會壞）
-- 打包模板 `data/templates/<id>.md`：frontmatter `name` ＋ `## 項目` JSON 行（`{text,zone}`）。內建三款種子（intl-basic／local-trip／beach-onsen）：templates 資料夾全空時 server 啟動自動補（在 startup pull 之後，避免蓋掉手機建的）。
+- 打包模板 `data/templates/<id>.md`：frontmatter `name` ＋ `## 項目` JSON 行（`{text,zone,kind,bag}`，**kind/bag 是 v2.9 加的選填欄位、舊模板零遷移**）。內建三款種子（intl-basic／local-trip／beach-onsen）：templates 資料夾全空時 server 啟動自動補（在 startup pull 之後，避免蓋掉手機建的）。
+  - ⚠️ **模板的 `bag` 存的是「包的名字」不是 id**（`normalizeTplItems`）——模板檔本來就沒有 id、是人可以手打的小清單。normalize 四條跟 `normalizePacking` 一樣，只是父參照換成名字。
+  - **帶入的合併規則（v2.9，比舊的「同名跳過」多一層）**：① 模板裡的包，旅程裡**已經有同名的包 → 不新增第二個**，把缺的東西補進他原本那個包；② 一般項目的同名判定**連容器一起比**（`text` 相同**且**在同一個包裡才算重複——「常備藥」放在盥洗包裡跟放在行李箱底層是兩件事）。帶入兩次的第二次必須是「帶入 0 樣，N 個包直接合併」（冪等）。
 - **行程點類別（v1.1 起可自訂）＝單一檔 `data/categories.md`**：`## 類別` 下每行 `- {id,label,emoji,color}`。刻意單檔不一類一檔（清單小、Contents API 一次 PUT 一個 sha 最穩）；寫入＝整份覆蓋。內建六類種子（id：sight/food/transport/stay/shop/other，舊資料 id 不變無痛）；**「其他」（other）是刪類別後的 fallback，前後端 normalize 都強制存在、UI 不給刪**。檔案缺失時 GET 回內建六類（不落地寫檔，種子由啟動流程補）。
 - **`bookingRef`（訂位／票券代號）v1.1 起 UI 隱藏但資料保留**：編輯表單與詳細檢視都不顯示、submitStopEdit 刻意不碰它，serializer（cleanStop）照寫、parser 原樣帶回——別把這段當死碼清掉，會造成舊資料無聲丟失。
 - **縮天不刪資料**：serializer 會把超出 `days` 的 day-key 照寫（只略過空天），天數改回來資料就回來。
@@ -112,6 +119,22 @@ UI/UX 以 `demo/index.html`（UX demo v3.1，Benson 拍板）為準，**勿自�
   - **UI 層級（v2.7 的教訓）**：`.gap-note` 銜接條＝「這張卡的狀態」→ 無底色 hairline，**不准借藥丸的底色語言**；rail `.ln.to-late`＝「兩站之間的狀態」→ 只換顏色；`.fix-bar`＝「工具」→ 才給底色與 ≥54px。**配色是琥珀（`--warn-*`），沿用「有新版本」那套語言，刻意不用 `--bad`——語氣是提醒不是報錯。** 調整模式**不顯示銜接條**（會改卡片高度、干擾拖曳讓位），`.fix-bar` 照常顯示（在 timeline 之外）。
   - **`.gap-note::before` 是 `top:-18px` 不是 demo 的 -9px**：demo 註解宣稱 44px，實測只有 35.2px；往下不能擴（會蓋到地圖鈕與時間、把「看詳細」偷成「重新排」）⇒ 往上補，實測 44.2px。連帶**新增 `.stop-card .map-btn{position:relative}`**：銜接條是 positioned、地圖鈕 `margin-top:-10px` 會探進它那一行被疊住，實測命中高被壓成 41.5px；讓地圖鈕自己也 positioned 就贏回堆疊順序（零版面變化，回到 44.0px）。**這兩條別當多餘的修飾刪掉。**
   - **新增之後也要推**：`submitStop`／`submitTransit` 加完呼叫**既有的** `shiftAfter`（推的量＝新的停留／移動時間）。⚠️ 目前新增**一律加在最後**，所以實務上推到的筆數幾乎都是 0——這條是**為未來的「插在中間」先接好**。**拖曳排序後刻意不自動動**（意圖不明確），但排序後變成來不及時銜接條會自己出現。加完若這天接不上，toast 升級成可點的（`toast(msg,isErr,{label,fn})`＝v2.8 給既有 toast 加的**選配第三參數**，不帶就跟舊版一模一樣）。
+- **打包分頁 v2.9（區 → 包 → 物品；規格＝`DESIGN.md` 附錄 D，視覺與拖拉手感＝`demo/packing.html`，Benson 拍板；別自行改設計）**：
+  - **病根只有一個**：「這一筆東西的**歸屬**」從頭到尾沒有地方可以改。舊版每一列只有「勾／文字／✕」，**完全沒有編輯**——改名要刪掉重打、加錯區只能刪掉重加、想要「盥洗包」只能打成一行純文字（他真實資料裡的「盥洗包」「防水包」就是這樣來的＝需求訊號不是滿足）。所以這一版是**把歸屬變成一等公民**（可看、可拖、可選、可改），不是「加一個資料夾功能」。
+  - **拍板的六件事（不要再問、也不要自作主張改回去）**：① 包同時是**容器也是一件物品**（有自己的勾，也能展開編輯內容）；② **各勾各的**（勾包 ⇄ 勾包內物品完全不連動）；③ **只允許兩層**；④ 模板也要能有包；⑤ **點方塊＝勾、點文字＝編輯**；⑥ **拿掉上面那排區域 segmented**（兩區同時顯示）＋**拖曳把手 ☰ 常駐**（不用進調整模式）。
+  - **兩種進度、分母不同**（數字才對得起來）：區的「已打包 x / y」分母＝**這一區的頂層項目**（包算 1 件、包內物品不計）＝「行李箱裝好沒」；包的「已裝 x / y」分母才是包內物品＝「這個包裝好沒」。
+  - **勾包會自動收合，但還是點得開**：收合那一下在 `togglePack` 做（`ui.pk.open[id]=false`）。⚠️ `pkBagHtml` 的 `open` **不可以寫成 `!!ui.pk.open[p.id] && !p.done`** ——那會讓已打包的包**永遠打不開**（demo 有這個瑕疵，dev 實測抓到並修掉）。
+  - **⚠️ CSS 掃進子元件是這個專案反覆出現的坑**（跟 `#kr-full .kr-id span` 同一種病）：包是「一張卡的上下兩半」，所以 `.pk-bag .t{}` 會**連包裡面每一列的 `.t` 一起選到** ⇒ 勾了包連裡面都被劃掉，直接跟「各勾各的」矛盾。**包頭專用的規則一律綁 `.pk-bag .pk-head-row .t{}`**；加新規則前先問一次「這個選擇器會不會掃到子層」。另一條同族的：**包裡面的列一定要同時帶 `pk-row`**（所有 `done` 樣式都掛在 `.pk-row.done` 上，少了它包裡面勾起來畫面完全沒反應，**資料是對的所以功能測試抓不到**）。
+  - **拖曳是新的一套 `packDrag*`／`pkPaintDrag`，刻意不跟行程分頁的 `dragStart/dragMove/dragEnd` 共用**（那是「index 位移＋讓位動畫」，這裡是 slot 制，混在一起兩邊都會壞）。手感沿用行程：pointer events／只有把手可拖（`touch-action:none`）／`setPointerCapture`／`preventDefault`／邊緣自動捲動 **TH=80、SPEED=9**（上緣多讓 40px 給頂部橫條）。
+    - **落點＝slot 制**：每個插入點放一個零高度的錨 `<i class="pk-slot" data-z data-b data-ref>`（**要 `display:block` 才量得到寬度**），每次 pointermove 重算 `getBoundingClientRect`。**`data-ref` 是「插在哪一筆之前」不是 index**（移除來源之後 index 會失準）。紅利：跨區／進包／出包／包內排序／包本身排序**全部同一個機制**。
+    - ⚠️ **這裡用 client 座標是對的**（每一幀都重量、沒有「開始時的基準」，自動捲動後 rect 自己就更新了）。**若有人改回 transform 位移法，就必須回到 page 座標**（`clientY+scrollY`，那是行程那一套的規則）——別混用。
+    - **進包 vs 排到旁邊**：手指 Y 落在包頭那一列的**中間 60% ＝進包**，上下各 20% 退回一般插入點。拖的是包時整條判定跳過（包不能進包）。
+    - **落點提示三個一起上，缺一個都不夠**：① **頂部固定橫條**（`#pk-dragbar`，手指擋不到、不會抖）＝主要訊號；② 進包＝整張包卡珊瑚環＋包頭淡珊瑚底；③ 排序＝3px 插入線＋左端圓點＋**右端目的地藥丸**。插入線是 `position:absolute` 的**零高度疊層**（撐開間隙會讓所有 slot 在手指底下跳動、來回抖）。
+    - **⚠️ 兩個實測踩出來的細節，別「優化」掉**：(a) **浮起來的那張卡要浮在手指上方**（寬 `min(卡寬×0.72,250)`、右緣貼手指右邊 22px、**底緣在手指上方 14px**、頂端 clamp 52px）——壓在手指底下時它會**完整蓋住你正要放進去的那個包**，高亮等於沒做（實測：現在只蓋住目標包卡 17.3%）；(b) **被拿起來的那一列用 `visibility:hidden` 不能用 `display:none`**（display:none 實測位移 66px，手指底下的落點當場換人；visibility 實測 **0px**）。拖整個包時才另外把 `.pk-inner` 收掉（否則留一個大洞）。
+  - **拖拉不可以是唯一的路**（單手／清單很長／不想拖）：① **點文字 → 編輯 sheet → 「放在哪」**（把所有目的地攤平成可點清單，包本身只列得到區）；② **長按 450ms → 動作選單**（改名字／換位置、打開看裡面、標成已打包、複製、刪掉）。長按是隱藏手勢所以**只當捷徑不當唯一入口**；⚠️ 長按開了選單之後**那一下的 `click` 必須在 capture 階段吞掉**，否則會順便勾起來／開編輯。
+  - **新增分兩條、不是二選一**：**就地快速加**（每個容器底部一條虛線「＋ 加東西到…」，**「加到哪」由輸入框長在哪裡決定**、Enter 連續加、focus 不放掉）負責「量」；**彈窗只管結構**（建包、換位置）負責「結構」；模板負責「一整套」。新增與編輯**共用同一張 sheet**（跟 v2.6 地圖欄同一個決策，別複製第二份 UI）。
+  - **刪掉一個包＝裡面的東西「倒出來」留在同一區**，不跟著消失（toast 要講清楚幾樣、留在哪一區）。
+  - **`ZONES` 的順序與字（🧳 行李／🎒 隨身）維持原樣沒有動**——demo 自己寫了一組（隨身在前、字也不同），但那是 demo 的樣板資料，不在拍板的六件事裡，改它會連帶動到模板編輯與新旅程。
 - **`.gitattributes` 強制 md/js/css/html/json/yml 為 LF**；前後端 parser 開頭都先 `replace(/\r\n/g,'\n')`。壞的 JSON 行 parser 會跳過該行（不整檔炸掉）。（`.yml` 是 v2.5 補的：workflow 的 `run:` 區塊在 ubuntu bash 跑，CRLF 會變成 `$'\r': command not found`。）
 
 ## 圖示語言（v2.7，Benson 拍板；**這條界線別誤讀成「把 emoji 都換掉」**）
@@ -130,7 +153,7 @@ UI/UX 以 `demo/index.html`（UX demo v3.1，Benson 拍板）為準，**勿自�
 ## PWA 鐵律（recipe-book 血淚，全部已做，別退步）
 - 所有資源、manifest `start_url`/`scope`、SW scope **一律相對路徑**（Pages 在 `/travel-book/` 子路徑）。
 - SW：`skipWaiting()`＋activate 清舊快取＋`clients.claim()`；`/api/data` network-first、寫入 network-only、殼 cache-first。
-- ⚠️ **`keyring-unlock.js` 走 network-first，刻意不跟 app shell 一起 cache-first**（2026-08-21 加）：它的正本在 keyring repo、由 CI 自動同步過來，**更新時不會跳這裡的 cache 版本號**；若走 cache-first，手機會永遠停在第一次快取到的那一版，模組的修正永遠到不了使用者手上。它仍在 `SHELL` 預先快取，所以離線時一定拿得到快取、不會落到 `offlineJson()`。**別為了「統一策略」把它併回 app shell。****改前端記得把 sw.js 的 cache 版本號 +1**（`travel-shell-vN`，目前 **v18**；**版本號是「比已經上線的那個大」不是「比我開工時看到的大」**——v2.7 這輪就撞到：開工時檔案是 v15，做到一半另一條線先用掉 v16 並推上線了，只好跳 v17；**`SHELL_CACHE` 與 `DATA_CACHE` 兩個都要跳，別只跳一個**）**並同步 `APP_VER`**（見下方「版本與更新」）。
+- ⚠️ **`keyring-unlock.js` 走 network-first，刻意不跟 app shell 一起 cache-first**（2026-08-21 加）：它的正本在 keyring repo、由 CI 自動同步過來，**更新時不會跳這裡的 cache 版本號**；若走 cache-first，手機會永遠停在第一次快取到的那一版，模組的修正永遠到不了使用者手上。它仍在 `SHELL` 預先快取，所以離線時一定拿得到快取、不會落到 `offlineJson()`。**別為了「統一策略」把它併回 app shell。****改前端記得把 sw.js 的 cache 版本號 +1**（`travel-shell-vN`，目前 **v19**；**版本號是「比已經上線的那個大」不是「比我開工時看到的大」**——v2.7 這輪就撞到：開工時檔案是 v15，做到一半另一條線先用掉 v16 並推上線了，只好跳 v17；**`SHELL_CACHE` 與 `DATA_CACHE` 兩個都要跳，別只跳一個**）**並同步 `APP_VER`**（見下方「版本與更新」）。
 - input/textarea/select `font-size ≥ 16px`（iOS 防自動放大）；觸控目標 ≥ 44px；Enter 送出全部走原生 `<form>` + `type=submit`。
 - 換 icon 後 iOS 已安裝的 PWA 要移除主畫面重加才會換。
 

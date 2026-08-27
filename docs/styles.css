@@ -189,7 +189,12 @@ ul{padding:0; list-style:none;}
 .exp-amt{font-weight:800; font-size:16px; font-variant-numeric:tabular-nums; white-space:nowrap;}
 .x-btn{min-width:44px; min-height:44px; display:flex; align-items:center; justify-content:center; color:#c9beac; font-size:17px; flex:0 0 auto;}
 
-/* 打包 */
+/* 打包
+ * ⚠️ v2.9 改版後，下面這幾條的用途變了（照 DESIGN.md 附錄 D8 刻意保留，別當死碼清掉）：
+ *   .pack-add／.tpl-*  = 模板編輯 sheet 還在用
+ *   .pack-head／.seg   = .pack-head 打包分頁還在用；.seg 是行程/花費/模板那些地方在用
+ *   .pack-item／.pack-main／.pack-sec-empty／.tpl-row = 舊打包清單的樣式，目前沒有人用，
+ *      留著是因為 GitHub Pages 上可能還有舊快取的 app.js 在跑（SW 換版前的那一小段時間）。 */
 .seg{display:flex; background:#ece5d6; border-radius:14px; padding:3px; margin-bottom:10px;}
 .seg button{flex:1; min-height:44px; border-radius:11px; font-size:14.5px; font-weight:700; color:var(--muted);}
 .seg button.on{background:#fff; color:var(--ink); box-shadow:0 1px 4px rgba(0,0,0,.08);}
@@ -214,6 +219,135 @@ ul{padding:0; list-style:none;}
 .pack-item .txt{font-size:16px; overflow-wrap:anywhere;}
 .pack-item.done .txt{color:#b8ad9c; text-decoration:line-through;}
 
+/* ── 打包 v2.9（區 → 包 → 物品）：照 demo/packing.html，全部沿用既有色票，沒有新開顏色 ──
+   ⚠️ 這一組最容易踩的坑：包是「一張卡的上下兩半」，所以 .pk-bag .t{} 這種寫法會連包
+      「裡面」每一列的 .t 一起選到（跟 #kr-full .kr-id span 同一種病）——勾了包之後裡面
+      的東西也被劃掉，直接跟「各勾各的」矛盾。包頭專用的規則一律綁 .pk-head-row。
+      加新規則前先問一次：這個選擇器會不會掃到子層？ */
+.pk-top{display:flex; gap:8px; margin-bottom:16px;}
+.pk-top .pk-new{flex:1; min-height:50px; border-radius:15px; background:var(--acc); color:#fff;
+  font-size:15.5px; font-weight:800; display:flex; align-items:center; justify-content:center; gap:6px;
+  box-shadow:0 3px 10px rgba(226,80,63,.24);}
+.pk-top .pk-new:active{background:var(--acc-deep);}
+.pk-top .pk-tpl{flex:0 0 auto; min-height:50px; padding:0 15px; border-radius:15px; background:var(--card);
+  box-shadow:var(--shadow); font-size:13.5px; font-weight:700; color:#6b6154;}
+/* 區標題右邊的「已打包 3 / 8」＝可點的篩選（零新增元素換到篩選能力）
+   分母＝這一區的頂層項目（包算 1 件，包內物品不計）＝「行李箱裝好沒」 */
+.pk-cnt{min-height:44px; display:flex; align-items:center; gap:5px; padding:0 4px; margin-right:-4px;
+  font-size:13px; color:var(--muted); font-variant-numeric:tabular-nums; font-weight:600;}
+.pk-cnt.on{color:var(--acc-deep); font-weight:800;}
+.pk-cnt .fdot{width:6px; height:6px; border-radius:50%; background:var(--acc); display:none;}
+.pk-cnt.on .fdot{display:block;}
+.pk-list{position:relative;}
+/* 落點錨：零高度，但要 display:block 才量得到寬度；不佔任何版面 */
+.pk-slot{display:block; height:0; font-size:0; line-height:0;}
+.pk-card{background:var(--card); border-radius:16px; box-shadow:var(--shadow); margin-bottom:10px;}
+.pk-row{display:flex; align-items:center; min-width:0;}
+.pk-ck{width:44px; min-height:56px; flex:0 0 auto; display:flex; align-items:center; justify-content:center; margin-left:3px;}
+.pk-row.done .pk-box{background:var(--acc); border-color:var(--acc);}
+.pk-txt{flex:1; min-width:0; text-align:left; padding:8px 4px 8px 6px; min-height:56px; display:flex;
+  flex-direction:column; justify-content:center; gap:2px;}
+.pk-txt .t{font-size:16px; overflow-wrap:anywhere; line-height:1.35;}
+.pk-row.done .pk-txt .t{color:#b8ad9c; text-decoration:line-through;}
+.pk-grip{width:44px; min-height:56px; flex:0 0 auto; display:flex; align-items:center; justify-content:center;
+  color:#cbc0ad; font-size:19px; touch-action:none; margin-right:2px;}
+.pk-grip:active{color:#8f8578;}
+/* 包＝同一張白卡長高（層級靠「同一張卡＋左側 rail」不靠縮排，手機水平空間才不會被吃掉） */
+.pk-bag{overflow:hidden;}
+.pk-bag .pk-head-row{min-height:60px;}
+.pk-bag .pk-emo{font-size:17px; margin-right:1px;}
+.pk-bag .pk-head-row .t{font-weight:700;}
+.pk-bag.done .pk-head-row .t{color:#b8ad9c; text-decoration:line-through;}
+.pk-sub{font-size:12.5px; color:var(--muted); display:flex; align-items:center; gap:6px; font-variant-numeric:tabular-nums;}
+.pk-sub .bar{width:34px; height:4px; border-radius:99px; background:#ece5d6; overflow:hidden; flex:0 0 auto;}
+.pk-sub .bar i{display:block; height:100%; background:var(--acc); border-radius:99px;}
+.pk-sub .all{color:var(--ok); font-weight:700;}
+.pk-chev{font-size:14px; color:#b0a493; margin-left:7px; transition:transform .2s; display:inline-block; font-weight:700;}
+.pk-bag.open .pk-chev{transform:rotate(180deg);}
+.pk-inner{border-top:1px solid #f2ecdf; padding:2px 6px 8px 14px; position:relative;}
+.pk-inner::before{content:""; position:absolute; left:18px; top:4px; bottom:10px; width:2px; border-radius:2px; background:#efe8db;}
+.pk-sub-row{display:flex; align-items:center; min-width:0; padding-left:16px; border-bottom:1px solid #f7f2e7;}
+.pk-sub-row:last-of-type{border-bottom:none;}
+.pk-sub-row .pk-ck{width:44px; min-height:50px; margin-left:0;}
+.pk-sub-row .pk-box{width:23px; height:23px; font-size:12px;}
+.pk-sub-row .pk-txt{min-height:50px;}
+.pk-sub-row .pk-txt .t{font-size:15.5px;}
+.pk-sub-row .pk-grip{min-height:50px; width:44px; font-size:17px; margin-right:0;}
+.pk-inner-empty{font-size:13px; color:#b8ad9c; padding:10px 4px 4px 16px;}
+.pk-bagset{min-height:44px; font-size:13.5px; color:var(--muted); border:none; padding-left:16px;}
+/* 就地快速加：每個容器自己的底部都有一條（「加到哪」由輸入框長在哪裡決定，不用選） */
+.pk-add{display:flex; align-items:center; gap:8px; width:100%; min-height:46px; padding:0 12px;
+  border:1.5px dashed #ded5c4; border-radius:14px; color:#a89d8d; font-size:14.5px; font-weight:600;
+  background:none; margin:2px 0 14px; text-align:left;}
+.pk-add:active{border-color:var(--acc); color:var(--acc-deep);}
+.pk-inner .pk-add{margin:6px 0 2px; min-height:44px; font-size:14px;}
+.pk-form{display:flex; gap:8px; margin:2px 0 14px;}
+.pk-inner .pk-form{margin:6px 0 2px;}
+.pk-form input{flex:1; min-width:0; font-size:16px; padding:11px 13px; border:1.5px solid var(--acc);
+  border-radius:14px; background:var(--card); font-family:inherit; color:var(--ink);}
+.pk-form input:focus{outline:none;}
+.pk-form button{flex:0 0 auto; min-height:46px; min-width:56px; padding:0 14px; border-radius:14px;
+  background:var(--ink); color:#fff; font-size:15px; font-weight:700;}
+/* ── 拖曳中 ──
+   被拿起來的那一列用 visibility 不用 display：位置留著，清單才不會在「按下去的那一瞬間」
+   整個往上跳一列（display:none 實測位移 66px，手指底下的落點當場換人）。
+   拖整個包時才把內容收起來（否則留一個大洞）。 */
+.pk-card.is-dragging,.pk-sub-row.is-dragging{visibility:hidden;}
+.pk-bag.is-dragging .pk-inner{display:none;}
+/* 浮起來的那一張刻意「浮在手指上方」而不是壓在手指底下 ——
+   壓在底下時它剛好完整蓋住你正要放進去的那個包，高亮等於沒做。 */
+#pk-ghost{position:fixed; z-index:70; pointer-events:none; left:0; top:0;
+  box-shadow:0 10px 26px rgba(70,55,30,.28); border-radius:14px; background:var(--card); overflow:hidden;
+  border:1.5px solid var(--acc);}
+#pk-ghost .pk-row{min-height:46px;}
+#pk-ghost .pk-ck,#pk-ghost .pk-grip{min-height:46px;}
+#pk-ghost .pk-grip{color:var(--acc);}
+#pk-ghost .pk-txt{min-height:46px; padding-right:2px;}
+#pk-ghost .pk-txt .t{white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block;}
+#pk-ghost .pk-sub{display:none;}
+/* 落點①：插到兩列之間＝實線＋目的地藥丸（零高度疊層，不撐開間隙——撐開會讓 slot 在手指底下抖） */
+.pk-line{position:absolute; height:0; left:0; right:0; z-index:6; pointer-events:none;}
+.pk-line i{position:absolute; left:0; right:0; top:-2px; height:3px; border-radius:3px; background:var(--acc);}
+.pk-line b{position:absolute; right:0; top:-13px; background:var(--acc); color:#fff; font-size:11px; font-weight:800;
+  padding:4px 9px; border-radius:99px; white-space:nowrap; box-shadow:0 2px 8px rgba(226,80,63,.35);}
+.pk-line .dot{position:absolute; left:-3px; top:-5px; width:9px; height:9px; border-radius:50%; background:var(--acc);}
+/* 落點②：放進這個包＝整張包卡進入 target 狀態（跟插入線長得完全不一樣） */
+.pk-bag.drop-into{box-shadow:0 0 0 2.5px var(--acc), 0 6px 18px rgba(226,80,63,.2);}
+.pk-bag.drop-into .pk-head-row{background:#fff1ef;}
+.pk-bag.drop-into .pk-inner{background:#fffaf9;}
+/* 拖曳中固定在頂部的「會掉到哪」＝主要訊號（手指擋不到、不會抖、永遠讀得到） */
+#pk-dragbar{position:fixed; top:0; left:0; right:0; margin:0 auto; max-width:480px; z-index:72;
+  background:var(--acc); color:#fff; min-height:40px; display:flex; align-items:center; justify-content:center; gap:7px;
+  font-size:13.5px; font-weight:800; padding:0 14px; box-shadow:0 4px 14px rgba(226,80,63,.3);
+  padding-top:env(safe-area-inset-top);}
+#pk-dragbar .w{opacity:.8; font-weight:600;}
+/* 編輯 sheet 的「放在哪」／長按選單（拖拉之外的第二條路） */
+.pk-loc-lb{font-size:13px; font-weight:700; color:var(--muted); margin:16px 0 7px;}
+.loc-list{display:flex; flex-direction:column; gap:7px; margin-top:2px;}
+.loc{display:flex; align-items:center; gap:9px; min-height:48px; padding:0 12px; border-radius:13px;
+  border:1.5px solid var(--line); background:#fbfaf6; font-size:15px; text-align:left; width:100%;}
+.loc.sub{padding-left:26px; font-size:14.5px;}
+.loc.sub .arw{color:#c9beac; margin-left:-14px;}
+.loc.on{border-color:var(--acc); background:#fff1ef; color:var(--acc-deep); font-weight:800;}
+.loc .ck{margin-left:auto; color:var(--acc); font-weight:800;}
+.act-row{display:flex; align-items:center; gap:11px; width:100%; min-height:54px; padding:0 6px;
+  font-size:16px; font-weight:600; border-bottom:1px solid #f5f0e6; text-align:left;}
+.act-row .ai{width:26px; text-align:center; font-size:17px; flex:0 0 auto;}
+.act-row.danger{color:var(--bad);}
+.act-row:last-child{border-bottom:none;}
+.bag-toggle{display:flex; align-items:center; gap:10px; min-height:54px; padding:0 12px; border-radius:14px;
+  border:1.5px solid var(--line); background:#fbfaf6; width:100%; text-align:left; margin-bottom:13px;}
+.bag-toggle .bt-t{flex:1; min-width:0;}
+.bag-toggle .bt-t b{font-size:15px; display:block; font-weight:700;}
+.bag-toggle .bt-t span{font-size:12px; color:var(--muted);}
+.bag-toggle .sw{width:46px; height:28px; border-radius:99px; background:#ded5c4; position:relative; flex:0 0 auto; transition:background .18s;}
+.bag-toggle .sw i{position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:50%; background:#fff;
+  box-shadow:0 1px 3px rgba(0,0,0,.2); transition:transform .18s;}
+.bag-toggle.on{border-color:var(--acc); background:#fff1ef;}
+.bag-toggle.on .sw{background:var(--acc);}
+.bag-toggle.on .sw i{transform:translateX(18px);}
+.btn-ghost.pk-del{color:var(--bad); border-color:#f0d9d9;}
+
 /* 模板 sheet */
 .tpl-card{display:flex; align-items:center; gap:10px; padding:12px 4px; border-bottom:1px solid #f2ecdf;}
 .tpl-info{flex:1; min-width:0;}
@@ -226,6 +360,8 @@ ul{padding:0; list-style:none;}
 .tpl-sec-h{font-size:13px; font-weight:800; color:var(--muted); margin:14px 2px 4px;}
 .tpl-item{display:flex; align-items:center; gap:8px; padding:2px 0 2px 4px; border-bottom:1px solid #f7f2e7;}
 .tpl-item .tx{flex:1; font-size:15.5px; overflow-wrap:anywhere;}
+.tpl-item.sub{padding-left:22px;}
+.tpl-item.sub .tx{font-size:14.5px; color:#6b6154;}
 .tpl-none{color:#b8ad9c; font-size:13.5px; padding:6px 4px;}
 
 /* 勾選列（24 小時等） */
