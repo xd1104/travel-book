@@ -7,7 +7,7 @@ start: "2026-08-29"
 days: 3
 budget: 4600
 createdAt: "2026-07-23T15:51:59.575Z"
-updatedAt: "2026-08-27T16:34:12.011Z"
+updatedAt: "2026-08-27T16:35:13.344Z"
 ---
 
 ## 行程
@@ -67,6 +67,7 @@ updatedAt: "2026-08-27T16:34:12.011Z"
 - {"id":"xmrxovz2t55ct","text":"摺疊傘","done":false,"zone":"checked"}
 - {"id":"xmtbnjjuqx3gd","text":"保冷劑","done":false,"zone":"carry"}
 - {"id":"xmt2m04qbmpxm","text":"本色防水包","done":false,"zone":"carry","kind":"bag"}
+- {"id":"xmtbqudrkejbv","text":"第一天換洗衣物","done":false,"zone":"carry","bag":"xmt2m04qbmpxm"}
 
 ## 備註
 
