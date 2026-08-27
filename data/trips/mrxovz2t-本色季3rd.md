@@ -7,7 +7,7 @@ start: "2026-08-29"
 days: 3
 budget: 4600
 createdAt: "2026-07-23T15:51:59.575Z"
-updatedAt: "2026-08-27T16:36:40.081Z"
+updatedAt: "2026-08-27T16:37:21.486Z"
 ---
 
 ## 行程
@@ -47,7 +47,7 @@ updatedAt: "2026-08-27T16:36:40.081Z"
 - {"id":"xmrxovz2t755j","text":"行動電源","done":false,"zone":"carry"}
 - {"id":"xmrxovz2ta8dg","text":"水壺","done":false,"zone":"carry"}
 - {"id":"xmrxovz2tzpno","text":"換洗衣物","done":false,"zone":"checked","kind":"bag"}
-- {"id":"xmtbqw8ozvlc2","text":"第一天換洗衣服","done":false,"zone":"checked","bag":"xmrxovz2tzpno"}
+- {"id":"xmtbqw8ozvlc2","text":"禮拜日衣服","done":false,"zone":"checked","bag":"xmrxovz2tzpno"}
 - {"id":"xmrxovz2tqqtt","text":"盥洗包","done":false,"zone":"checked","kind":"bag"}
 - {"id":"xmtbqs4txyrda","text":"牙刷","done":false,"zone":"checked","bag":"xmrxovz2tqqtt"}
 - {"id":"xmtbqs6z5lix1","text":"牙膏","done":false,"zone":"checked","bag":"xmrxovz2tqqtt"}
