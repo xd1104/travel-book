@@ -7,7 +7,7 @@ start: "2026-08-29"
 days: 3
 budget: 4600
 createdAt: "2026-07-23T15:51:59.575Z"
-updatedAt: "2026-08-27T16:38:08.953Z"
+updatedAt: "2026-08-27T16:38:28.529Z"
 ---
 
 ## 行程
@@ -76,6 +76,7 @@ updatedAt: "2026-08-27T16:38:08.953Z"
 - {"id":"xmtbqudrkejbv","text":"第一天換洗衣物","done":false,"zone":"carry","bag":"xmt2m04qbmpxm"}
 - {"id":"xmtbquk20827j","text":"兩條毛巾","done":false,"zone":"carry","bag":"xmt2m04qbmpxm"}
 - {"id":"xmtbqulx7jpwf","text":"大毛巾","done":false,"zone":"carry","bag":"xmt2m04qbmpxm"}
+- {"id":"xmtbqykdjytx6","text":"透明塑膠袋（大）","done":false,"zone":"carry"}
 
 ## 備註
 
