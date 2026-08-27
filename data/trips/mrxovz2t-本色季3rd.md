@@ -7,7 +7,7 @@ start: "2026-08-29"
 days: 3
 budget: 4600
 createdAt: "2026-07-23T15:51:59.575Z"
-updatedAt: "2026-08-27T16:33:58.696Z"
+updatedAt: "2026-08-27T16:34:10.068Z"
 ---
 
 ## 行程
@@ -52,6 +52,7 @@ updatedAt: "2026-08-27T16:33:58.696Z"
 - {"id":"xmtbqs6z5lix1","text":"牙膏","done":false,"zone":"checked","bag":"xmrxovz2tqqtt"}
 - {"id":"xmtbqsb9mww8x","text":"乳液","done":false,"zone":"checked","bag":"xmrxovz2tqqtt"}
 - {"id":"xmt2m481oao4q","text":"小冰箱","done":false,"zone":"carry"}
+- {"id":"xmtbq0m1z6cq4","text":"錢","done":false,"zone":"carry"}
 - {"id":"xmt2m4l04kwzw","text":"門票","done":false,"zone":"carry"}
 - {"id":"xmtbnaxfm3suo","text":"折疊椅","done":false,"zone":"carry"}
 - {"id":"xmtbnbxu44zb2","text":"衛生棉","done":false,"zone":"checked"}
@@ -65,7 +66,6 @@ updatedAt: "2026-08-27T16:33:58.696Z"
 - {"id":"xmtbnhfufuww8","text":"垃圾袋","done":false,"zone":"checked"}
 - {"id":"xmrxovz2t55ct","text":"摺疊傘","done":false,"zone":"checked"}
 - {"id":"xmtbnjjuqx3gd","text":"保冷劑","done":false,"zone":"carry"}
-- {"id":"xmtbq0m1z6cq4","text":"錢","done":false,"zone":"carry"}
 - {"id":"xmt2m04qbmpxm","text":"本色防水包","done":false,"zone":"carry","kind":"bag"}
 
 ## 備註
