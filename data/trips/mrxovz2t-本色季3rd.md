@@ -7,7 +7,7 @@ start: "2026-08-29"
 days: 3
 budget: 4600
 createdAt: "2026-07-23T15:51:59.575Z"
-updatedAt: "2026-08-27T16:50:43.528Z"
+updatedAt: "2026-08-28T00:48:12.824Z"
 ---
 
 ## 行程
@@ -52,10 +52,10 @@ updatedAt: "2026-08-27T16:50:43.528Z"
 - {"id":"xmtbqy59s9we9","text":"襪子","done":true,"zone":"checked","bag":"xmrxovz2tzpno"}
 - {"id":"xmtbqxvn2v4it","text":"禮拜日本色替換衣服","done":false,"zone":"checked","bag":"xmrxovz2tzpno"}
 - {"id":"xmrxovz2tqqtt","text":"盥洗包","done":false,"zone":"checked","kind":"bag"}
-- {"id":"xmtbqs4txyrda","text":"牙刷","done":false,"zone":"checked","bag":"xmrxovz2tqqtt"}
-- {"id":"xmtbqs6z5lix1","text":"牙膏","done":false,"zone":"checked","bag":"xmrxovz2tqqtt"}
 - {"id":"xmtbqsb9mww8x","text":"乳液","done":true,"zone":"checked","bag":"xmrxovz2tqqtt"}
+- {"id":"xmtbqs6z5lix1","text":"牙膏","done":false,"zone":"checked","bag":"xmrxovz2tqqtt"}
 - {"id":"xmtbr0mtns7je","text":"護髮油","done":false,"zone":"checked","bag":"xmrxovz2tqqtt"}
+- {"id":"xmtbqs4txyrda","text":"牙刷","done":false,"zone":"checked","bag":"xmrxovz2tqqtt"}
 - {"id":"xmt2m481oao4q","text":"小冰箱","done":false,"zone":"carry"}
 - {"id":"xmtbq0m1z6cq4","text":"錢","done":true,"zone":"carry"}
 - {"id":"xmtbnaxfm3suo","text":"折疊椅","done":true,"zone":"carry"}
