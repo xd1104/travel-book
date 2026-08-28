@@ -7,7 +7,7 @@ start: "2026-08-29"
 days: 3
 budget: 4600
 createdAt: "2026-07-23T15:51:59.575Z"
-updatedAt: "2026-08-28T14:50:34.681Z"
+updatedAt: "2026-08-28T14:50:35.966Z"
 ---
 
 ## 行程
@@ -43,7 +43,7 @@ updatedAt: "2026-08-28T14:50:34.681Z"
 ## 打包
 
 - {"id":"xmtbrebi0khg0","text":"眼鏡盒","done":true,"zone":"carry"}
-- {"id":"xmrxovz2tta24","text":"身分證／健保卡","done":false,"zone":"carry"}
+- {"id":"xmrxovz2tta24","text":"身分證／健保卡","done":true,"zone":"carry"}
 - {"id":"xmrxovz2tx8bm","text":"悠遊卡","done":true,"zone":"carry"}
 - {"id":"xmrxovz2t755j","text":"行動電源","done":true,"zone":"carry"}
 - {"id":"xmrxovz2ta8dg","text":"水壺","done":true,"zone":"carry"}
