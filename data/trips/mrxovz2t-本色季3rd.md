@@ -7,7 +7,7 @@ start: "2026-08-29"
 days: 3
 budget: 4600
 createdAt: "2026-07-23T15:51:59.575Z"
-updatedAt: "2026-08-28T11:10:10.617Z"
+updatedAt: "2026-08-28T11:10:11.638Z"
 ---
 
 ## 行程
@@ -74,7 +74,7 @@ updatedAt: "2026-08-28T11:10:10.617Z"
 - {"id":"xmtbnjjuqx3gd","text":"保冷劑","done":false,"zone":"carry"}
 - {"id":"xmtbqykdjytx6","text":"透明塑膠袋（大）","done":false,"zone":"carry"}
 - {"id":"xmtbqzu67uk2d","text":"事前藥","done":false,"zone":"carry"}
-- {"id":"xmt2m04qbmpxm","text":"本色防水包","done":true,"zone":"carry","kind":"bag"}
+- {"id":"xmt2m04qbmpxm","text":"本色防水包","done":false,"zone":"carry","kind":"bag"}
 - {"id":"xmtbqudrkejbv","text":"第一天換洗衣物","done":true,"zone":"carry","bag":"xmt2m04qbmpxm"}
 - {"id":"xmtbquk20827j","text":"兩條毛巾","done":true,"zone":"carry","bag":"xmt2m04qbmpxm"}
 - {"id":"xmtbqulx7jpwf","text":"大毛巾","done":true,"zone":"carry","bag":"xmt2m04qbmpxm"}
