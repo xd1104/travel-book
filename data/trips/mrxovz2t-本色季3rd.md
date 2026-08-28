@@ -7,7 +7,7 @@ start: "2026-08-29"
 days: 3
 budget: 4600
 createdAt: "2026-07-23T15:51:59.575Z"
-updatedAt: "2026-08-28T14:49:17.192Z"
+updatedAt: "2026-08-28T14:49:23.441Z"
 ---
 
 ## 行程
@@ -47,7 +47,7 @@ updatedAt: "2026-08-28T14:49:17.192Z"
 - {"id":"xmrxovz2tx8bm","text":"悠遊卡","done":false,"zone":"carry"}
 - {"id":"xmrxovz2t755j","text":"行動電源","done":false,"zone":"carry"}
 - {"id":"xmrxovz2ta8dg","text":"水壺","done":true,"zone":"carry"}
-- {"id":"xmrxovz2tzpno","text":"換洗衣物","done":false,"zone":"checked","kind":"bag"}
+- {"id":"xmrxovz2tzpno","text":"換洗衣物","done":true,"zone":"checked","kind":"bag"}
 - {"id":"xmtbqw8ozvlc2","text":"禮拜日衣服","done":true,"zone":"checked","bag":"xmrxovz2tzpno"}
 - {"id":"xmtbqy1jdg5aj","text":"內衣褲","done":true,"zone":"checked","bag":"xmrxovz2tzpno"}
 - {"id":"xmtbqy59s9we9","text":"襪子","done":true,"zone":"checked","bag":"xmrxovz2tzpno"}
