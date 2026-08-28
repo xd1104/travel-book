@@ -7,7 +7,7 @@ start: "2026-08-29"
 days: 3
 budget: 4600
 createdAt: "2026-07-23T15:51:59.575Z"
-updatedAt: "2026-08-28T20:29:02.276Z"
+updatedAt: "2026-08-28T20:29:14.050Z"
 ---
 
 ## 行程
@@ -61,6 +61,7 @@ updatedAt: "2026-08-28T20:29:02.276Z"
 - {"id":"xmtcvetug1wv9","text":"刮鬍刀","done":false,"zone":"checked","bag":"xmrxovz2tqqtt"}
 - {"id":"xmtd2cye3ebbb","text":"臉部保濕","done":false,"zone":"checked","bag":"xmrxovz2tqqtt"}
 - {"id":"xmtd2da2kz38a","text":"個人藥物","done":true,"zone":"checked","bag":"xmrxovz2tqqtt"}
+- {"id":"xmtden6b2q3hq","text":"沖牙機","done":false,"zone":"checked","bag":"xmrxovz2tqqtt"}
 - {"id":"xmt2m481oao4q","text":"小冰箱","done":true,"zone":"carry"}
 - {"id":"xmtbq0m1z6cq4","text":"錢","done":true,"zone":"carry"}
 - {"id":"xmtbnaxfm3suo","text":"折疊椅","done":true,"zone":"carry"}
