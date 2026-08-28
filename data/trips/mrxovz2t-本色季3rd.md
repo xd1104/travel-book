@@ -7,7 +7,7 @@ start: "2026-08-29"
 days: 3
 budget: 4600
 createdAt: "2026-07-23T15:51:59.575Z"
-updatedAt: "2026-08-28T15:25:37.246Z"
+updatedAt: "2026-08-28T15:25:38.853Z"
 ---
 
 ## 行程
@@ -76,7 +76,7 @@ updatedAt: "2026-08-28T15:25:37.246Z"
 - {"id":"xmtbnhfufuww8","text":"垃圾袋","done":true,"zone":"checked"}
 - {"id":"xmrxovz2t55ct","text":"摺疊傘","done":true,"zone":"checked"}
 - {"id":"xmtd3sl2uexn6","text":"化妝包","done":true,"zone":"checked"}
-- {"id":"xmtd3sq5065mh","text":"隱形眼鏡","done":false,"zone":"checked"}
+- {"id":"xmtd3sq5065mh","text":"隱形眼鏡","done":true,"zone":"checked"}
 - {"id":"xmtbnjjuqx3gd","text":"保冷劑","done":false,"zone":"carry"}
 - {"id":"xmtbqykdjytx6","text":"透明塑膠袋（大）","done":true,"zone":"carry"}
 - {"id":"xmtbqzu67uk2d","text":"事前藥","done":false,"zone":"carry"}
