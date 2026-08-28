@@ -7,7 +7,7 @@ start: "2026-08-29"
 days: 3
 budget: 4600
 createdAt: "2026-07-23T15:51:59.575Z"
-updatedAt: "2026-08-28T20:34:21.975Z"
+updatedAt: "2026-08-28T20:34:23.887Z"
 ---
 
 ## 行程
@@ -58,7 +58,7 @@ updatedAt: "2026-08-28T20:34:21.975Z"
 - {"id":"xmtbr0mtns7je","text":"護髮油","done":true,"zone":"checked","bag":"xmrxovz2tqqtt"}
 - {"id":"xmtbqs4txyrda","text":"牙刷","done":true,"zone":"checked","bag":"xmrxovz2tqqtt"}
 - {"id":"xmtcuorr97idb","text":"洗面乳","done":true,"zone":"checked","bag":"xmrxovz2tqqtt"}
-- {"id":"xmtcvetug1wv9","text":"刮鬍刀","done":false,"zone":"checked","bag":"xmrxovz2tqqtt"}
+- {"id":"xmtcvetug1wv9","text":"刮鬍刀","done":true,"zone":"checked","bag":"xmrxovz2tqqtt"}
 - {"id":"xmtd2cye3ebbb","text":"臉部保濕","done":false,"zone":"checked","bag":"xmrxovz2tqqtt"}
 - {"id":"xmtd2da2kz38a","text":"個人藥物","done":true,"zone":"checked","bag":"xmrxovz2tqqtt"}
 - {"id":"xmtden6b2q3hq","text":"沖牙機","done":true,"zone":"checked","bag":"xmrxovz2tqqtt"}
