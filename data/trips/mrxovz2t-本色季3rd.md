@@ -7,7 +7,7 @@ start: "2026-08-29"
 days: 3
 budget: 4600
 createdAt: "2026-07-23T15:51:59.575Z"
-updatedAt: "2026-08-28T20:29:42.378Z"
+updatedAt: "2026-08-28T20:29:52.388Z"
 ---
 
 ## 行程
@@ -55,7 +55,7 @@ updatedAt: "2026-08-28T20:29:42.378Z"
 - {"id":"xmrxovz2tqqtt","text":"盥洗包","done":false,"zone":"checked","kind":"bag"}
 - {"id":"xmtbqsb9mww8x","text":"乳液","done":true,"zone":"checked","bag":"xmrxovz2tqqtt"}
 - {"id":"xmtbqs6z5lix1","text":"牙膏","done":true,"zone":"checked","bag":"xmrxovz2tqqtt"}
-- {"id":"xmtbr0mtns7je","text":"護髮油","done":false,"zone":"checked","bag":"xmrxovz2tqqtt"}
+- {"id":"xmtbr0mtns7je","text":"護髮油","done":true,"zone":"checked","bag":"xmrxovz2tqqtt"}
 - {"id":"xmtbqs4txyrda","text":"牙刷","done":true,"zone":"checked","bag":"xmrxovz2tqqtt"}
 - {"id":"xmtcuorr97idb","text":"洗面乳","done":false,"zone":"checked","bag":"xmrxovz2tqqtt"}
 - {"id":"xmtcvetug1wv9","text":"刮鬍刀","done":false,"zone":"checked","bag":"xmrxovz2tqqtt"}
