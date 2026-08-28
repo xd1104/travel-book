@@ -7,7 +7,7 @@ start: "2026-08-29"
 days: 3
 budget: 4600
 createdAt: "2026-07-23T15:51:59.575Z"
-updatedAt: "2026-08-27T16:12:04.406Z"
+updatedAt: "2026-08-27T16:50:43.528Z"
 ---
 
 ## 行程
@@ -46,24 +46,38 @@ updatedAt: "2026-08-27T16:12:04.406Z"
 - {"id":"xmrxovz2tx8bm","text":"悠遊卡","done":false,"zone":"carry"}
 - {"id":"xmrxovz2t755j","text":"行動電源","done":false,"zone":"carry"}
 - {"id":"xmrxovz2ta8dg","text":"水壺","done":false,"zone":"carry"}
-- {"id":"xmrxovz2tzpno","text":"換洗衣物","done":false,"zone":"checked"}
-- {"id":"xmrxovz2tqqtt","text":"盥洗包","done":false,"zone":"checked"}
-- {"id":"xmrxovz2t55ct","text":"摺疊傘","done":false,"zone":"checked"}
-- {"id":"xmt2m04qbmpxm","text":"防水包","done":false,"zone":"checked"}
+- {"id":"xmrxovz2tzpno","text":"換洗衣物","done":false,"zone":"checked","kind":"bag"}
+- {"id":"xmtbqw8ozvlc2","text":"禮拜日衣服","done":false,"zone":"checked","bag":"xmrxovz2tzpno"}
+- {"id":"xmtbqy1jdg5aj","text":"內衣褲","done":false,"zone":"checked","bag":"xmrxovz2tzpno"}
+- {"id":"xmtbqy59s9we9","text":"襪子","done":true,"zone":"checked","bag":"xmrxovz2tzpno"}
+- {"id":"xmtbqxvn2v4it","text":"禮拜日本色替換衣服","done":false,"zone":"checked","bag":"xmrxovz2tzpno"}
+- {"id":"xmrxovz2tqqtt","text":"盥洗包","done":false,"zone":"checked","kind":"bag"}
+- {"id":"xmtbqs4txyrda","text":"牙刷","done":false,"zone":"checked","bag":"xmrxovz2tqqtt"}
+- {"id":"xmtbqs6z5lix1","text":"牙膏","done":false,"zone":"checked","bag":"xmrxovz2tqqtt"}
+- {"id":"xmtbqsb9mww8x","text":"乳液","done":true,"zone":"checked","bag":"xmrxovz2tqqtt"}
+- {"id":"xmtbr0mtns7je","text":"護髮油","done":false,"zone":"checked","bag":"xmrxovz2tqqtt"}
 - {"id":"xmt2m481oao4q","text":"小冰箱","done":false,"zone":"carry"}
-- {"id":"xmt2m4l04kwzw","text":"門票","done":false,"zone":"carry"}
-- {"id":"xmtbnaxfm3suo","text":"折疊椅","done":false,"zone":"carry"}
+- {"id":"xmtbq0m1z6cq4","text":"錢","done":true,"zone":"carry"}
+- {"id":"xmtbnaxfm3suo","text":"折疊椅","done":true,"zone":"carry"}
 - {"id":"xmtbnbxu44zb2","text":"衛生棉","done":false,"zone":"checked"}
 - {"id":"xmtbnczt2hs25","text":"拖鞋","done":false,"zone":"checked"}
-- {"id":"xmtbne3u04gxz","text":"襪子2雙","done":false,"zone":"checked"}
 - {"id":"xmtbnebs5i06m","text":"鯊魚夾","done":false,"zone":"checked"}
 - {"id":"xmtbnef9lmhd6","text":"沖牙機","done":false,"zone":"checked"}
 - {"id":"xmtbneixlhfdt","text":"電動牙刷","done":false,"zone":"checked"}
+- {"id":"xmtbqvi2dzoz8","text":"野餐墊","done":true,"zone":"carry"}
+- {"id":"xmt2m4l04kwzw","text":"門票","done":true,"zone":"carry"}
 - {"id":"xmtbng0qr0o7n","text":"扇子","done":false,"zone":"carry"}
 - {"id":"xmtbngmop4mo2","text":"慕斯 髮蠟","done":true,"zone":"checked"}
 - {"id":"xmtbnhfufuww8","text":"垃圾袋","done":false,"zone":"checked"}
+- {"id":"xmrxovz2t55ct","text":"摺疊傘","done":false,"zone":"checked"}
+- {"id":"xmtbrebi0khg0","text":"眼鏡盒","done":false,"zone":"checked"}
 - {"id":"xmtbnjjuqx3gd","text":"保冷劑","done":false,"zone":"carry"}
-- {"id":"xmtbq0m1z6cq4","text":"錢","done":false,"zone":"carry"}
+- {"id":"xmtbqykdjytx6","text":"透明塑膠袋（大）","done":false,"zone":"carry"}
+- {"id":"xmtbqzu67uk2d","text":"事前藥","done":false,"zone":"carry"}
+- {"id":"xmt2m04qbmpxm","text":"本色防水包","done":false,"zone":"carry","kind":"bag"}
+- {"id":"xmtbqudrkejbv","text":"第一天換洗衣物","done":true,"zone":"carry","bag":"xmt2m04qbmpxm"}
+- {"id":"xmtbquk20827j","text":"兩條毛巾","done":true,"zone":"carry","bag":"xmt2m04qbmpxm"}
+- {"id":"xmtbqulx7jpwf","text":"大毛巾","done":true,"zone":"carry","bag":"xmt2m04qbmpxm"}
 
 ## 備註
 
