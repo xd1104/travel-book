@@ -11,7 +11,7 @@
 /* ============ 常數 ============ */
 /* 版本號的唯一來源：首頁 footer 與「版本」sheet 都讀它。
  * 改前端時跟 sw.js 的 cache 版本號一起 +1（見「版本與更新」段）。 */
-var APP_VER="3.2";
+var APP_VER="3.3";
 
 /* 打包把手的三個門檻（v3.0，DESIGN.md 附錄 E2）——「先觀察，後接管」：
  * pointerdown 只進入「待命」，垂直帶開＝你在捲動就放行，橫向帶開或按住夠久才真的開始拖。
@@ -409,8 +409,22 @@ function cleanStop(s){
   if(s.hours) o.hours = String(s.hours);
   return o;
 }
+/* 花費的「第幾天」（v3.3 起的選填欄位；server.js mirror，改要一起改）
+ *   "pre" ＝ 行前（機票／訂房這種出發前就花的錢，不屬於任何一天，但通常是最大筆）
+ *   1..N  ＝ Day N
+ *   缺值  ＝ 沒指定 ⇒ **舊資料零遷移、序列化後逐字不變**（跟 kind/bag 同一招）
+ * ⚠️ 刻意不驗證上限：**縮天不刪資料**（跟 itinerary 同一個哲學）——day 比現在的 days 大時
+ *    資料照留、選單也照列得出來，天數改回來就回得來。 */
+function expDayVal(v){
+  if(v==="pre") return "pre";
+  var n = Math.floor(Number(v));
+  return (n>=1 && isFinite(n)) ? n : 0;               /* 0 ＝ 沒指定 */
+}
 function cleanExpense(e){
-  return { id:String(e.id||""), amount:Number(e.amount)||0, cat:String(e.cat||"other"), desc:String(e.desc||"") };
+  var o = { id:String(e.id||""), amount:Number(e.amount)||0, cat:String(e.cat||"other"), desc:String(e.desc||"") };
+  var d = expDayVal(e.day);
+  if(d) o.day = d;                                    /* 空值不寫 */
+  return o;
 }
 /* 打包項目（v2.9 起多了 kind／bag 兩個選填欄位＝「包」）
  * key 順序固定 id,text,done,zone,kind,bag；空值不寫 ⇒ 舊資料（沒有 kind/bag）零遷移、序列化後逐字不變 */
@@ -1158,8 +1172,17 @@ function viewPlan(t){
       + '<span class="fx-tx"><b>這一天有 '+lateKeys.length+' 處銜接不上</b><span>'+sub+'</span></span>'
       + '<span class="fx-go">重新排 ›</span></button>';
   }
+  /* v3.3：這一天花了多少。**沒花錢就整條不顯示**（0 元不是資訊，只是噪音），
+     調整模式也不顯示（跟銜接條同一個理由：會改動 timeline 上方的高度、干擾拖曳讓位）。 */
+  var dSpent = spentOfDay(t, ui.day);
+  var spendBar = (dSpent>0 && !ui.edit)
+    ? '<button type="button" class="day-spend" onclick="setTab(\'budget\')">'
+      + '<span class="ds-l">這天花了</span><b>'+money(dSpent)+'</b>'
+      + '<span class="ds-go">看花費 ›</span></button>'
+    : "";
   return '<div class="day-bar"><div class="day-chips">'+chips+'</div>'
     + '<button class="edit-toggle '+(ui.edit?"on":"")+'" onclick="toggleEdit()">'+(ui.edit?"完成":"調整")+'</button></div>'
+    + spendBar
     + fix
     + '<div class="timeline" id="timeline">'+items+'</div>';
 }
@@ -1550,6 +1573,52 @@ function submitStopEdit(ev, idx){
 }
 
 /* ---- 花費 ---- */
+/* 按天分組（v3.3）。順序：行前 → Day 1..N →（超出目前天數的照排）→ 沒指定。
+   ⚠️ 空的組不顯示（filter），否則 7 天的旅程一開頁面就是 9 個空標題。 */
+function expGroups(t){
+  var map = {}, order = [];
+  function bucket(k){ if(!map[k]){ map[k]=[]; order.push(k); } return map[k]; }
+  bucket("pre");
+  for(var i=1;i<=t.days;i++) bucket(String(i));
+  var extra = [];
+  t.expenses.forEach(function(e){
+    var d = expDayVal(e.day);
+    if(typeof d==="number" && d>t.days && extra.indexOf(d)<0) extra.push(d);
+  });
+  extra.sort(function(a,b){ return a-b; }).forEach(function(d){ bucket(String(d)); });
+  bucket("none");
+  t.expenses.forEach(function(e){
+    var d = expDayVal(e.day);
+    bucket(d ? String(d) : "none").push(e);
+  });
+  return order.filter(function(k){ return map[k].length; }).map(function(k){
+    var sum = 0;
+    map[k].forEach(function(e){ sum += Number(e.amount)||0; });
+    return { key:k, items:map[k], sum:sum };
+  });
+}
+function expGroupHead(t, k){
+  if(k==="pre")  return { t:"🎫 行前", sub:"出發前就花的" };
+  if(k==="none") return { t:"沒指定哪一天", sub:"" };
+  var s = parseDate(t.start), n = Number(k), d = s ? addDays(s, n-1) : null;
+  return { t:"Day "+n, sub: (n>t.days ? "超出目前天數" : (d ? fmtMD(d)+" 週"+WD[d.getDay()] : "")) };
+}
+/* 這一天／這一組花了多少（viewPlan 也用同一支，兩邊口徑一定一樣） */
+function spentOfDay(t, day){
+  var s = 0;
+  t.expenses.forEach(function(e){ if(expDayVal(e.day)===day) s += Number(e.amount)||0; });
+  return s;
+}
+function expRowHtml(e){
+  var c = ECATS[e.cat]||ECATS.other;
+  return '<div class="exp-item">'
+    + '<div class="exp-emo">'+c.emoji+'</div>'
+    + '<button class="exp-mid" onclick="openExpenseSheet(\''+e.id+'\')">'
+    +   '<span class="d">'+esc(e.desc||c.label)+'</span><span class="c">'+c.label+'</span></button>'
+    + '<div class="exp-amt">'+money(e.amount)+'</div>'
+    + '<button class="x-btn" onclick="delExpense(\''+e.id+'\')" aria-label="刪除">✕</button>'
+    + '</div>';
+}
 function viewBudget(t){
   var spent = spentOf(t);
   var pct = t.budget>0 ? Math.min(100, Math.round(spent/t.budget*100)) : 0;
@@ -1565,14 +1634,14 @@ function viewBudget(t){
   if(!t.expenses.length){
     rows = '<div class="empty"><div class="big">🧾</div><p>還沒有任何花費，<br>點右下角 ＋ 記第一筆</p></div>';
   }else{
-    rows = t.expenses.slice().reverse().map(function(e){
-      var c = ECATS[e.cat]||ECATS.other;
-      return '<div class="exp-item">'
-        + '<div class="exp-emo">'+c.emoji+'</div>'
-        + '<div class="exp-mid"><div class="d">'+esc(e.desc||c.label)+'</div><div class="c">'+c.label+'</div></div>'
-        + '<div class="exp-amt">'+money(e.amount)+'</div>'
-        + '<button class="x-btn" onclick="delExpense(\''+e.id+'\')" aria-label="刪除">✕</button>'
-        + '</div>';
+    rows = expGroups(t).map(function(g, gi){
+      var h = expGroupHead(t, g.key);
+      /* 組標題沿用打包區標題那套語言（.pack-head：左邊標題右邊數字），
+         不另外發明第三種群組標頭。 */
+      return '<div class="pack-head exp-head'+(gi===0?" first":"")+'"><span class="t">'+h.t
+        + (h.sub ? '<span class="sub">（'+h.sub+'）</span>' : "") + '</span>'
+        + '<span class="n">'+money(g.sum)+'</span></div>'
+        + g.items.slice().reverse().map(expRowHtml).join("");
     }).join("");
   }
   return '<section class="budget-card">'
@@ -2761,19 +2830,58 @@ function afterAddToast(list, moved, push){
   }
 }
 
-function openExpenseSheet(){
-  if(!requireWrite("記一筆花費")) return;
+/* 新增花費時預設帶「今天是這趟的第幾天」：出發前＝行前、旅程中＝那一天。
+   結束之後刻意不猜（留「沒指定」讓他自己選）——事後補記時猜錯比留白更煩。 */
+function todayExpDay(t){
+  var s = parseDate(t.start); if(!s) return 0;
+  var a = new Date(s.getFullYear(), s.getMonth(), s.getDate());
+  var n = new Date(); n = new Date(n.getFullYear(), n.getMonth(), n.getDate());
+  var diff = Math.round((n - a) / 86400000);
+  if(diff < 0) return "pre";
+  if(diff < t.days) return diff + 1;
+  return 0;
+}
+function expDayOpts(t, cur){
+  var s = parseDate(t.start), h = "";
+  h += '<option value=""'+(!cur?" selected":"")+'>沒指定</option>';
+  h += '<option value="pre"'+(cur==="pre"?" selected":"")+'>🎫 行前（機票・訂房…）</option>';
+  for(var i=1;i<=t.days;i++){
+    var d = s ? addDays(s,i-1) : null;
+    h += '<option value="'+i+'"'+(cur===i?" selected":"")+'>Day '+i
+      + (d ? '・'+fmtMD(d)+' 週'+WD[d.getDay()] : "") + '</option>';
+  }
+  /* 縮天之後 day 還留在資料裡的那些：選單也要列得出來，
+     否則一點開編輯就被無聲改成「沒指定」＝縮天不刪資料被繞過去了。 */
+  if(typeof cur==="number" && cur>t.days){
+    h += '<option value="'+cur+'" selected>Day '+cur+'（超出目前天數）</option>';
+  }
+  return h;
+}
+/* 新增與編輯共用同一張 sheet（跟 v2.6 地圖欄、打包 v2.9 同一個決策，別複製第二份 UI）。
+   ⚠️ 沒有編輯＝「這一筆的歸屬沒地方改」，那正是打包 v2.9 診斷出來的病根：
+      記錯天只能刪掉重打。加了 day 就一定要同時給得了改的地方。 */
+function openExpenseSheet(editId){
+  if(!requireWrite(editId ? "改這筆花費" : "記一筆花費")) return;
+  var t = curTrip(); if(!t) return;
+  var ex = null;
+  if(editId) t.expenses.forEach(function(e){ if(e.id===editId) ex=e; });
+  var curCat = ex ? ex.cat : "food";
+  var curDay = ex ? expDayVal(ex.day) : todayExpDay(t);
   var opts = Object.keys(ECATS).map(function(k){
-    return '<option value="'+k+'">'+ECATS[k].emoji+' '+ECATS[k].label+'</option>';
+    return '<option value="'+k+'"'+(k===curCat?" selected":"")+'>'+ECATS[k].emoji+' '+ECATS[k].label+'</option>';
   }).join("");
-  openSheet("記一筆花費",
+  openSheet(ex ? "改這筆花費" : "記一筆花費",
     '<form onsubmit="submitExpense(event)">'
+    /* ⚠️ 這個欄位不可以叫 name="id"：HTMLFormElement 本身就有 .id（元素的 HTML id），
+       f.id 會拿到那個字串而不是這個 input，編輯會整個失效。 */
+    + '<input type="hidden" name="eid" value="'+(ex?esc(ex.id):"")+'">'
     + '<div class="f-row2">'
-    +   '<label class="field"><span class="fl">金額（NT$）*</span><input type="number" name="amount" required min="0" step="1" inputmode="numeric" placeholder="0"></label>'
+    +   '<label class="field"><span class="fl">金額（NT$）*</span><input type="number" name="amount" required min="0" step="1" inputmode="numeric" placeholder="0" value="'+(ex?ex.amount:"")+'"></label>'
     +   '<label class="field"><span class="fl">類別</span><select name="cat">'+opts+'</select></label>'
     + '</div>'
-    + '<label class="field"><span class="fl">說明</span><input name="desc" placeholder="例：teamLab 門票" autocomplete="off"></label>'
-    + '<button class="btn-primary" type="submit">記下來</button>'
+    + '<label class="field"><span class="fl">哪一天</span><select name="day">'+expDayOpts(t,curDay)+'</select></label>'
+    + '<label class="field"><span class="fl">說明</span><input name="desc" placeholder="例：teamLab 門票" autocomplete="off" value="'+(ex?esc(ex.desc):"")+'"></label>'
+    + '<button class="btn-primary" type="submit">'+(ex?"存起來":"記下來")+'</button>'
     + '</form>');
 }
 function submitExpense(ev){
@@ -2782,7 +2890,13 @@ function submitExpense(ev){
   var f = ev.target, t = curTrip();
   var amt = Number(f.amount.value);
   if(!(amt>=0)) return;
-  t.expenses.push({ id:uid(), amount:amt, cat:f.cat.value, desc:f.desc.value.trim() });
+  var day = expDayVal(f.day.value), id = f.eid.value, ex = null;
+  if(id) t.expenses.forEach(function(e){ if(e.id===id) ex=e; });
+  if(ex){
+    ex.amount=amt; ex.cat=f.cat.value; ex.desc=f.desc.value.trim(); ex.day=day;
+  }else{
+    t.expenses.push({ id:uid(), amount:amt, cat:f.cat.value, desc:f.desc.value.trim(), day:day });
+  }
   persistTrip(t); closeSheet(); render();
 }
 

@@ -56,7 +56,15 @@ UI/UX 以 `demo/index.html`（UX demo v3.1，Benson 拍板）為準，**勿自�
 - 每趟旅程一個 `data/trips/<id>.md`，id = `<ts36>-<slug>`（slug 保留中文）。
 - 結構：frontmatter（`name/dest/emoji/theme/start/days/budget/createdAt/updatedAt`，字串 JSON-quoted、數字裸寫）＋ 四段 body：
   - `## 行程` → `### Day N` → 每行 `- {一筆行程點的單行 JSON}`（key 順序固定、空值不寫；欄位：id/title/time/cat/place/note/mapUrl/addr/cost/bookingRef/phone/url/hoursOpen/hoursClose/hours24/hours）
-  - `## 花費` → 每行 `- {id,amount,cat,desc}`
+  - `## 花費` → 每行 `- {id,amount,cat,desc,day}`（key 順序固定、空值不寫）
+    - **`day`（v3.3）＝這筆算在哪一天**：`"pre"` ＝**行前**（機票／訂房這種出發前就花的錢，不屬於任何一天但通常最大筆，Benson 拍板要有這個選項）；`1..N` ＝ Day N；**缺值＝沒指定，舊資料零遷移**（實測：舊檔 parse→serialize 逐字不變）。
+    - **刻意不驗證上限**：`day` 比目前的 `days` 大時照留、選單也照列得出來（`Day 9（超出目前天數）`）——跟 itinerary 的**縮天不刪資料**同一個哲學。少了選單那條，一點開編輯就會被無聲改成「沒指定」。
+    - **前後端各一套 `expDayVal`／`cleanExpense`，改要一起改**（已有逐筆對照測試：9 個邊界 case 兩邊輸出必須逐字相同）。
+    - **UI（v3.3，定案）**：① 花費頁**按天分組**，順序＝行前 → Day 1..N →（超出天數的）→ 沒指定，**空的組不顯示**（7 天旅程一開頁面就 9 個空標題）；每組右邊是小計。組標題**沿用 `.pack-head`（打包區標題）那套語言，不發明第三種群組標頭**。② 行程分頁顯示「這天花了 X」（`.day-spend`），**0 元不顯示**（不是資訊、只是噪音）、**調整模式不顯示**（跟銜接條同一個理由：會改動 timeline 上方高度、干擾拖曳讓位）。③ 新增時**預設帶「今天是這趟的第幾天」**（出發前＝行前、旅程中＝那一天、結束後不猜）。
+    - **一定要同時給「改」的地方**：`.exp-mid` 整塊文字＝編輯入口，**新增與編輯共用同一張 sheet**（跟 v2.6 地圖欄、打包 v2.9 同一個決策）。理由：加了歸屬卻沒有地方改＝記錯天只能刪掉重打，**那正是打包 v2.9 診斷出來的病根**，不要再犯一次。
+    - ⚠️ **`name="id"` 不可以用**：`HTMLFormElement` 本身就有 `.id`（元素的 HTML id），`f.id` 會拿到那個字串而不是 input，編輯整個失效。這裡用 `name="eid"`。
+    - ⚠️ **`.exp-head` 一律寫成 `.pack-head.exp-head`（0,2,0）**：元素同時帶兩個 class，而 `.pack-head` 定義在 `.exp-*` 那一段**後面**，同權重後來居上 ⇒ 只寫 `.exp-head{margin:20px…}` 會被 `.pack-head{margin:2px…}` 蓋掉（實測上緣是 2px）。
+    - ⚠️ **第一組的上緣留白不可以用 `:first-of-type`**：它比的是「兄弟裡第一個 div」，而 `.cat-sums`／`.sec-title` 都排在前面 ⇒ 永遠不生效。改由 JS 標 `.first`。（`:first-of-type` 在這個專案已經害過三次。）
   - `## 打包` → 每行 `- {id,text,done,zone,kind,bag}`（zone: `carry`｜`checked`；**key 順序固定、空值不寫**）
     - **`kind:"bag"`（v2.9）＝這一筆是一個「包」**（盥洗包／3C 小包）；**缺值＝一般物品，舊資料零遷移**。
     - **`bag:"<父包 id>"`（v2.9）＝這一筆在哪個包裡**；**缺值＝直接放在區裡**。

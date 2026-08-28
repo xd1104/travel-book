@@ -220,8 +220,20 @@ function cleanStop(s) {
   if (s.hours) o.hours = String(s.hours); // 舊自由文字（向下相容）
   return o;
 }
+/* 花費的「第幾天」（v3.3 起的選填欄位；public/app.js mirror，改要一起改）
+ *   'pre' ＝ 行前（機票／訂房這種出發前就花的錢）；1..N ＝ Day N；缺值 ＝ 沒指定
+ *   空值不寫 ⇒ 舊資料零遷移、序列化後逐字不變。
+ * ⚠️ 刻意不驗證上限：縮天不刪資料（跟 itinerary 同一個哲學）。 */
+function expDayVal(v) {
+  if (v === 'pre') return 'pre';
+  const n = Math.floor(Number(v));
+  return (n >= 1 && isFinite(n)) ? n : 0;              // 0 ＝ 沒指定
+}
 function cleanExpense(e) {
-  return { id: String(e.id || ''), amount: Number(e.amount) || 0, cat: String(e.cat || 'other'), desc: String(e.desc || '') };
+  const o = { id: String(e.id || ''), amount: Number(e.amount) || 0, cat: String(e.cat || 'other'), desc: String(e.desc || '') };
+  const d = expDayVal(e.day);
+  if (d) o.day = d;
+  return o;
 }
 /* 打包項目（v2.9 起多了 kind／bag 兩個選填欄位＝「包」）
  * key 順序固定 id,text,done,zone,kind,bag；空值不寫 ⇒ 舊資料（沒有 kind/bag）零遷移、序列化後逐字不變 */
