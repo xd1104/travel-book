@@ -7,7 +7,7 @@ start: "2026-08-29"
 days: 3
 budget: 4600
 createdAt: "2026-07-23T15:51:59.575Z"
-updatedAt: "2026-08-28T20:40:23.731Z"
+updatedAt: "2026-08-28T21:06:53.952Z"
 ---
 
 ## 行程
@@ -39,6 +39,7 @@ updatedAt: "2026-08-28T20:40:23.731Z"
 
 ## 花費
 
+- {"id":"xmtdfzm2l9vs7","amount":60,"cat":"other","desc":"礦泉水*6","day":1}
 
 ## 打包
 
