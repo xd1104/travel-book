@@ -7,7 +7,7 @@ start: "2026-08-29"
 days: 3
 budget: 4600
 createdAt: "2026-07-23T15:51:59.575Z"
-updatedAt: "2026-08-28T11:05:12.718Z"
+updatedAt: "2026-08-28T11:05:16.062Z"
 ---
 
 ## 行程
@@ -67,7 +67,7 @@ updatedAt: "2026-08-28T11:05:12.718Z"
 - {"id":"xmtbneixlhfdt","text":"電動牙刷","done":false,"zone":"checked"}
 - {"id":"xmtbqvi2dzoz8","text":"野餐墊","done":true,"zone":"carry"}
 - {"id":"xmt2m4l04kwzw","text":"門票","done":true,"zone":"carry"}
-- {"id":"xmtbng0qr0o7n","text":"扇子","done":false,"zone":"carry"}
+- {"id":"xmtbng0qr0o7n","text":"扇子","done":true,"zone":"carry"}
 - {"id":"xmtbngmop4mo2","text":"慕斯 髮蠟","done":true,"zone":"checked"}
 - {"id":"xmtbnhfufuww8","text":"垃圾袋","done":false,"zone":"checked"}
 - {"id":"xmrxovz2t55ct","text":"摺疊傘","done":false,"zone":"checked"}
