@@ -8,10 +8,41 @@
  * md 序列化與 server.js 是同一套 mirror，改格式要兩邊一起改（見 CLAUDE.md）
  */
 
+/* ============ 開場畫面（motion/splash.js）============
+ * ⚠️ 一定要寫成 window.Splash && …，**不可以裸寫 Splash.hold()**。
+ * 那支模組載不到的時候（離線、SW 沒預快取、部署漏檔）裸寫會丟 ReferenceError
+ * ⇒ 這支檔案當場中止 ⇒ 一趟旅程都畫不出來、沒套樣式的 #splash 永遠卡在畫面上，
+ * 而且**保險絲就住在那支沒載到的檔案裡**，不會有人來救。 */
+var hasSplash = !!(window.Splash && window.Splash.hold && window.Splash.ready);
+if(hasSplash){ try{ Splash.hold(); }catch(e){ hasSplash = false; } }
+if(!hasSplash) splashFallback();
+
+function splashFallback(){
+  /* 自己把開場收掉。全螢幕的東西卡住＝App 打不開，比白畫面嚴重一個等級。 */
+  try{
+    var sp = document.getElementById("splash");
+    if(sp && sp.parentNode) sp.parentNode.removeChild(sp);
+    document.documentElement.setAttribute("data-splash","off");
+  }catch(e){}
+  /* splash.js 平常會掛這一行；沒有它的話 iOS Safari 的 :active 不會觸發
+     ＝ 手機上所有按下回饋都是死的。 */
+  try{ document.addEventListener("touchstart", function(){}, {passive:true}); }
+  catch(e){ try{ document.addEventListener("touchstart", function(){}, false); }catch(e2){} }
+}
+/* 資料畫好了就叫一次，開場才會收。**成功或失敗都要叫**，
+ * 不然開場會變成當機畫面、要停到 6 秒保險絲才走。
+ * 只認第一次：之後的「重新整理」不該再影響開場。 */
+var splashDone = false;
+function splashReady(){
+  if(splashDone) return;
+  splashDone = true;
+  try{ if(window.Splash && window.Splash.ready) Splash.ready(); }catch(e){}
+}
+
 /* ============ 常數 ============ */
 /* 版本號的唯一來源：首頁 footer 與「版本」sheet 都讀它。
  * 改前端時跟 sw.js 的 cache 版本號一起 +1（見「版本與更新」段）。 */
-var APP_VER="3.4";
+var APP_VER="3.5";
 
 /* 打包把手的三個門檻（v3.0，DESIGN.md 附錄 E2）——「先觀察，後接管」：
  * pointerdown 只進入「待命」，垂直帶開＝你在捲動就放行，橫向帶開或按住夠久才真的開始拖。
@@ -2619,12 +2650,41 @@ function noteInput(val){
 /* ============ Bottom sheets ============ */
 var sheetLayer = document.getElementById("sheet-layer");
 function openSheet(title, bodyHtml){
+  /* ⚠️ 先硬關：上一張可能還在離場動畫中間（連按、或「closeSheet(); openXxx()」
+     那幾條就地換頁的路徑）。不先收掉的話新舊兩張會疊在一起，
+     而且舊那張的 .closing 計時器會在 240ms 後把**新的**這張清掉。 */
+  sheetHardClose();
   sheetLayer.innerHTML = '<div class="backdrop" onclick="closeSheet()"></div>'
     + '<div class="sheet"><div class="sheet-head"><h3>'+title+'</h3>'
     + '<button onclick="closeSheet()" aria-label="關閉">✕</button></div>'+bodyHtml+'</div>';
   sheetLayer.hidden = false;
 }
-function closeSheet(){ sheetLayer.hidden=true; sheetLayer.innerHTML=""; tplDraft=null; rp=null; pkDraft=null; }
+/* ---- sheet 的離場（v3.5）----
+ * 進場本來就有（slideUp／fadeIn，現在改吃 token），離場原本是 hidden=true ＋ innerHTML=""
+ * ＝ 瞬間消失。這裡補一個對稱的收下去。
+ * ⚠️⚠️ **不掛 animationend**（手冊鐵律：全螢幕的東西卡住＝畫面關不掉）。
+ *    這條計時器就是唯一的流程，而且四層保險：
+ *      ① .closing 的動畫是 fill-mode:both ⇒ 就算計時器沒跑到，終態（sheet 在畫面外、
+ *         遮罩全透明）跟關閉後的靜態值一模一樣 ⇒ 失敗模式是「看不出來」不是「關不掉」；
+ *      ② .closing 期間整層 pointer-events:none（CSS 那邊）⇒ 看不見的東西不會攔截點擊；
+ *      ③ openSheet() 一開頭就先 sheetHardClose()；
+ *      ④ setTimeout 不依賴任何事件（CSS 404、reduced-motion 都照跑）。
+ * 240ms 是 --dur-1(180ms) ＋ 60ms 餘裕。減少動態時動畫 1ms 就演完，
+ * 那 240ms 只是「已經看不見的東西還留在 DOM 裡」，無感。 */
+var sheetCloseTimer = null;
+function sheetHardClose(){
+  if(sheetCloseTimer){ clearTimeout(sheetCloseTimer); sheetCloseTimer = null; }
+  sheetLayer.classList.remove("closing");
+  sheetLayer.hidden = true;
+  sheetLayer.innerHTML = "";
+}
+function closeSheet(){
+  tplDraft=null; rp=null; pkDraft=null;
+  if(sheetLayer.hidden || !sheetLayer.firstChild){ sheetHardClose(); return; }
+  if(sheetLayer.classList.contains("closing")) return;   /* 連按不重播 */
+  sheetLayer.classList.add("closing");
+  sheetCloseTimer = setTimeout(sheetHardClose, 240);
+}
 
 function catOptions(selectedId){
   return (db.categories||[]).map(function(c){
@@ -3083,11 +3143,32 @@ function reloadData(){
 }
 
 /* ============ 啟動 ============ */
-function renderBoot(msgHtml){
-  appEl.innerHTML = '<div class="boot"><div class="big">🧳</div><p>'+(msgHtml||"整理行李中…")+'</p></div>';
+/* 載入骨架屏（取代原本那顆孤零零的 🧳）。
+ * 為什麼這支真的需要：GitHub 模式的 loadAll 會對 data/trips 與 data/templates
+ * 各發一次目錄 API，再逐檔 fetch 每一份旅程（**N+2 個請求**）——手機在外面用行動網路
+ * 那是好幾秒的空白。骨架長得像首頁的旅程卡（封面 ＋ 一列 meta），
+ * 使用者一眼就知道「等一下會出現什麼」，而不是「這個 App 是不是掛了」。
+ * ⚠️ 三張是固定的：這裡還沒有資料，猜不出他有幾趟旅程；三張剛好填滿一個手機畫面。
+ * ⚠️ 「有點慢」那句由 CSS 的 animation-delay:8s 帶出來，**不用 JS 計時器**
+ *    ⇒ 沒有要清的東西：render() 換掉 innerHTML 時它就跟著消失。
+ * ⚠️ aria-hidden：這是等待中的佔位圖形，不要讀給輔助技術聽。 */
+function renderBoot(){
+  var cards = "";
+  for(var i=0;i<3;i++){
+    cards += '<div class="sk-card"><div class="sk-cover"></div>'
+      + '<div class="sk-meta"><span class="sk-bar"></span><span class="sk-pill"></span></div></div>';
+  }
+  appEl.innerHTML = '<div class="sk-wrap" aria-hidden="true">'
+    + '<div class="sk-head"><span class="sk-bar t1"></span><span class="sk-bar t2"></span><span class="sk-bar t3"></span></div>'
+    + '<div class="sk-list">'+cards+'</div>'
+    + '<p class="sk-slow">還在等旅程資料…網路好像有點慢。</p>'
+    + '</div>';
 }
+/* ⚠️ class 是 .bootmsg 不是 .boot：motion/splash.js 收場時會把 class **boot**
+ * 掛到 #app 上 ⇒ `#app.boot` 會命中 `.boot{…}`（置中的 flex column），
+ * 整個首頁在那 1.4 秒會塌成一團。別改回去。 */
 function renderBootError(e){
-  appEl.innerHTML = '<div class="boot"><div class="big">🌧️</div>'
+  appEl.innerHTML = '<div class="bootmsg"><div class="big">🌧️</div>'
     + '<p>'+esc((e&&e.userMessage)||"資料載入失敗")+'</p>'
     + '<button class="btn-primary" onclick="bootLoad()">再試一次</button>'
     + (STORE.local?'':'<button class="btn-ghost" style="width:auto;padding:0 26px" onclick="openSettings()">設定</button>')
@@ -3105,7 +3186,7 @@ function bootLoad(){
     if(KR_ON) KR.maybeIntro();
   }).catch(function(e){
     renderBootError(e);
-  });
+  }).then(splashReady, splashReady);   /* 成功或失敗都要收開場 */
 }
 bootLoad();
 

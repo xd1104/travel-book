@@ -6,8 +6,8 @@
  * 鐵律：skipWaiting + activate 清舊快取 + clients.claim，已安裝 PWA 才吃得到新版
  * 改前端記得把 cache 版本號 +1（SHELL 與 DATA 兩個一起跳，別只跳一個），並同步 app.js 最上面的 APP_VER
  */
-const SHELL_CACHE = 'travel-shell-v24';
-const DATA_CACHE = 'travel-data-v24';
+const SHELL_CACHE = 'travel-shell-v25';
+const DATA_CACHE = 'travel-data-v25';
 const KEEP = [SHELL_CACHE, DATA_CACHE];
 
 // 相對於 SW scope 解析（localhost 根目錄或 Pages 子路徑 /travel-book/ 都對）
@@ -16,6 +16,14 @@ const SHELL = [
   BASE,
   BASE + 'index.html',
   BASE + 'styles.css',
+  /* 動效與開場模組（v3.5）。⚠️ 一定要預先快取：離線／殼快取還沒建完時
+     motion/splash.js 沒載到，app.js 會走 splashFallback()（畫面救得回來，但沒有開場）；
+     兩支 CSS 沒載到則整個 App 是裸 HTML。
+     ⚠️ tools/splash-boot.js **刻意不在這裡**：它已經逐字 inline 進 index.html，
+        沒有人會去 fetch 它，放進來等於快取一個沒人要的檔案。 */
+  BASE + 'motion/motion.css',
+  BASE + 'motion/splash.css',
+  BASE + 'motion/splash.js',
   BASE + 'keyring-unlock.js',
   BASE + 'app.js',
   BASE + 'manifest.json',

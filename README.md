@@ -20,6 +20,11 @@
 server.js     本機伺服器（零依賴，port 3618）＋ git 自動同步
 build.js      public/ -> docs/（GitHub Pages 用，docs 勿手改）
 public/       前端（PWA）
+public/motion/    動效基調「沉穩」＋開場「印記」（motion.css 自寫、splash.* 是範本複製品）
+tools/            體檢與探針（零相依，用本機 Chrome）
+                  node tools/check-splash.js       靜態體檢（底色四處一致、載入順序、對比度）
+                  node tools/probe/press-scan.mjs  按下回饋全掃描（含負控組）
+                  node tools/probe/flows.mjs       開場／降級／reduced-motion／sheet／骨架屏／版面紅線
 data/trips/       每趟旅程一個 .md（frontmatter＋結構化內容）
 data/templates/   打包模板 .md
 demo/         UX demo（歷史保留，勿改）

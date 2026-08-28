@@ -111,7 +111,10 @@ ul{padding:0; list-style:none;}
 .rail .ln{width:2px; flex:1; background:var(--line); margin-top:2px;}
 .stop:last-child .rail .ln{background:transparent;}
 .stop-card{flex:1; background:var(--card); border-radius:16px; box-shadow:var(--shadow); padding:12px 14px; margin-bottom:12px; min-width:0;}
-.stop-card.tappable:active{transform:scale(.985);}
+/* ⚠️ 這裡原本有一條 `.stop-card.tappable:active{transform:scale(.985)}`。
+   2026-08-28 起**全 App 的按下回饋統一由 motion/motion.css 第 2 段負責**
+   （那邊是結構式的全掃描：button／a／.tappable／label.pick／label.check-row），
+   縮放量吃 --press token。留在這裡會變成「同一條規則活在兩個地方」，改 token 時分岔。 */
 .stop-top{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
 .stop-time{font-weight:800; font-size:15px; font-variant-numeric:tabular-nums;}
 /* 起訖時間：結束時間是推算的，比開始淡一階（v1.5）；+1＝跨到隔天 */
@@ -538,12 +541,16 @@ html.drag-lock, html.drag-lock body{touch-action:none; overscroll-behavior:none;
 
 /* ---------- 以下為正式版新增（demo 沒有的必要元件） ---------- */
 
-/* 啟動載入畫面 */
-.boot{min-height:100dvh; display:flex; flex-direction:column; align-items:center; justify-content:center;
+/* 啟動失敗畫面（載入中已換成骨架屏，見 motion/motion.css 的 .sk-*）
+   ⚠️⚠️ class 名稱是 .bootmsg 不是 .boot（2026-08-28 改，別改回去）：
+   motion/splash.js 收場時會把 class **boot** 掛到 SPLASH_CONFIG.bootSelector 指到的
+   元素（＝ #app）上、1.4 秒後才拿掉 ⇒ 舊名字會讓 `#app.boot` 命中下面這條規則，
+   整個首頁在那 1.4 秒塌成一個置中的 flex column。 */
+.bootmsg{min-height:100dvh; display:flex; flex-direction:column; align-items:center; justify-content:center;
   gap:12px; color:var(--muted); text-align:center; padding:20px;}
-.boot .big{font-size:44px;}
-.boot p{font-size:15px; line-height:1.6;}
-.boot .btn-primary{width:auto; padding:0 26px; display:inline-flex;}
+.bootmsg .big{font-size:44px;}
+.bootmsg p{font-size:15px; line-height:1.6;}
+.bootmsg .btn-primary{width:auto; padding:0 26px; display:inline-flex;}
 
 /* toast（存檔失敗/唯讀提示等） */
 #toast{position:fixed; left:50%; transform:translateX(-50%);

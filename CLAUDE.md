@@ -183,10 +183,35 @@ UI/UX 以 `demo/index.html`（UX demo v3.1，Benson 拍板）為準，**勿自�
 - **圖形＝「圓潤」這一組（v2.7）**：pin 是三折的折頁地圖、route 是**沒有箭頭**的彎路。箭頭是全站唯一的尖角（其他都是藥丸／圓角／圓點）所以拿掉；方向感靠兩端的起訖圓與 S 形補。順手解掉「同一張卡上兩顆針」（地點行本來就有內容型 📍）。
 - **`.map-btn` 本體的尺寸一行都沒改**：卡片 44px、灰條視覺 38px＋`::before inset:-3px` 外擴回 44px、灰條總高仍是 38px（v2.4 決策照舊）。⚠️ **底色拿掉之後 `::before` 那條更不能刪**——看不見但要點得到。調整模式（`ui.edit`）一樣不顯示這兩顆鈕。
 
+## 動效基調「沉穩」＋開場「印記」（v3.5，2026-08-28；接的是 `app-template/motion` 這一層，別誤改）
+這一輪**只做四樣**：開場／按下回饋／sheet 離場／載入骨架屏。刻意不做的另外寫在最後。
+
+- **檔案落點**（跟前兩支 App 不一樣，因為這支有 `public/` → `docs/` 鏡射）：
+  - 會被瀏覽器載入的三支放 `public/motion/`：`motion.css`（**這支 App 自己寫的**）、`splash.css`、`splash.js`（後兩支是 `app-template/motion` 的**逐字複製品**）。
+  - `tools/splash-boot.js` 是**唯一正本**、**不放 public/**：它已經逐字 inline 進 `index.html` 的柵欄，沒有人會 fetch 它，放進 `public/` 只會被鏡射到 Pages 變成死檔。改它要跑 `node tools/inline-boot.js public/index.html tools/splash-boot.js` 重貼，`tools/check-splash.js` 會用 SHA-256 比對，忘了重貼一定紅。
+  - `sw.js` 的 `SHELL` 加了那三支（**`splash-boot.js` 刻意不加**）。
+- **⚠️⚠️ `motion.css` 是「接」不是「抄」：一個顏色都不准有。** 範本那份自帶色票，而它的 `--bg / --card / --ink / --muted / --line / --acc / --shadow` 跟 `styles.css` **七個全部撞名**，整包抄進來會把米白配色蓋掉。骨架屏要底色時一律 `var(--line)`／`var(--card)`／`var(--muted)`（**引用**不是宣告）。`check-splash.js` 有一條「motion.css 零色碼」的斷言在守。
+- **不用「白起」變體**（`data-splash-intro="light"`）：這支 App `--bg` / `theme-color` / `manifest.background_color` / `status-bar-style` **四處本來就一致而且都是淺色**（`#f7f4ee`），也沒有深色模式 ⇒ 前兩支深色 App 的「iOS 交接白閃」在這裡先天不存在。**`manifest`、`status-bar-style`、icon 一個字都沒動**（那三樣是加到主畫面當下抄走的，改了要 Benson 移除重加）。
+- **開場外觀**：`glyph:"旅"`／`name:"旅途手帳"`／`bg #f7f4ee`(=`--bg`)／`accent #ff6b5e`(=`--acc`)／`ink #2b2620`(=`--ink`)，**沒有開任何新顏色**。`tagline` 有給值但**印記變體不顯示**（`.sp-tag{display:none}`）。符號字色由 `onColor()` 自動算（不是設定項）。鑰匙圈 appId＝`travel-book`。
+- **⚠️⚠️ 載入中／載入失敗那張畫面的 class 已從 `.boot` 改名成 `.bootmsg`（`styles.css` ＋ `app.js` 的 `renderBootError`）。別改回去**：`splash.js` 收場時會把 class **`boot`** 掛到 `SPLASH_CONFIG.bootSelector`（＝`#app`）上、1.4 秒後才拿掉 ⇒ 舊名字會讓 `#app.boot` 命中 `.boot{display:flex;…}`，整個首頁在那 1.4 秒塌成一個置中的直排。
+- **按下回饋寫成「結構式的全掃描」，不是白名單**（`motion.css` 第 2 段）：這支 App 的 HTML 是 `app.js` 用字串拼的、class 有一半是動態組的，任何靜態清單都會漏。所以判準是**形狀**：`#app`/`#sheet-layer` 底下的 `button`／`a`／`.tappable`／`label.pick`／`label.check-row` ＋ `#toast .t-act`。**新增可點元素不用回來改 CSS。** 例外三個（有理由，`tools/probe/press-scan.mjs` 有長度斷言）：`.backdrop`（遮罩不是按鈕）、`.pk-grip`／`.drag-handle`（自己有專屬回饋，而且按下去會一直拖，殘留縮放會跟著整段拖曳）。
+  - 卡片裡的 `.map-btn`／`.tool-btn` 刻意用 `--press` 不用 `--press-lg`：`:active` 會傳到祖先，`.stop-card.tappable` 也在縮，兩層都 `.985` ＝ `.970`（幾乎看不出來），改成 `.96` 會變 `.946`＝像整張卡被捏了一把。
+  - `styles.css` 原本那條 `.stop-card.tappable:active{transform:scale(.985)}` **已刪**：按下回饋現在只有 `motion.css` 一個來源，留兩份會在改 token 時分岔。
+- **sheet 離場**（`closeSheet()`）：`.closing` 掛在 `#sheet-layer` 上跑 `tb-sheet-out`／`tb-fade-out`（**獨立的 `*-out` keyframes**），240ms 後由計時器硬關。**流程不准掛 `animationend`**。四層保險：① 離場動畫 `fill-mode:both`，終態＝關閉後的靜態值 ⇒ 計時器沒跑到也只是「留在 DOM 裡但看不見」；② `.closing` 期間整層 `pointer-events:none`；③ `openSheet()` 一開頭先 `sheetHardClose()`（連按與 `closeSheet();openXxx()` 這種就地換頁都不會被舊計時器清掉）；④ `setTimeout` 不依賴任何事件。
+- **載入骨架屏**取代原本那顆 🧳（`renderBoot()`）：三張旅程卡形狀的骨架，**矩形與真 `.trip-card` 逐像素相同**（實測 x/y/w/h Δ=0），不然資料一到畫面會抽動。「網路好像有點慢」那句用 `animation-delay:8s` 帶出來，**不用 JS 計時器**（`render()` 換掉 `innerHTML` 時它自己消失，沒有要清的東西）。理由：GitHub 模式的 `loadAll` 是 **N+2 個請求**。
+- **`prefers-reduced-motion` 是這支 App 的第一條**（`styles.css` 完全沒有），只把 token 歸零（1ms），元件規則一行不改；持續型的骨架呼吸另外關掉；「8 秒才說有點慢」是**時程不是動效**，刻意不歸零。
+- **⛔ 這一輪刻意沒做（有理由，別當漏掉補上）**：**清單進場動畫**（`render()` 是整頁 `innerHTML` 重建、沒有 diff ⇒ 勾一個打包項就全部重播，比沒有更糟）、**「剛剛新增／刪除」的進退場**、**勾選劃線的過渡**（依賴節點存活，這個架構下跑不起來）。要做得先動 `render`，Benson 說之後單獨處理。
+- **驗收工具**（都在 `tools/`，零相依、用本機 Chrome）：
+  - `node tools/check-splash.js` — 靜態體檢（底色四處一致、載入順序、關鍵路徑 CSS、SHA 鎖鏈、onColor 全色域窮舉）。三個落地補丁寫在檔案裡（模組路徑／SHA 上游／色票那一節換成「motion.css 零顏色」）。
+  - `node tools/probe/press-scan.mjs` — 真滑鼠壓 16 個畫面的**每一個**可點元素，量 computed transform；**有負控組**（把 `--press` 換成 none 必須翻紅）。⚠️ 例外名單裡的兩個把手**不可以壓**：它們掛 `onpointerdown`，探針「按下→游標移開→放開」對它們＝真的拖一次，會把整棵樹重繪、後面全部量成幽靈。
+  - `node tools/probe/flows.mjs` — 冷／熱啟動、reduced-motion、四條降級路徑（CSS 遲到／CSS 全 404／splash.js 404／JS 停用）、sheet 開關（含連按與進場 40ms 就關）、骨架屏，**以及 G 段紅線**：載 `motion.css` 前後四個畫面 380 個元素的矩形必須逐一相同（實測 Δ=0.00px），`.drag-anim`／`.pk-grip .gv` 的既有 transition 沒被關掉、`.pk-card.is-dragging` 仍是 `visibility:hidden`。
+  - ⚠️ 探針一律用 `tools/probe/fixture.mjs` 的假資料（自己起 server 假裝 `/api/data`），**一個位元組都不會碰 `data/`**；日期全部相對於今天算（寫死日期會讓「進行中／回憶」狀態跨日自己跑掉）。
+  - ⚠️ 第一版 `motion.css` 寫過 `.stop.drag-anim{transition-property:none}`，那會把 timeline 讓位的過渡整條關掉（拖曳變瞬間跳位）。**現在只釘 `#pk-ghost` 一個**，別再加回去。
+
 ## PWA 鐵律（recipe-book 血淚，全部已做，別退步）
 - 所有資源、manifest `start_url`/`scope`、SW scope **一律相對路徑**（Pages 在 `/travel-book/` 子路徑）。
 - SW：`skipWaiting()`＋activate 清舊快取＋`clients.claim()`；`/api/data` network-first、寫入 network-only、殼 cache-first。
-- ⚠️ **`keyring-unlock.js` 走 network-first，刻意不跟 app shell 一起 cache-first**（2026-08-21 加）：它的正本在 keyring repo、由 CI 自動同步過來，**更新時不會跳這裡的 cache 版本號**；若走 cache-first，手機會永遠停在第一次快取到的那一版，模組的修正永遠到不了使用者手上。它仍在 `SHELL` 預先快取，所以離線時一定拿得到快取、不會落到 `offlineJson()`。**別為了「統一策略」把它併回 app shell。****改前端記得把 sw.js 的 cache 版本號 +1**（`travel-shell-vN`，目前 **v20**；**版本號是「比已經上線的那個大」不是「比我開工時看到的大」**——v2.7 這輪就撞到：開工時檔案是 v15，做到一半另一條線先用掉 v16 並推上線了，只好跳 v17；**`SHELL_CACHE` 與 `DATA_CACHE` 兩個都要跳，別只跳一個**）**並同步 `APP_VER`**（見下方「版本與更新」）。
+- ⚠️ **`keyring-unlock.js` 走 network-first，刻意不跟 app shell 一起 cache-first**（2026-08-21 加）：它的正本在 keyring repo、由 CI 自動同步過來，**更新時不會跳這裡的 cache 版本號**；若走 cache-first，手機會永遠停在第一次快取到的那一版，模組的修正永遠到不了使用者手上。它仍在 `SHELL` 預先快取，所以離線時一定拿得到快取、不會落到 `offlineJson()`。**別為了「統一策略」把它併回 app shell。****改前端記得把 sw.js 的 cache 版本號 +1**（`travel-shell-vN`，目前 **v25**；**版本號是「比已經上線的那個大」不是「比我開工時看到的大」**——v2.7 這輪就撞到：開工時檔案是 v15，做到一半另一條線先用掉 v16 並推上線了，只好跳 v17；**`SHELL_CACHE` 與 `DATA_CACHE` 兩個都要跳，別只跳一個**）**並同步 `APP_VER`**（見下方「版本與更新」）。
 - input/textarea/select `font-size ≥ 16px`（iOS 防自動放大）；觸控目標 ≥ 44px；Enter 送出全部走原生 `<form>` + `type=submit`。
 - 換 icon 後 iOS 已安裝的 PWA 要移除主畫面重加才會換。
 

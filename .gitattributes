@@ -3,6 +3,8 @@
 *.md text eol=lf
 *.json text eol=lf
 *.js text eol=lf
+# tools/probe 的探針是 ESM（.mjs）；CRLF 會讓「比對內容」型的守衛靜默失效
+*.mjs text eol=lf
 # workflow 的 run: 區塊是在 ubuntu 的 bash 跑，CRLF 會變成「$'\r': command not found」
 *.yml text eol=lf
 *.css text eol=lf

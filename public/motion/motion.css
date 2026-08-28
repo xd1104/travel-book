@@ -1,0 +1,324 @@
+/* ============================================================
+   motion.css — 動效基調（沉穩 steady）
+   ------------------------------------------------------------
+   Benson 2026-08-25 拍板的基調，token 數值逐字照 app-template/motion/motion.css。
+   這是第三支套用的 App（movie-library「好雷嗎?」→ trade-log「交易日誌」→ 這支）。
+
+   ⚠️⚠️ 這份**刻意只有動效，一個顏色都沒有**。
+      範本的 motion.css 帶著自己的色票，而它的
+        --bg / --card / --ink / --muted / --line / --acc / --shadow
+      跟這支 App（styles.css 的 :root）**七個變數全部撞名** —— 整包 <link> 進來會把
+      旅途手帳的米白配色整個蓋掉，變成範本的樣子。
+      所以這裡只接「會動的那一層」：動效 token ＋ 綁**這支 App 自己 class 名稱**的規則。
+      骨架屏需要底色時一律 `var(--line)` / `var(--card)` / `var(--muted)`
+      —— 那是**引用** styles.css 的色票，不是在這裡宣告顏色。
+      ⛔ 以後同步範本新版動效時，一樣只搬 token 與規則，不要搬 :root 的顏色。
+
+   ⚠️ 載入順序：styles.css → motion.css → splash.css（見 index.html）。
+      排在 styles.css 後面是刻意的：同權重時後宣告者勝，
+      這裡的 animation 才蓋得過 styles.css 既有的寫死值（slideUp .26s／fadeIn .2s）。
+      splash.css 要吃這裡的 --dur-* token，所以一定排在這一支後面。
+
+   ⚠️ 這支 App 的 render() 是**整頁 innerHTML 重建、沒有 diff**
+      （勾一個打包項、刪一筆花費、切一天，整棵樹都重來）。所以：
+        · **這一輪刻意不做清單進場動畫** —— 加上去會變成「每點一下全部重播」，比沒有更糟。
+        · **依賴節點存活的 transition（例如勾選劃線）在這個架構下跑不起來**，也不做。
+      這裡只做「不受重建影響」的東西：純 CSS :active、sheet 的進／離場、骨架屏、開場銜接。
+
+   ⚠️ 這裡不准出現任何 `kr-` 開頭的東西（鑰匙圈模組自帶 14 個 keyframes，
+      而且它的樣式是 init() 注入 <head> 尾端，權重與順序都贏我們）。
+      這支自己的 keyframes 一律 `tb-` 前綴（travel book）。
+   ============================================================ */
+
+
+/* ============================================================
+   1. Token（唯一可調的一層）
+   ------------------------------------------------------------
+   ⚠️ 掛在 :root，不要掛在 body：splash.css 的 --sp-out / --sp-lead 是在 :root
+      那一層對 var(--dur-2) 做代換的，token 只存在 body 的話它會拿到「未定義」
+      → animation-duration 掉回 0s → 開場收場會瞬間跳掉，而且極難查。
+   時間階梯只有四級，不要出現第五個數字。
+   ⚠️ --ease-page / --lift-lg / --stagger / --hold-toast 這支 App 目前沒有用到
+      （沒有 push/pop 換頁；toast 的停留時間在 app.js 的計時器裡）。**刻意保留**，
+      讓這一組 token 跟範本／movie-library／trade-log 逐字對得起來，之後同步不用比對差異。
+   ============================================================ */
+:root{
+  /* 時間 */
+  --dur-press:120ms;   /* 按下／放開的回饋 */
+  --dur-1:180ms;       /* 微變化：顏色、透明度、開關、離場 */
+  --dur-2:280ms;       /* 主要位移：卡片進場、面板升起 */
+  --dur-3:420ms;       /* 大範圍／需要被看見的：開場、高亮 */
+
+  /* 曲線 */
+  --ease:cubic-bezier(.22,.61,.36,1);        /* 進場／位移（減速收尾） */
+  --ease-in:cubic-bezier(.45,0,.9,.4);       /* 離場（加速離開） */
+  --ease-press:cubic-bezier(.2,0,.2,1);      /* 按下回饋 */
+  --ease-page:cubic-bezier(.22,.61,.36,1);   /* 全螢幕換頁（這支沒有，保留） */
+
+  /* 位移距離 */
+  --lift:10px;         /* 小位移：卡片、toast */
+  --lift-lg:20px;      /* 大位移：換頁橫向、FAB 彈入（這支沒有，保留） */
+
+  /* 縮放 */
+  --scale-in:.985;     /* 進場起始縮放 */
+  --press:.985;        /* 大面積元素按下（卡片、清單列、整寬按鈕、分頁鈕） */
+  --press-lg:.96;      /* 小元素按下（藥丸、小圖示鈕、footer 連結） */
+
+  /* 錯開 */
+  --stagger:45ms;      /* 第 n 項的延遲 = n × stagger */
+
+  /* 閱讀時間：不是動效，不隨調性改變（這支的 toast 停留由 JS 控，保留對齊用） */
+  --hold-toast:2400ms;
+}
+
+
+/* ============================================================
+   2. 按下回饋（優先度最高：手機沒有 hover，這是唯一「我按到了」的訊號）
+   ------------------------------------------------------------
+   ⭐⭐ 這一段刻意寫成**結構式的全掃描**，不是「列出我想到的那幾顆」。
+      前兩支 App 都在這裡踩過（好雷嗎列白名單漏了第 5 顆、自測全綠）。
+      這支 App 的 HTML 是 app.js 用字串拼出來的、class 名稱有一半是動態組出來的
+      （`class="'+(ui.day===i?"on":"")+'"`），**任何靜態白名單都一定會漏**。
+
+      所以「可點」在這裡的定義是**元素的形狀**，不是它的名字：
+        · <button>          —— 全 App 78 個 onclick 有 78 個掛在 button 上
+        · <a>               —— 只有 .map-btn（卡片／灰條右邊的地圖、路線）與 .btn-ghost
+        · .tappable         —— 唯二兩個「整塊可點的 div」（.stop-card / .transit-bar）
+        · label.pick        —— 色票／emoji 選擇（裡面是隱藏的 radio）
+        · label.check-row   —— 勾選列（裡面是 checkbox）
+        · #toast .t-act     —— toast 上那顆動作鈕（toast 本體 pointer-events:none）
+      新增可點元素時**不必回來改這裡**，只要它是上面任何一種形狀就自動有回饋。
+      `label.field` 刻意不在名單裡：那是包住輸入框的欄位標籤，不是按鈕。
+
+   ⚠️ 只動 transform（compositor-only）。底色的 :active 由 styles.css 負責，這裡不碰顏色。
+
+   ⚠️⚠️ **鑰匙圈藥丸 `.kr-chip` 要明確用 `:not(.kr-chip)` 排除掉，光「不寫它」是不夠的。**
+      它是 `<button class="kr-chip">`，住在 `#app > .home-foot` 裡（Pages 版才顯示）。
+      模組自己帶 `.kr-chip.kr-chip:active{transform:scale(.97)}` ＝ (0,3,0)，
+      而我們這邊帶 `#app` ⇒ (1,2,0) ~ (1,2,1)，**ID 一定贏 class**
+      ⇒ 不排除的話會把模組的 .97 蓋成 .96、把「公版藥丸模組自己鎖死外觀」那條破掉
+      （模組另外有 `transition:none !important`，所以 transition 那半本來就蓋不過去，
+        但 transform 這半會）。
+      ⛔ 也**不可以**改成寫一條 `#app .kr-chip:active{transform:none}` —— 那會把模組
+        自己的按下回饋殺掉，變成「藥丸按下去是死的」。排除，不是覆寫。
+   ============================================================ */
+
+/* 2a. 預設：每一個可點的形狀都有回饋（大面積用 --press） */
+#app button:not(.kr-chip),
+#app a,
+#app .tappable,
+#app label.pick,
+#app label.check-row,
+#sheet-layer button,
+#sheet-layer a,
+#sheet-layer label.pick,
+#sheet-layer label.check-row,
+#toast .t-act{
+  transition:transform var(--dur-press) var(--ease-press);
+}
+#app button:not(.kr-chip):active,
+#app a:active,
+#app .tappable:active,
+#app label.pick:active,
+#app label.check-row:active,
+#sheet-layer button:active,
+#sheet-layer a:active,
+#sheet-layer label.pick:active,
+#sheet-layer label.check-row:active{
+  transform:scale(var(--press));
+}
+
+/* 2b. 小元素（藥丸、小圖示鈕、footer 連結）：同樣的視覺量要縮多一點才看得出來。
+   ⚠️ 卡片裡的 .map-btn / .tool-btn **刻意不列進來**：:active 會一路傳到祖先，
+      按它們的時候外層 .stop-card.tappable 也在縮。兩層都用 --press ＝ .985×.985＝.970（幾乎看不出來）；
+      改成 --press-lg 就變成 .985×.96＝.946，會像整張卡被捏了一把。 */
+#app .day-chip:active,
+#app .edit-toggle:active,
+#app .back-btn:active,
+#app .head-edit:active,
+#app .pk-lite:active,
+#app .pk-cnt:active,
+#app .pk-edit:active,
+#app .pk-del:active,
+#app .x-btn:active,
+#app .loc:active,
+#app .home-foot button:not(.kr-chip):active,
+#app .tpl-row button:active,
+#sheet-layer .stay-chip:active,
+#sheet-layer .fl-mini:active,
+#sheet-layer .sheet-head button:active,
+#sheet-layer .x-btn:active,
+#sheet-layer .loc:active,
+#toast .t-act:active{
+  transform:scale(var(--press-lg));
+}
+
+/* 2c. 明確寫死「沒有按下回饋」的東西（有理由，不是漏掉）。
+   ⚠️ 這份例外清單的長度在 tools/probe/press-scan.mjs 有斷言，擋人把礙事的元素偷加進來。 */
+/* .backdrop：背景遮罩。點它是「關閉」，但它不是一顆按鈕，縮放會像整個畫面在抖。 */
+#sheet-layer .backdrop,
+#sheet-layer .backdrop:active{transform:none;}
+/* 拖曳把手：兩個都有自己**專屬**的按下回饋，不可以再疊一層縮放 ——
+   .pk-grip 是「充能」（按住 220ms 底色長出來，時間軸對齊門檻，見 styles.css）；
+   .drag-handle 是「卡片浮起來＋把手轉珊瑚」。
+   而且它們按下去之後手指會一直壓著拖，殘留的縮放會跟著整段拖曳，看起來像壞掉。 */
+#app .pk-grip,#app .pk-grip:active,
+#app .drag-handle,#app .drag-handle:active{transform:none;}
+/* 按不動的東西不可以看起來會動 */
+#app button:disabled,#app button:disabled:active,
+#sheet-layer button:disabled,#sheet-layer button:disabled:active{transform:none;}
+
+/* 2d. ⛔ 別跟既有的 inline style.transform 搶（DESIGN.md 紅線）：
+   dragUpdate() 每一幀寫 .stop 的 transform（timeline 讓位）、
+   pkPaintDrag() 每一幀寫 #pk-ghost 的 transform（浮在手指上方）。
+   inline style 本來就贏 stylesheet，所以 :active 不會打架；
+   真正的風險是 **transition** 會讓那些每幀更新的 transform 變成拖尾。
+   .stop / #pk-ghost 本身不在 2a 的形狀名單裡（都是 div），所以本來就沒被加上 transition。
+
+   ⚠️⚠️ 這裡**只釘 #pk-ghost 一個**，刻意不寫 `.stop` 或 `.stop.drag-anim`：
+      styles.css 有一條 `.drag-anim{transition:transform .18s}` ——那是 timeline 讓位
+      的過渡動畫，是**既有功能**。寫 `.stop.drag-anim{transition-property:none}` 的話
+      （0,2,0 壓過 0,1,0、而且 motion.css 排在後面）會把讓位動畫整條關掉，
+      拖曳排序會變成「瞬間跳位」。這是第一版真的寫進去過的錯，別再加回來。
+   ⚠️ 也刻意不碰 `#pk-ghost .pk-grip .gv`：那條 220ms 對齊門檻的 transition 是紅線，
+      連在幽靈卡裡的行為都維持原樣（`#pk-ghost *` 已移除）。 */
+#pk-ghost{transition-property:none;}
+
+
+/* ============================================================
+   3. 底部表單 sheet：進場 ＋ **對稱的離場**
+   ------------------------------------------------------------
+   進場 styles.css 本來就有（slideUp .26s／fadeIn .2s），這裡換成吃 token 的版本；
+   離場本來是 `hidden=true` ＋ `innerHTML=""` ＝ 瞬間消失，這一輪補上收下去。
+
+   ⚠️ 離場**一律用獨立的 *-out keyframes**，不可以沿用進場的名字改 direction:reverse
+      —— animation-name 沒變的話瀏覽器不保證重播。
+   ⚠️⚠️ 流程**不准掛 animationend**（手冊鐵律：全螢幕的東西卡住＝畫面關不掉）。
+      app.js 的 closeSheet() 用計時器把 .closing 拿掉。**四層保險**：
+        ① animation-fill-mode 是 `both` ⇒ 就算計時器沒跑到，終態（sheet 在畫面外、
+           遮罩全透明）跟關閉後的靜態值一模一樣 ⇒ 失敗模式是「看不出來」，不是「關不掉」；
+        ② .closing 期間整層 pointer-events:none ⇒ 看不見的東西不可能攔截點擊；
+        ③ openSheet() 一開頭就先硬關（清掉還在離場的那一張），連按不會疊兩張；
+        ④ 那條計時器是 setTimeout，不依賴任何事件。
+   出場一律比進場快（--dur-1 對 --dur-2）：關閉是使用者已經決定的事，不要拖。
+   ============================================================ */
+#sheet-layer .backdrop{animation:tb-fade-in var(--dur-1) var(--ease) backwards;}
+#sheet-layer .sheet{animation:tb-sheet-in var(--dur-2) var(--ease) backwards;}
+@keyframes tb-fade-in{from{opacity:0;} to{opacity:1;}}
+@keyframes tb-sheet-in{
+  from{transform:translateY(60%); opacity:.4;}
+  to  {transform:none; opacity:1;}
+}
+
+#sheet-layer.closing{pointer-events:none;}
+#sheet-layer.closing .backdrop{animation:tb-fade-out var(--dur-1) var(--ease-in) both;}
+#sheet-layer.closing .sheet{animation:tb-sheet-out var(--dur-1) var(--ease-in) both;}
+@keyframes tb-fade-out{from{opacity:1;} to{opacity:0;}}
+/* 收下去要收得徹底：102% 是為了讓圓角與陰影也離開畫面（100% 會留一條邊） */
+@keyframes tb-sheet-out{
+  from{transform:none; opacity:1;}
+  to  {transform:translateY(102%); opacity:.4;}
+}
+
+
+/* ============================================================
+   4. 載入骨架屏（取代原本那顆孤零零的 🧳）
+   ------------------------------------------------------------
+   為什麼這支真的需要：GitHub 模式的 loadAll 會對 data/trips 與 data/templates
+   各發一次目錄 API，再逐檔 fetch 每一份旅程（N+2 個請求）——手機在外面用行動網路時
+   那是好幾秒的空白。骨架長得像首頁的旅程卡（.trip-card：封面 ＋ 一列 meta），
+   使用者一眼就知道「等一下會出現什麼」。
+
+   ⚠️ 顏色一律引用 styles.css 的色票（--line / --card / --muted / --shadow），
+      這裡一個色碼都沒有。
+   ⚠️ 呼吸用 opacity（compositor-only），不做「跑過去的高光」——
+      那需要一條漸層＝一個顏色，而且跟沉穩的基調不合。
+   ⚠️ 骨架的高度刻意貼近真卡（封面 110px ＋ meta 一列），
+      不然資料一到畫面會整個抽動一下。
+   ============================================================ */
+/* ⚠️ 內距逐字照真畫面（.home-head 是 32px 20px 14px、.home-list 是 8px 16px 4px ＋ gap 16px），
+   骨架卡高度也調到跟真旅程卡一樣（實測 165px：封面 117 ＋ meta 48）——
+   對不齊的話資料一到畫面會橫向跳 4px、縱向抽動 7px。**這兩個數字是量出來的，不是估的。** */
+.sk-wrap{padding:0;}
+.sk-bar{display:block; height:12px; border-radius:99px; background:var(--line);}
+.sk-head{padding:32px 20px 14px;}
+/* 三條分別對應 TRAVEL PLANNER 眉標／「旅途手帳」大標／副標。
+   高度與間距是**湊出真標頭的 140px**（實測），不是估的 —— 見 tools/probe/flows.mjs 的 F4。 */
+.sk-head .sk-bar.t1{width:34%; height:11px; margin-bottom:14px;}
+.sk-head .sk-bar.t2{width:58%; height:34px; border-radius:10px; margin-bottom:17px;}
+.sk-head .sk-bar.t3{width:46%; height:18px; margin-bottom:0;}
+.sk-list{padding:8px 16px 4px; display:flex; flex-direction:column; gap:16px;}
+.sk-card{background:var(--card); border-radius:20px; overflow:hidden; box-shadow:var(--shadow);}
+.sk-cover{min-height:117px; background:var(--line);}
+.sk-meta{padding:13px 18px; display:flex; align-items:center; justify-content:space-between; gap:8px;}
+.sk-meta .sk-bar{width:46%;}
+.sk-meta .sk-pill{width:74px; height:22px; border-radius:99px; background:var(--line);}
+
+/* 呼吸：整張一起，不逐項錯開 —— 三張各自閃會變成三個節拍器。 */
+.sk-card,.sk-head{animation:tb-sk-breathe 1400ms var(--ease) infinite alternate;}
+@keyframes tb-sk-breathe{from{opacity:.72;} to{opacity:1;}}
+
+/* 「有點慢」的說明：8 秒之後才出現。
+   ⚠️ 這 8 秒刻意**不吃 --dur-* token**：它不是動效，是「等多久才該說話」，
+      減少動態時照樣要在 8 秒出現。
+   ⚠️ 不用 JS 計時器 ⇒ 沒有要清的東西：render() 換掉 innerHTML 時它就跟著消失。 */
+.sk-slow{
+  margin:22px 18px 0; text-align:center; font-size:13.5px; line-height:1.6; color:var(--muted);
+  opacity:0; animation:tb-sk-slow 1ms linear 8s forwards;
+}
+@keyframes tb-sk-slow{to{opacity:1;}}
+
+
+/* ============================================================
+   5. 開場收場之後的銜接（.boot 由 motion/splash.js 掛在 #app 上，1400ms 後自己拿掉）
+   ------------------------------------------------------------
+   收場動畫與內容進場要「重疊」不要「串接」：串接會有一個很明顯的空拍，
+   那個空拍就是廉價感的來源。bootSelector 是 "#app"（見 index.html 的 SPLASH_CONFIG）。
+
+   ⚠️⚠️ 這支 App 的 styles.css 本來有一條 `.boot{…}` 是「載入中／載入失敗」那張畫面，
+      而 splash.js 收場時會把 class **boot** 掛到 #app 上 ⇒ `#app.boot` 會命中那條規則，
+      整個首頁在那 1.4 秒變成置中的 flex column。所以那張畫面的 class 已改名成
+      `.bootmsg`（styles.css ＋ app.js 的 renderBootError 一起改）。**別改回去。**
+   ⚠️ 用 `> *` 全掃，不列白名單：以後在 #app 裡多加一個區塊也不會漏。
+   ⚠️ 一律 backwards（不是 both）：.boot 掛著的那 1.4 秒使用者已經可以按東西了，
+      殘留 transform 會把 :active 殺掉（純功能測試抓不到）。
+   ⚠️ 只在**冷啟動**發生一次。這支 App 的 render() 會整棵樹重建，重建出來的節點
+      仍然在 #app.boot 底下 ⇒ 那 1.4 秒內如果使用者點了什麼，進場會重播一次。
+      實測：MIN_SHOW 950ms 之後才掛 .boot，而 --dur-3 420 ＋ 最大 delay 180 ＝ 600ms
+      就演完了，剩下 800ms 是空的；就算真的重播，那也是「剛開 App 的第一下」，
+      而且 backwards 保證不會殘留。這是刻意接受的取捨（要根治得動 render，不在這一輪）。
+   ============================================================ */
+#app.boot > *{
+  animation:tb-boot-el var(--dur-3) var(--ease) backwards;
+}
+@keyframes tb-boot-el{
+  from{opacity:0; transform:translateY(calc(var(--lift) * 1.2)) scale(var(--scale-in));}
+  to  {opacity:1; transform:none;}
+}
+#app.boot > *:nth-child(1){animation-delay:0ms;}
+#app.boot > *:nth-child(2){animation-delay:calc(var(--stagger) * .8);}
+#app.boot > *:nth-child(3){animation-delay:calc(var(--stagger) * 1.6);}
+#app.boot > *:nth-child(4){animation-delay:calc(var(--stagger) * 2.4);}
+#app.boot > *:nth-child(n+5){animation-delay:calc(var(--stagger) * 3.2);}
+
+
+/* ============================================================
+   6. 減少動態
+   ------------------------------------------------------------
+   ⚠️ styles.css 目前**完全沒有** prefers-reduced-motion，這一段是這支 App 的第一條。
+   照範本：只把 token 歸零（1ms），元件規則一行都不改。
+   刻意用 1ms 而不是 animation:none：動畫照跑、animationend 照樣觸發，
+   「等動畫結束才做事」的流程完全不用寫第二套。
+   ⚠️ 持續型動作（骨架屏的呼吸）token 歸零關不掉它，要單獨關。
+   ⚠️ 「8 秒才說有點慢」那條是**時程不是動效**，刻意不歸零。
+   ============================================================ */
+@media (prefers-reduced-motion:reduce){
+  :root{
+    --dur-press:1ms; --dur-1:1ms; --dur-2:1ms; --dur-3:1ms;
+    --ease:linear; --ease-in:linear; --ease-press:linear; --ease-page:linear;
+    --lift:0px; --lift-lg:0px; --scale-in:1;
+    --press:1; --press-lg:1;
+    --stagger:0ms;
+  }
+  .sk-card,.sk-head{animation:none; opacity:1;}
+}
