@@ -198,10 +198,13 @@ ul{padding:0; list-style:none;}
 .seg{display:flex; background:#ece5d6; border-radius:14px; padding:3px; margin-bottom:10px;}
 .seg button{flex:1; min-height:44px; border-radius:11px; font-size:14.5px; font-weight:700; color:var(--muted);}
 .seg button.on{background:#fff; color:var(--ink); box-shadow:0 1px 4px rgba(0,0,0,.08);}
-.pack-head{display:flex; align-items:center; justify-content:space-between; margin:2px 4px 12px;}
-.pack-head .t{font-size:15px; font-weight:800;}
+/* 區標題退回 App 標準的 .sec-title 語言（13.5px／800／muted）——v2.9 的 15px/800/純 ink
+   跟卡片內文一樣黑一樣重，標題沒有退到背景（附錄 E 症狀④）。 */
+.pack-head{display:flex; align-items:center; justify-content:space-between; margin:2px 6px 8px;}
+.pack-head .t{font-size:13.5px; font-weight:800; color:var(--muted); letter-spacing:.02em;}
+.pack-head .t .sub{color:#b3a996; font-weight:600;}
 .pack-head .n{font-size:13px; color:var(--muted); font-variant-numeric:tabular-nums;}
-.pack-sec{margin-top:20px;}
+.pack-sec{margin-top:18px;}
 .pack-sec-empty{color:#b8ad9c; font-size:13.5px; padding:4px 6px 2px;}
 .pack-add{display:flex; gap:8px; margin-bottom:4px;}
 .pack-add input{flex:1; min-width:0; font-size:16px; padding:12px 14px; border:1.5px solid var(--line); border-radius:14px; background:var(--card); font-family:inherit; color:var(--ink);}
@@ -220,40 +223,80 @@ ul{padding:0; list-style:none;}
 .pack-item.done .txt{color:#b8ad9c; text-decoration:line-through;}
 
 /* ── 打包 v2.9（區 → 包 → 物品）：照 demo/packing.html，全部沿用既有色票，沒有新開顏色 ──
+   v3.0 版面修正照 demo/packing-v2.html（＝DESIGN.md 附錄 E，Benson 三項全選 A）：
+   ① 一區＝一張卡＋細線分列（包仍是實體，其他項目是清單列）
+   ② 頂部＝進度為主、按鈕輕量化 ③ 把手要按住 0.22 秒或往旁邊帶才拖。顏色一樣沒有新開。
    ⚠️ 這一組最容易踩的坑：包是「一張卡的上下兩半」，所以 .pk-bag .t{} 這種寫法會連包
       「裡面」每一列的 .t 一起選到（跟 #kr-full .kr-id span 同一種病）——勾了包之後裡面
       的東西也被劃掉，直接跟「各勾各的」矛盾。包頭專用的規則一律綁 .pk-head-row。
       加新規則前先問一次：這個選擇器會不會掃到子層？ */
-.pk-top{display:flex; gap:8px; margin-bottom:16px;}
-.pk-top .pk-new{flex:1; min-height:50px; border-radius:15px; background:var(--acc); color:#fff;
-  font-size:15.5px; font-weight:800; display:flex; align-items:center; justify-content:center; gap:6px;
-  box-shadow:0 3px 10px rgba(226,80,63,.24);}
-.pk-top .pk-new:active{background:var(--acc-deep);}
-.pk-top .pk-tpl{flex:0 0 auto; min-height:50px; padding:0 15px; border-radius:15px; background:var(--card);
-  box-shadow:var(--shadow); font-size:13.5px; font-weight:700; color:#6b6154;}
+/* 頂部一列（附錄 E3）：珊瑚只留給「進度」，兩顆工具降成白底輕量鈕。
+   舊的 .pk-new 是 256×50＝整頁最大的飽和色塊（打勾圈的 17.6 倍），但按規格它只是次要入口
+   ⇒ 視覺權重跟使用頻率相反，而且跟「勾完會變珊瑚」的進度回饋搶同一個顏色 ⇒ 整條砍掉。 */
+.pk-top{display:flex; gap:7px; margin-bottom:16px; align-items:center;}
+.pk-prog{flex:1; min-width:0; display:flex; align-items:center; gap:8px; min-height:46px;
+  background:var(--card); box-shadow:var(--shadow); border-radius:99px; padding:0 14px;
+  font-size:13px; color:var(--muted); font-weight:600; font-variant-numeric:tabular-nums;}
+.pk-prog b{color:var(--ink); font-size:15px; font-weight:800;}
+/* 進度條沿用 .pk-sub .bar 的 4px 純珊瑚語言，不要用花費頁的漸層 .prog
+   （一個 App 裡「進度」只准有一種長相） */
+.pk-prog .bar{flex:1; min-width:26px; height:4px; border-radius:99px; background:#ece5d6; overflow:hidden;}
+.pk-prog .bar i{display:block; height:100%; background:var(--acc); border-radius:99px; transition:width .3s;}
+.pk-prog .allok{color:var(--ok); font-weight:800;}
+.pk-lite{flex:0 0 auto; min-height:46px; padding:0 13px; border-radius:14px; background:var(--card);
+  box-shadow:var(--shadow); font-size:13.5px; font-weight:700; color:#6b6154;
+  display:flex; align-items:center; gap:4px;}
+.pk-lite:active{background:#f7f2e8;}
+.pk-lite .plus{color:var(--acc-deep); font-weight:800; font-size:16px;}
 /* 區標題右邊的「已打包 3 / 8」＝可點的篩選（零新增元素換到篩選能力）
-   分母＝這一區的頂層項目（包算 1 件，包內物品不計）＝「行李箱裝好沒」 */
-.pk-cnt{min-height:44px; display:flex; align-items:center; gap:5px; padding:0 4px; margin-right:-4px;
-  font-size:13px; color:var(--muted); font-variant-numeric:tabular-nums; font-weight:600;}
-.pk-cnt.on{color:var(--acc-deep); font-weight:800;}
+   分母＝這一區的頂層項目（包算 1 件，包內物品不計）＝「行李箱裝好沒」
+   ⚠️ 外層 .pk-cnt 只管 44px 命中區，視覺全在內層 .cp（藥丸只有 26px 高，不准為了好看縮命中區） */
+.pk-cnt{min-height:44px; display:flex; align-items:center; padding:0 4px; margin-right:-4px;}
+.pk-cnt .cp{display:flex; align-items:center; gap:5px; font-size:12px; font-weight:800;
+  color:#8f8578; background:#f3eee4; padding:5px 11px; border-radius:99px;
+  font-variant-numeric:tabular-nums;}
+.pk-cnt.on .cp{background:#fff1ef; color:var(--acc-deep);}
 .pk-cnt .fdot{width:6px; height:6px; border-radius:50%; background:var(--acc); display:none;}
 .pk-cnt.on .fdot{display:block;}
-.pk-list{position:relative;}
+/* 版面（附錄 E3）：一區＝一張白卡，裡面用 hairline 分列 ——
+   沿用 App 自己處理長清單的語言（首頁「回憶」的 .mem-card + .mem-row），
+   不是 .stop-card／.exp-item 那種「一張卡＝一個實體」的語言：22 筆同質小東西各一張浮卡
+   會讓「盥洗包」跟「一支牙刷」視覺一樣重，層級整個扁掉（陰影 21 個、190px 純空隙）。 */
+.pk-list{position:relative; background:var(--card); border-radius:18px; box-shadow:var(--shadow); padding:2px 0 0;}
 /* 落點錨：零高度，但要 display:block 才量得到寬度；不佔任何版面 */
 .pk-slot{display:block; height:0; font-size:0; line-height:0;}
-.pk-card{background:var(--card); border-radius:16px; box-shadow:var(--shadow); margin-bottom:10px;}
-.pk-row{display:flex; align-items:center; min-width:0;}
+.pk-card{border-top:1px solid #f4eee2;}
+/* ⚠️ :not(.pk-bag) 是必要的（demo 沒踩到、實測抓到）：包也帶著 .pk-card，
+   它排在區的第一筆時會被這條把自己那圈框的上邊消掉，變成三邊的盒子。
+   這條的用意只是「第一列不要有分隔線」，不是拆掉包的框。 */
+.pk-list > .pk-card:first-of-type:not(.pk-bag){border-top:none;}
+.pk-row{display:flex; align-items:center; min-width:0; padding-right:2px;}
 .pk-ck{width:44px; min-height:56px; flex:0 0 auto; display:flex; align-items:center; justify-content:center; margin-left:3px;}
 .pk-row.done .pk-box{background:var(--acc); border-color:var(--acc);}
 .pk-txt{flex:1; min-width:0; text-align:left; padding:8px 4px 8px 6px; min-height:56px; display:flex;
   flex-direction:column; justify-content:center; gap:2px;}
 .pk-txt .t{font-size:16px; overflow-wrap:anywhere; line-height:1.35;}
 .pk-row.done .pk-txt .t{color:#b8ad9c; text-decoration:line-through;}
+/* 把手（附錄 E2）：命中區永遠 44×56，一格都不准縮 —— 防誤觸靠「怎麼觸發」，不是靠把鈕做小。
+   ⚠️ touch-action 從 none 改成 pan-y：v2.9 這條把手柱縱向覆蓋清單 70%，none ＝ 拇指滑清單
+      的那條路徑完全不捲動，加上 pointerdown 零門檻 ⇒ 一碰就拖。 */
 .pk-grip{width:44px; min-height:56px; flex:0 0 auto; display:flex; align-items:center; justify-content:center;
-  color:#cbc0ad; font-size:19px; touch-action:none; margin-right:2px;}
-.pk-grip:active{color:#8f8578;}
-/* 包＝同一張白卡長高（層級靠「同一張卡＋左側 rail」不靠縮排，手機水平空間才不會被吃掉） */
-.pk-bag{overflow:hidden;}
+  color:#cfc5b3; touch-action:pan-y; margin-right:2px;}
+/* 圖形＝6 個點的紋理（取代 19px 的 ☰）：跟 v2.7 對 .map-btn 的處理同一招 ——
+   把視覺重量拿掉、命中區留著。它不再是一顆按鈕，是一塊可以抓的紋理。 */
+.pk-grip .gv{width:30px; height:30px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+  background:transparent; transition:background .2s linear, color .2s linear, transform .18s;}
+.pk-grip .gd{width:12px; height:18px; display:block; fill:currentColor;}
+/* 「充能」要看得見：按住的那 220ms 底色慢慢長出來（transition 時間軸對齊門檻）——
+   「還沒開始拖」是看得見的，誤按可以立刻鬆手。真的進入拖曳才變 --acc。 */
+.pk-grip.arming .gv{background:#efe8db; color:#8f8578; transform:scale(1.06);}
+.pk-grip.hot .gv{background:var(--acc); color:#fff; transform:scale(1.06);}
+/* 拖曳期間才鎖捲動（平常一律放行）——誤觸修正的核心之一 */
+html.drag-lock, html.drag-lock body{touch-action:none; overscroll-behavior:none;}
+/* 包＝白抽屜裡的一個「淡底盒子」（附錄 E3）：這樣「包」重新變成畫面上唯一的第二層容器。
+   層級靠「淡底盒子＋左側 rail」不靠縮排，手機水平空間才不會被吃掉。 */
+.pk-bag{overflow:hidden; background:#fbf7f0; border:1px solid #f1eadd; border-radius:14px; margin:8px;}
+.pk-bag + .pk-card{border-top:none;}
 .pk-bag .pk-head-row{min-height:60px;}
 .pk-bag .pk-emo{font-size:17px; margin-right:1px;}
 .pk-bag .pk-head-row .t{font-weight:700;}
@@ -264,9 +307,9 @@ ul{padding:0; list-style:none;}
 .pk-sub .all{color:var(--ok); font-weight:700;}
 .pk-chev{font-size:14px; color:#b0a493; margin-left:7px; transition:transform .2s; display:inline-block; font-weight:700;}
 .pk-bag.open .pk-chev{transform:rotate(180deg);}
-.pk-inner{border-top:1px solid #f2ecdf; padding:2px 6px 8px 14px; position:relative;}
-.pk-inner::before{content:""; position:absolute; left:18px; top:4px; bottom:10px; width:2px; border-radius:2px; background:#efe8db;}
-.pk-sub-row{display:flex; align-items:center; min-width:0; padding-left:16px; border-bottom:1px solid #f7f2e7;}
+.pk-inner{border-top:1px solid #efe7d8; padding:2px 6px 8px 14px; position:relative;}
+.pk-inner::before{content:""; position:absolute; left:18px; top:4px; bottom:10px; width:2px; border-radius:2px; background:#e7dfcd;}
+.pk-sub-row{display:flex; align-items:center; min-width:0; padding-left:16px; border-bottom:1px solid #f2ebdd;}
 .pk-sub-row:last-of-type{border-bottom:none;}
 .pk-sub-row .pk-ck{width:44px; min-height:50px; margin-left:0;}
 .pk-sub-row .pk-box{width:23px; height:23px; font-size:12px;}
@@ -281,7 +324,13 @@ ul{padding:0; list-style:none;}
   background:none; margin:2px 0 14px; text-align:left;}
 .pk-add:active{border-color:var(--acc); color:var(--acc-deep);}
 .pk-inner .pk-add{margin:6px 0 2px; min-height:44px; font-size:14px;}
+/* 區的就地新增＝抽屜的最後一列（hairline，不再是一個虛線方框，少一個矩形）。
+   ⚠️ 包裡面那條 .pk-inner .pk-add 維持虛線 —— 那是盒子內的次要入口，不要一起改掉。 */
+.pk-list > .pk-add{border:none; border-top:1px solid #f4eee2; border-radius:0;
+  margin:0; min-height:54px; padding-left:16px; color:#a89d8d;}
+.pk-list > .pk-add .plus{color:var(--acc-deep); font-weight:800; font-size:17px;}
 .pk-form{display:flex; gap:8px; margin:2px 0 14px;}
+.pk-list > .pk-form{margin:8px 10px 10px;}
 .pk-inner .pk-form{margin:6px 0 2px;}
 .pk-form input{flex:1; min-width:0; font-size:16px; padding:11px 13px; border:1.5px solid var(--acc);
   border-radius:14px; background:var(--card); font-family:inherit; color:var(--ink);}
@@ -296,12 +345,13 @@ ul{padding:0; list-style:none;}
 .pk-bag.is-dragging .pk-inner{display:none;}
 /* 浮起來的那一張刻意「浮在手指上方」而不是壓在手指底下 ——
    壓在底下時它剛好完整蓋住你正要放進去的那個包，高亮等於沒做。 */
-#pk-ghost{position:fixed; z-index:70; pointer-events:none; left:0; top:0;
+#pk-ghost{position:fixed; z-index:70; pointer-events:none; left:0; top:0; margin:0;
   box-shadow:0 10px 26px rgba(70,55,30,.28); border-radius:14px; background:var(--card); overflow:hidden;
   border:1.5px solid var(--acc);}
 #pk-ghost .pk-row{min-height:46px;}
 #pk-ghost .pk-ck,#pk-ghost .pk-grip{min-height:46px;}
 #pk-ghost .pk-grip{color:var(--acc);}
+#pk-ghost .pk-grip .gv{background:var(--acc); color:#fff;}
 #pk-ghost .pk-txt{min-height:46px; padding-right:2px;}
 #pk-ghost .pk-txt .t{white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block;}
 #pk-ghost .pk-sub{display:none;}

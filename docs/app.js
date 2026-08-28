@@ -11,7 +11,14 @@
 /* ============ 常數 ============ */
 /* 版本號的唯一來源：首頁 footer 與「版本」sheet 都讀它。
  * 改前端時跟 sw.js 的 cache 版本號一起 +1（見「版本與更新」段）。 */
-var APP_VER="2.9";
+var APP_VER="3.0";
+
+/* 打包把手的三個門檻（v3.0，DESIGN.md 附錄 E2）——「先觀察，後接管」：
+ * pointerdown 只進入「待命」，垂直帶開＝你在捲動就放行，橫向帶開或按住夠久才真的開始拖。
+ * 要調手感就改這三個數字，別去改判斷式。 */
+var PK_V_ESC = 8;      /* 垂直位移 > 8px  → 放棄（在捲動） */
+var PK_H_ARM = 12;     /* 橫向位移 > 12px → 進入拖曳（橫向不可能是捲動＝意圖明確） */
+var PK_T_HOLD = 220;   /* 原地按住 220ms → 進入拖曳 */
 
 /* ---- 功能鈕的 inline SVG 圖示（吃 currentColor、每台裝置長得一樣）----
  * ⚠️ 界線（別擴大解釋）：只有「系統給的功能鈕」用 SVG。
@@ -1611,12 +1618,22 @@ function viewPack(t){
   }
   return pkTopBar() + ZONES.map(function(z){ return pkSectionHtml(z); }).join("");
 }
-/* 頂部一列：主按鈕（結構）＋模板（一整套）。舊的 segmented 與獨立輸入列已砍掉，
- * 「加到哪」改由就地新增的位置決定（segmented 想做卻做不到的事）。 */
+/* 頂部一列（v3.0 附錄 E3）：進度為主、按鈕輕量化 —— 珊瑚只留給「已打包 x / y」這種他真的
+ * 在看的東西；「新增」與「模板」按規格本來就是次要入口（主力是每區底部的就地新增），
+ * 降成白底輕量鈕。舊的 segmented 與獨立輸入列 v2.9 已砍掉，「加到哪」由輸入框長在哪裡決定。
+ * 分母＝頂層項目（包算 1 件），跟區的「已打包 x / y」同一套口徑，數字才對得起來。 */
 function pkTopBar(){
+  var all = pkAll().filter(function(p){ return !p.bag; });
+  var done = all.filter(function(p){ return p.done; }).length;
+  var pct = all.length ? Math.round(done/all.length*100) : 0;
+  var prog = !all.length ? '還沒有東西'
+    : (done===all.length
+        ? '<span class="allok">✓ 全部打包好了</span>'
+        : '還要帶 <b>'+(all.length-done)+'</b> 樣<span class="bar"><i style="width:'+pct+'%"></i></span>');
   return '<div class="pk-top">'
-    + '<button class="pk-new" onclick="openPackSheet()">＋ 新增物品</button>'
-    + '<button class="pk-tpl" onclick="openTplPicker()">📦 模板</button>'
+    + '<div class="pk-prog">'+prog+'</div>'
+    + '<button class="pk-lite" onclick="openPackSheet()"><span class="plus">＋</span>新增</button>'
+    + '<button class="pk-lite" onclick="openTplPicker()">📦 模板</button>'
     + '</div>';
 }
 function pkSectionHtml(z){
@@ -1625,16 +1642,20 @@ function pkSectionHtml(z){
   var filtered = ui.pk.filter[z.key] ? top.filter(function(p){return !p.done;}) : top;
   var rows = filtered.map(function(p){ return pkRowHtml(p, z); }).join("");
   var empty = "";
-  if(!top.length) empty = '<div class="pk-inner-empty" style="padding-left:4px">這區還沒有東西</div>';
-  else if(!filtered.length) empty = '<div class="pk-inner-empty" style="padding-left:4px">這區都打包好了 🎉</div>';
+  if(!top.length) empty = '<div class="pk-inner-empty">這區還沒有東西</div>';
+  else if(!filtered.length) empty = '<div class="pk-inner-empty">這區都打包好了 🎉</div>';
   var addRow = (ui.pk.adding && ui.pk.adding.zone===z.key && !ui.pk.adding.bag)
     ? pkAddForm("加到「"+z.emoji+" "+z.label+"」")
-    : '<button class="pk-add" onclick="pkStartAdd(\''+z.key+'\',\'\')">＋　加東西到「'+z.emoji+' '+z.label+'」</button>';
+    : '<button class="pk-add" onclick="pkStartAdd(\''+z.key+'\',\'\')">'
+      + '<span class="plus">＋</span>加東西到「'+z.emoji+' '+z.label+'」</button>';
+  /* ⚠️ 計數的視覺是內層 .cp 那顆小藥丸，外層 .pk-cnt 只負責撐 44px 命中區 */
   return '<section class="pack-sec">'
-    + '<div class="pack-head"><span class="t">'+z.emoji+' '+z.label+'（'+z.sub+'）</span>'
+    + '<div class="pack-head"><span class="t">'+z.emoji+' '+z.label
+    +   '<span class="sub">（'+z.sub+'）</span></span>'
     +   '<button class="pk-cnt'+(ui.pk.filter[z.key]?" on":"")+'" onclick="pkToggleFilter(\''+z.key+'\')">'
-    +     '<span class="fdot"></span>'
+    +     '<span class="cp"><span class="fdot"></span>'
     +     (ui.pk.filter[z.key] ? "只看沒打包的" : "已打包 "+done+" / "+top.length)
+    +     '</span>'
     +   '</button>'
     + '</div>'
     + '<div class="pk-list" data-zone="'+z.key+'">'
@@ -1661,10 +1682,18 @@ function pkCkHtml(p){
   return '<button class="pk-ck" onclick="togglePack(\''+p.id+'\')" aria-label="打勾">'
     + '<span class="pk-box">'+(p.done?"✓":"")+'</span></button>';
 }
+/* 把手（v3.0 附錄 E2）：命中區永遠 44×56（一格都不准縮），改的是「視覺重量」與「怎麼觸發」。
+ * 圖形＝6 個點的紋理，取代 19px 的 ☰ —— ☰ 在這個 App 是「調整模式的工具」，常駐等於把工具
+ * 提到跟內容同一階，而且沿右緣重複成一條柱（v2.7 才剛在 .map-btn 修掉的同一個病）。
+ * ⚠️ pointermove／up／cancel 不再寫 inline：待命期與拖曳期都掛在 window 上，
+ *    手指滑出把手之後才收得到（門檻式判斷一定要收得到後續事件）。 */
+var PK_GRIP_DOTS = '<span class="gv"><svg class="gd" viewBox="0 0 12 18" aria-hidden="true" focusable="false">'
+  + '<circle cx="3.4" cy="4" r="1.35"/><circle cx="8.6" cy="4" r="1.35"/>'
+  + '<circle cx="3.4" cy="9" r="1.35"/><circle cx="8.6" cy="9" r="1.35"/>'
+  + '<circle cx="3.4" cy="14" r="1.35"/><circle cx="8.6" cy="14" r="1.35"/></svg></span>';
 function pkGripHtml(id){
   return '<button class="pk-grip" aria-label="拖曳移動" oncontextmenu="return false"'
-    + ' onpointerdown="packDragStart(event,\''+id+'\')" onpointermove="packDragMove(event)"'
-    + ' onpointerup="packDragEnd(event)" onpointercancel="packDragCancel(event)">☰</button>';
+    + ' onpointerdown="packGripDown(event,\''+id+'\')">'+PK_GRIP_DOTS+'</button>';
 }
 function pkNextTopRef(p, zoneKey){
   var list = ui.pk.filter[zoneKey] ? pkTop(zoneKey).filter(function(x){return !x.done;}) : pkTop(zoneKey);
@@ -1689,7 +1718,8 @@ function pkBagHtml(p, z){
   if(open){
     var addRow = (ui.pk.adding && ui.pk.adding.bag===p.id)
       ? pkAddForm("加到「"+p.text+"」")
-      : '<button class="pk-add" onclick="pkStartAdd(\''+p.zone+'\',\''+p.id+'\')">＋　加東西到「'+esc(p.text)+'」</button>';
+      : '<button class="pk-add" onclick="pkStartAdd(\''+p.zone+'\',\''+p.id+'\')">'
+        + '<span class="plus">＋</span>加東西到「'+esc(p.text)+'」</button>';
     inner = '<div class="pk-inner">'
       + pkSlot(p.zone, p.id, kids.length?kids[0].id:"")
       + (kids.length ? kids.map(function(k,i){
@@ -2111,19 +2141,68 @@ function togglePack(id){
 
 /* ============================================================================
    打包的拖曳（跟行程分頁那一套「index 位移＋讓位動畫」是兩套，刻意不共用）
-   手感沿用行程：pointer events／只有把手可拖（touch-action:none）／setPointerCapture／
-   preventDefault／邊緣自動捲動 TH=80、SPEED=9（跟 dragAutoScroll 同一組數字）。
+   手感沿用行程：pointer events／只有把手可拖／setPointerCapture／preventDefault／
+   邊緣自動捲動 TH=80、SPEED=9（跟 dragAutoScroll 同一組數字）。
+   ⚠️ v3.0 改掉的是**觸發條件**：把手不再是 touch-action:none ＋ 一碰就拖（見下面 packGripDown）。
+      行程那一套的 dragStart／dragMove／dragEnd 一行都沒動、也不准把門檻套過去——
+      行程的把手只在「調整模式」出現，本來就不會誤觸，改了只會讓那邊變難拖。
    差別在落點：行程只有「排序」，打包還有「進包／出包／換區」⇒ 改用 slot 制。
    ⚠️ 座標用 client 座標是**對的**：每一次 pointermove 都重新 getBoundingClientRect（沒有
       「開始時的基準」），自動捲動之後 rect 自己就更新了。
       若有人把它改回 transform 位移法，就必須回到 page 座標（clientY+scrollY），別混用。
    ============================================================================ */
-var pkDrag = null;
-function packDragStart(ev, id){
-  if(pkDrag) return;
+var pkDrag = null, pkPend = null;
+/* 「先觀察，後接管」（v3.0 附錄 E2）＝這一版誤觸修正的核心：
+ *   pointerdown 只進入「待命」：不 preventDefault、不 setPointerCapture，
+ *   把手的 touch-action 是 pan-y ⇒ 這段期間捲動一路交給瀏覽器，不會頓一下。
+ *     垂直位移 > PK_V_ESC(8px)  → 放棄（你在捲動）
+ *     橫向位移 > PK_H_ARM(12px) → 進入拖曳（橫向不可能是捲動＝意圖明確）
+ *     原地不動滿 PK_T_HOLD(220ms) → 進入拖曳
+ *   進入拖曳的那一刻才：setPointerCapture ＋ 鎖捲動 ＋ 震一下 ＋ 把手變珊瑚。
+ * ⚠️ 待命期間**不可以**把原點跟著手指移（「方向還不明就重設基準」那種寫法）：
+ *    原點一直往前挪，橫向門檻永遠累積不到（UX 施工時實測「往左帶 24px」完全不會觸發）。
+ *    小幅晃動交給 220ms 的倒數處理就好。 */
+function packGripDown(ev, id){
+  if(pkDrag || pkPend) return;
   if(!requireWrite("搬動打包項目")) return;
-  ev.preventDefault();
-  try{ ev.currentTarget.setPointerCapture(ev.pointerId); }catch(e){}
+  var el = ev.currentTarget;
+  pkPend = { id:id, el:el, pid:ev.pointerId, x:ev.clientX, y:ev.clientY,
+             t:setTimeout(function(){ pkArmDrag("hold"); }, PK_T_HOLD) };
+  el.classList.add("arming");                 /* 「充能」看得見：誤按可以立刻鬆手 */
+  window.addEventListener("pointermove", pkPendMove, true);
+  window.addEventListener("pointerup", pkClearPend, true);
+  /* 快速滑過時瀏覽器會發 pointercancel ⇒ 待命狀態要放棄（免費的第二道保險） */
+  window.addEventListener("pointercancel", pkClearPend, true);
+}
+function pkPendMove(e){
+  if(!pkPend || e.pointerId!==pkPend.pid) return;
+  var dx = e.clientX-pkPend.x, dy = e.clientY-pkPend.y;
+  if(Math.abs(dy)>PK_V_ESC && Math.abs(dy)>=Math.abs(dx)){ pkClearPend(); return; }   /* 在捲動 */
+  if(Math.abs(dx)>PK_H_ARM && Math.abs(dx)>Math.abs(dy)){ pkArmDrag("swipe", e); return; }
+}
+function pkClearPend(){
+  if(!pkPend) return;
+  clearTimeout(pkPend.t);
+  if(pkPend.el) pkPend.el.classList.remove("arming");
+  window.removeEventListener("pointermove", pkPendMove, true);
+  window.removeEventListener("pointerup", pkClearPend, true);
+  window.removeEventListener("pointercancel", pkClearPend, true);
+  pkPend = null;
+}
+function pkArmDrag(how, e){
+  if(!pkPend || pkDrag) return;
+  var p = pkPend, x = e?e.clientX:p.x, y = e?e.clientY:p.y;
+  pkClearPend();
+  try{ if(navigator.vibrate) navigator.vibrate(12); }catch(err){}
+  pkBeginDrag(p.id, x, y, p.el, p.pid);
+  if(pkDrag) pkDrag.how = how;
+}
+/* 已經在拖了就吃掉 touchmove —— 「拖曳期間才鎖捲動」真正生效的地方。
+ * touch-action 在手勢一開始就決定了，中途改沒有用；只有 preventDefault 擋得住。 */
+document.addEventListener("touchmove", function(e){ if(pkDrag) e.preventDefault(); }, {passive:false});
+
+function pkBeginDrag(id, x, y, gripEl, pid){
+  if(pkDrag) return;
   var item = pkById(id); if(!item) return;
   var el = document.querySelector('.pk-list [data-id="'+id+'"]');
   if(!el) return;
@@ -2142,15 +2221,21 @@ function packDragStart(ev, id){
   bar.id = "pk-dragbar"; bar.innerHTML = "";
   document.body.appendChild(bar);
 
-  pkDrag = { id:id, item:item, el:el, ghost:ghost, bar:bar,
+  pkDrag = { id:id, item:item, el:el, ghost:ghost, bar:bar, grip:gripEl, pid:pid,
              gw:ghost.offsetWidth, gh:ghost.offsetHeight,
-             x:ev.clientX, y:ev.clientY, target:null, raf:0, moved:false };
+             x:x, y:y, target:null, raf:0, moved:false };
   el.classList.add("is-dragging");
+  if(gripEl) gripEl.classList.add("hot");
+  document.documentElement.classList.add("drag-lock");     /* 拖曳期間才鎖捲動（平常放行） */
+  try{ if(gripEl && pid!=null) gripEl.setPointerCapture(pid); }catch(e){}
+  window.addEventListener("pointermove", packDragMove, {passive:false});
+  window.addEventListener("pointerup", packDragEnd, true);
+  window.addEventListener("pointercancel", packDragCancel, true);
   pkPaintDrag();
 }
 function packDragMove(ev){
   if(!pkDrag) return;
-  ev.preventDefault();
+  if(ev.cancelable) ev.preventDefault();
   pkDrag.x = ev.clientX; pkDrag.y = ev.clientY; pkDrag.moved = true;
   pkPaintDrag();
   pkDragAutoScroll();
@@ -2270,6 +2355,11 @@ function packDragCancel(){
 }
 function pkCleanupDrag(){
   if(!pkDrag) return;
+  window.removeEventListener("pointermove", packDragMove, {passive:false});
+  window.removeEventListener("pointerup", packDragEnd, true);
+  window.removeEventListener("pointercancel", packDragCancel, true);
+  document.documentElement.classList.remove("drag-lock");
+  if(pkDrag.grip) pkDrag.grip.classList.remove("hot","arming");
   if(pkDrag.ghost) pkDrag.ghost.remove();
   if(pkDrag.bar) pkDrag.bar.remove();
   if(pkDrag.el) pkDrag.el.classList.remove("is-dragging");

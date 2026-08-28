@@ -796,3 +796,247 @@ pointer events ／**只有把手可拖**（`touch-action:none`）／`setPointerC
    vs B 改成真的只看一區（清單變短）vs C 維持現在。
 3. **拖曳把手要不要常駐** —— A 一直都在（**推薦**，理由見 D4.1）vs B 比照行程要先按「調整」。
 4. （順帶）**包被勾起來要不要自動收合** —— demo 目前是「會收合」。
+
+---
+
+# 附錄 E（v2 修正提案）— 打包清單：「醜」的診斷 ＋ 拖曳誤觸
+
+> demo：`demo/packing-v2.html`（單檔、雙擊即開、手機優先）。**不要覆蓋 `demo/packing.html`。**
+> demo 裡「⚙ DEMO 設定」最上面有兩顆大鈕，可以在 **「現在線上的 v2.9」⇄「v2 新版」** 之間一鍵切換對照。
+> 資料底＝Benson 真實旅程「本色季3rd」的 22 筆打包清單（原字不動），再把「盥洗包／防水包」變成真的包。
+> 本附錄所有數字都是 **headless Chrome 鎖 375×812 實測**，不是推算。
+
+Benson 的回報：①「ui 有點醜」②「現在拖行李很容易不小心按到」。
+**這兩件事是同一個東西造成的**，所以放在同一份提案裡。
+
+## E1. 診斷：為什麼「醜」
+
+病根一句話：
+
+> **打包清單借用了「一張卡＝一個實體」的語言，去排一份 22 筆的清單。**
+
+這是這個 App 第五次踩到「某元件借了別人的視覺語言」。三個症狀都從這裡長出來：
+
+### 症狀① 19 張浮卡 ＝ 層級整個扁掉，而且畫面很碎（主症）
+
+實測（375×812，Benson 真實清單）：
+
+| | v2.9 現況 | 說明 |
+|---|---|---|
+| 有陰影的元素 | **21 個** | 19 張卡各一道，加上頂部兩顆鈕 |
+| 卡間空隙 | 每張 `margin-bottom:10px` | 19 張 ＝ **190px 純空隙** |
+| 頁面總高（包收合） | **1930px** | ＝ 2.4 個螢幕 |
+
+「包」跟一支「電動牙刷」**視覺重量完全一樣**——同樣的白底、同樣的 16px 圓角、同樣的 `--shadow`。
+包是容器這件事，只有在你把它**展開**之後才看得出來；收起來的時候它就是清單裡的一張卡。
+D3 當初訂「包＝同一張白卡長高」是為了讓包看起來像一個實體，
+但那條規則**被套到 19 筆同質小東西身上**，結果是誰都不像實體。
+
+而且 **App 自己處理長清單的語言根本不是這個**：
+首頁「回憶」是 `.mem-card`（**一張卡**）＋ 內部 `border-top:1px solid #f2ecdf` 的 `.mem-row`。
+`.stop-card` / `.exp-item` 那種「每筆一張浮卡」是給**少量、每筆都是一個實體**的東西用的。
+打包是全 App 筆數最多的清單，卻挑了最碎的那一套語言。
+
+### 症狀② 右緣一條 ☰ 柱 —— 這正是 v2.7 才剛修掉的病，原樣復發
+
+實測：**28 個把手全部落在 x=309~357 這條 48px 寬的縱帶上，縱向覆蓋清單 70%。**
+
+`styles.css` 裡 v2.7 的註解自己寫著（`.map-btn` 那一段）：
+
+> 「44px 實心色塊是整張卡最大的元素、貼在卡角像貼紙、**沿右邊重複出現形成一條色點柱**」
+
+v2.9 把同一件事在打包分頁重做了一次，只是**從色塊換成符號**（19px 的 `☰`，`#cbc0ad`）。
+而且 `☰` 在這個 App 只有 `.tool-btn` / `.drag-handle` 用，**那是「調整模式」才出現的工具**；
+常駐等於把「編輯模式的工具」提到跟內容同一階。
+
+**這條柱子同時就是問題②誤觸的來源** —— 所以「醜」跟「誤按」是同一件事，見 E2。
+
+### 症狀③ 頂端那顆珊瑚實心鈕，把視覺焦點從內容搶走
+
+實測：`.pk-new` 是 **256×50 ＝ 12,820px²**，是整頁**最大的飽和色塊**，
+是一顆打勾完成圈（27×27 ＝ 729px²）的 **17.6 倍**。
+
+珊瑚在這個 App 的語意是**「完成／進行中的狀態」**（`.pk-box.done`、`.edit-toggle.on`、`.count-chip`）
+與**「sheet 裡的送出」**（`.btn-primary`）。把它常駐成頁面頂端的入口，等於：
+
+- 用「送出」的語言做一個平常在用的入口；
+- 跟下面「勾完會變珊瑚」的進度回饋**搶同一個顏色** ⇒ 你打勾了 8 樣，畫面上最亮的還是那顆按鈕。
+
+而且按 **D5 自己的規格**，這顆是「負責結構」的**次要**入口（主力是每區底部的就地新增）——
+**視覺權重跟使用頻率是反的。**
+
+### 症狀④（小）區標題跟內容爭
+
+實測 `.pack-head .t` ＝ `15px / 800 / rgb(43,38,32)`（純 ink），
+而 App 標準的區標題 `.sec-title` 是 `14px / 800 / var(--muted)`。
+打包的「🎒 隨身（上飛機帶著）」跟卡片內文一樣黑一樣重，標題沒有退到背景。
+
+## E2. 誤觸：根因與解法
+
+### 根因（已量化）
+
+```css
+.pk-grip{ width:44px; min-height:56px; touch-action:none; }
+```
+```html
+onpointerdown="packDragStart(event, id)"   <!-- 一碰就進入拖曳 -->
+```
+
+- 把手縱帶 **x=309~357**（螢幕 375，離右緣只有 18px）＝**拇指滑清單的路徑**；
+- 縱向覆蓋清單 **70%**，而 `touch-action:none` 讓這 70% **完全不捲動**；
+- `pointerdown` **沒有位移門檻、沒有時間門檻**，手指一碰就開始拖。
+
+**實測負控組**（demo 切到「B 一碰就拖」，模擬拇指沿右緣上滑 40px）：**開始拖曳 ＝ 會誤觸**。
+這條負控組是量測工具的自證：如果連現況都測不出誤觸，代表尺壞了、後面的綠燈都不算。
+
+### 解法：`pointerdown` 不等於「開始拖」，改成「先觀察，後接管」
+
+**不回頭去做「進調整模式才能拖」** —— D4.1 的理由仍然成立（打包的移動是高頻零散、右側本來就是空的），
+那會讓每次移動多兩個動作。真正要修的是**觸發條件**，不是**有沒有把手**。
+
+```
+pointerdown → 只進入「待命」：不 preventDefault、不 capture、touch-action:pan-y
+  ├─ 垂直位移 > V_ESC = 8px    → 放棄（你在捲動）。因為是 pan-y，瀏覽器早就在捲了，不會頓一下
+  ├─ 橫向位移 > H_ARM = 12px   → 進入拖曳（橫向不可能是捲動 ＝ 意圖明確）
+  └─ 原地不動滿 T_HOLD = 220ms → 進入拖曳
+進入拖曳的那一刻才：setPointerCapture ＋ 鎖捲動 ＋ 震一下 ＋ 把手變珊瑚
+```
+
+四條配套，缺一條就會半殘：
+
+1. **`touch-action` 從 `none` 改成 `pan-y`** —— 平常放行，垂直捲動一路交給瀏覽器。
+2. **鎖捲動要用 `touchmove` 的 `preventDefault()`，不能靠改 `touch-action`。**
+   `touch-action` 在**手勢一開始**就決定了，中途改沒有用。
+   所以：`document.addEventListener("touchmove", e => { if(pkDrag) e.preventDefault(); }, {passive:false})`。
+   真機上「按住不動 220ms → 開始垂直拖」時 pan 還沒開始，這個 preventDefault 攔得住。
+3. **快速滑過時瀏覽器會發 `pointercancel`** —— 待命狀態要監聽它並放棄（免費的第二道保險）。
+4. **「充能」要看得見**：按住的那 220ms，把手底下的 30×30 圓角方塊底色從透明長成 `#efe8db`
+   （CSS `transition:background .2s linear`，時間軸剛好對齊門檻）。
+   **「還沒開始拖」是看得見的，誤按可以立刻鬆手。** 真的進入拖曳時再變 `--acc` ＋ `navigator.vibrate(12)`。
+
+### dev 必須照做的一條（施工時實測抓到）
+
+待命期間**不可以**把原點跟著手指移（「方向還不明就重設基準」那種寫法）：
+
+```js
+/* 錯：原點一直往前挪，橫向門檻永遠累積不到 —— 實測「往左帶 24px」完全不會觸發 */
+if(Math.abs(dx)>6){ pend.x = e.clientX; pend.y = e.clientY; }
+```
+
+原點必須固定；小幅晃動交給 220ms 倒數處理就好。
+
+### 把手的視覺重量也要降（同時治「醜」）
+
+- **命中區維持 44×56，一格都不准縮**（不能為了不誤觸就把按鈕縮小）。
+- 圖形換成 **6 個點的 inline SVG（12×18，`fill:currentColor`，`#cfc5b3`）**，
+  取代 19px 的 `☰` 字符 —— 同樣是 v2.7 對 `.map-btn` 的處理：
+  **把視覺重量拿掉、命中區留著**。它不再是一顆按鈕，是一塊可以抓的紋理。
+
+### 實測結果（同一組手勢，兩種模式各跑一次）
+
+| 手勢 | 現況（一碰就拖） | v2（門檻式） |
+|---|---|---|
+| 拇指沿右緣**快速**上滑 40px | **開始拖曳**（誤觸） | 沒有拖曳 ✅ |
+| **慢速**垂直滑 40px（10 步，每步 4px／30ms） | — | 沒有拖曳 ✅ |
+| 按住 300ms 再往上拖 | — | 拖得動 ✅ |
+| 把手往左帶 24px | — | 拖得動 ✅ |
+
+## E3. 版面修正（治「醜」）
+
+**一區 ＝ 一張白卡，裡面用 hairline 分列**（＝沿用 App 自己的 `.mem-card` + `.mem-row` 語言）。
+
+- `.pk-list` 變成那張卡：`background:var(--card); border-radius:18px; box-shadow:var(--shadow)`。
+- 每一列 `.pk-card` 拿掉背景／圓角／陰影／margin，改成 `border-top:1px solid #f4eee2`。
+- **包重新變成畫面上唯一的第二層容器**：白抽屜裡的一個**淡底盒子**
+  （`#fbf7f0` ＋ `1px solid #f1eadd` ＋ `border-radius:14px` ＋ `margin:8px`）。層級一眼就回來了。
+- 就地新增變成**抽屜的最後一列**（`border-top` hairline，不再是一個虛線方框）—— 少一個矩形。
+  **包裡面的 `.pk-inner .pk-add` 維持虛線**（那是盒子內的次要入口，不要一起改掉）。
+- 區標題退回 App 標準的 `.sec-title` 語言：`13.5px / 800 / var(--muted)`，「（上飛機帶著）」再淡一階。
+- 計數改成小藥丸（`#f3eee4` / `#8f8578`，開啟篩選才變 `#fff1ef` / `--acc-deep`），
+  **藥丸只有 26px 高，命中區靠外層 44px 撐**（`.pk-cnt` ≥44、內層 `.cp` 只管視覺）。
+- 頂部整列重做：`[還要帶 13 樣 ▬▬▬░░][＋ 新增][📦 模板]`，
+  **珊瑚只留給進度**，兩顆工具降成白底 `.pk-lite`（同 `.pk-tpl` / `.edit-toggle` 語言）。
+  整列 46px，比現況矮 4px。進度條**沿用 `.pk-sub .bar` 的 4px 純珊瑚語言，不要用花費頁的漸層 `.prog`**
+  （一個 App 裡「進度」只准有一種長相）。
+
+**實測前後對照**
+
+| | v2.9 現況 | v2 新版 |
+|---|---|---|
+| 有陰影的元素 | 21 | **5** |
+| 頁面高（包收合） | 1930px | **1794px**（−136） |
+| 頁面高（包全開） | 2962px | **2834px**（−128） |
+| 最大飽和色塊 | `.pk-new` 12,820px² | 打勾圈 **729px²**（1/17.6） |
+| 區標題 | 15px/800/#2b2620 | 13.5px/800/#8f8578 |
+| 文字可用寬 | 250px | 248px（沒有變窄） |
+| 觸控目標全掃（包全開） | 115 個，**0 個 <44px** | 115 個，**0 個 <44px** |
+| input `font-size` | 16px | 16px |
+| 拿起來的瞬間下面那列位移 | 0px | **0px** |
+
+## E4. dev 要改哪裡（`public/`；這一輪不動資料格式）
+
+1. **`public/styles.css`**（正式版不需要 A/B，直接改成新版）
+   - `.pk-list`：加 `background:var(--card); border-radius:18px; box-shadow:var(--shadow); padding:2px 0 0;`
+   - `.pk-card`：拿掉 `background` / `box-shadow` / `border-radius` / `margin-bottom`，
+     改 `border-top:1px solid #f4eee2`；加 `.pk-list > .pk-card:first-of-type{border-top:none}`。
+   - `.pk-bag{background:#fbf7f0; border:1px solid #f1eadd; border-radius:14px; margin:8px;}`
+     ＋ `.pk-bag .pk-inner{border-top:1px solid #efe7d8}`、`.pk-inner::before{background:#e7dfcd}`、
+     `.pk-sub-row{border-bottom-color:#f2ebdd}`、`.pk-bag + .pk-card{border-top:none}`。
+     ⚠️ 一樣的老坑：**包頭專用的規則一律綁 `.pk-head-row`**，不要寫 `.pk-bag .t`。
+   - `.pk-list > .pk-add`：`border:none; border-top:1px solid #f4eee2; border-radius:0; margin:0; min-height:54px; padding-left:16px;`
+   - `.pack-head .t{font-size:13.5px; color:var(--muted)}` ＋ 新增 `.pack-head .t .sub{color:#b3a996; font-weight:600}`。
+   - `.pk-cnt`：外層只管 44px 命中區，視覺移到內層 `.cp`（`viewPack` 的 markup 要跟著加一層 span）。
+   - 刪掉 `.pk-top .pk-new`；新增 `.pk-prog`（白藥丸 ＋ 4px 珊瑚條）與 `.pk-lite`。
+   - `.pk-grip`：`touch-action` **從 `none` 改成 `pan-y`**；拿掉 `font-size:19px`；
+     新增 `.pk-grip .gv`（30×30、`border-radius:10px`、`transition:background .2s linear`）、
+     `.pk-grip .gd`（12×18 SVG、`fill:currentColor`）、
+     `.pk-grip.arming .gv{background:#efe8db; color:#8f8578; transform:scale(1.06)}`、
+     `.pk-grip.hot .gv{background:var(--acc); color:#fff}`。
+   - 新增 `html.drag-lock, html.drag-lock body{touch-action:none; overscroll-behavior:none;}`。
+2. **`public/app.js`**
+   - `pkTopBar()`：改成「進度藥丸 ＋ 兩顆輕量鈕」。
+     分母 ＝ `t.packing.filter(p => !p.bag)`（**包算 1 件**，跟區的計數同一套口徑）。
+   - `pkGripHtml()`：`onpointerdown` 改叫 **`packGripDown`**；內容換成 6 點 SVG；
+     `onpointermove` / `up` / `cancel` 從 inline 拿掉 —— **待命期與拖曳期都改掛在 `window` 上**。
+   - 新增 `packGripDown` / `pkPendMove` / `pkClearPend` / `pkArmDrag`；
+     `packDragStart` 拆成 `pkBeginDrag(id, x, y, gripEl, pointerId)`。
+     常數 `V_ESC=8` / `H_ARM=12` / `T_HOLD=220` **寫成檔頭的具名常數**（之後要調就改一個值）。
+   - 全域一次：`document.addEventListener("touchmove", e => { if(pkDrag) e.preventDefault(); }, {passive:false})`。
+   - `pkCleanupDrag`：要 `removeEventListener`、拿掉 `<html>` 的 `drag-lock`、清掉把手的 `hot` / `arming`。
+   - `pkSectionHtml`：區標題加 `<span class="sub">`、計數包一層 `<span class="cp">`。
+   - ⚠️ **不要動 `dragStart` / `dragMove` / `dragEnd`（行程那一套）**，也不要把門檻套過去 ——
+     行程的把手只在「調整模式」出現，本來就不會誤觸，改了只會讓那邊變難拖。
+3. **`APP_VER` ＋ `sw.js` 的兩個 cache 版本號一起 +1**（動手前先看檔案現況與 `git log`，別撞號）。
+4. **不用改 `server.js`**：這一輪沒有動資料格式（`kind` / `bag` 不變）。
+
+## E5. QA 檢查點（都要附實測值，不准用字級／推算）
+
+- 量測前先鎖 device metrics **375×812**，並斷言 `innerWidth===375`（headless 預設不是 375）。
+- **誤觸要有負控組**：先把把手改回「一碰就拖」跑同一組手勢，**必須測得出誤觸**；
+  測不出來代表尺壞了，這一輪的綠燈全部不算。
+- 四個手勢逐一驗：快速上滑 40px（不可拖）／慢速垂直 40px（不可拖）／
+  按住 300ms 再拖（要拖得動）／往左帶 24px（要拖得動）。
+- `.pk-grip` 的 `getComputedStyle().touchAction` 必須是 `pan-y`；拖曳中 `<html>` 必須有 `drag-lock`。
+- 觸控目標**全掃**（`querySelectorAll('#app button,#app input,#app a')`）逐一驗 ≥44px，**不准列白名單**；
+  掃到少於 20 個就判定尺壞了。（v2 demo 實測：包全開時掃 115 個、0 個不合格。）
+- 所有 input `font-size` ＝ 16px。（實測：16px。）
+- **各勾各的**：勾包之後把包**重新打開**，逐一比對「每一列的 `done` ↔ `text-decoration-line`」，
+  mismatch 必須是 0，且包內 `done` 陣列前後完全相同。
+  ⚠️ 勾了包會自動收合，**沒有重新打開就量 ＝ 量到 0 列，會拿到假的綠燈**（這一輪踩過一次）。
+- 「已打包 x / y」分母 ＝ 該區頂層項目（包算 1）。
+  （實測：`已打包 4 / 11`、`已打包 2 / 8`，`topOf()` 長度 11 / 8。）
+- 拿起來的瞬間，下面某一列的 `getBoundingClientRect().top` 位移必須是 **0**。
+- 既有功能不能壞：行程分頁的拖曳排序（另一套，不准被門檻污染）、v2.8 銜接條、鑰匙圈解鎖。
+
+## E6. 要 Benson 拍板的（demo 的「⚙ DEMO 設定」可即時切，最上面兩顆大鈕一鍵對照）
+
+1. **清單長什麼樣** —— **A 一區一張卡＋細線分列（推薦）** vs B 每一筆各自一張浮卡（現況）。
+   推薦 A：層級回來了（包重新變成唯一的容器）、陰影 21→5、頁面短 136px，
+   而且那是 App 自己處理長清單的既有語言。
+2. **頂部那一列** —— **A 進度＋輕量鈕、珊瑚只給進度（推薦）** vs B 珊瑚實心主按鈕（現況）。
+3. **把手怎麼觸發** —— **A 按住 0.22 秒／往旁邊帶一下才拖（推薦）** vs B 一碰就拖（現況）
+   vs C 要先按「調整」才有把手。
+   不建議 C：移動是高頻零散動作，多兩個步驟；而且 A 已經把誤觸壓到 0。
+   （C 在 demo 裡仍然吃 A 的門檻 —— 真要選 C，門檻留著只有好處。）
+4. （順帶，dev 層可自行調，不必等拍板）**把手的圖形**：現在是 6 個點的淡色紋理，取代 `☰`。
+   若覺得太淡可以再加深一階（`#cfc5b3` → `#c2b6a1`）。

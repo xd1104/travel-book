@@ -134,6 +134,15 @@ UI/UX 以 `demo/index.html`（UX demo v3.1，Benson 拍板）為準，**勿自�
   - **拖拉不可以是唯一的路**（單手／清單很長／不想拖）：① **點文字 → 編輯 sheet → 「放在哪」**（把所有目的地攤平成可點清單，包本身只列得到區）；② **長按 450ms → 動作選單**（改名字／換位置、打開看裡面、標成已打包、複製、刪掉）。長按是隱藏手勢所以**只當捷徑不當唯一入口**；⚠️ 長按開了選單之後**那一下的 `click` 必須在 capture 階段吞掉**，否則會順便勾起來／開編輯。
   - **新增分兩條、不是二選一**：**就地快速加**（每個容器底部一條虛線「＋ 加東西到…」，**「加到哪」由輸入框長在哪裡決定**、Enter 連續加、focus 不放掉）負責「量」；**彈窗只管結構**（建包、換位置）負責「結構」；模板負責「一整套」。新增與編輯**共用同一張 sheet**（跟 v2.6 地圖欄同一個決策，別複製第二份 UI）。
   - **刪掉一個包＝裡面的東西「倒出來」留在同一區**，不跟著消失（toast 要講清楚幾樣、留在哪一區）。
+  - **打包 v3.0 修正版（規格＝`DESIGN.md` 附錄 E，視覺＝`demo/packing-v2.html` 的「v2 新版」，Benson 三項全選 A；別當誤改改回去）＝只動「長相」與「怎麼觸發」，v2.9 的六件事與資料格式一個位元組都沒動**：
+    - **病根：打包借了「一張卡＝一個實體」的語言去排 22 筆的清單** ⇒ 19 張浮卡、21 道陰影，「盥洗包」跟「一支牙刷」視覺一樣重，層級整個扁掉。**改成 App 自己處理長清單的語言**（首頁「回憶」的 `.mem-card`＋hairline 分列）：`.pk-list` 變成那張白卡，`.pk-card` 拿掉底／圓角／陰影／margin 改 `border-top`，**包重新變成畫面上唯一的第二層容器**（`#fbf7f0` 淡底盒子）。實測陰影 18→5、頁高 −129px。
+    - ⚠️ **`.pk-list > .pk-card:first-of-type` 一定要帶 `:not(.pk-bag)`**（demo 的樣板資料剛好沒有「包排在區的第一筆」，所以沒踩到；實測抓到）：包也帶著 `.pk-card`，排第一筆時自己那圈框的上邊會被消掉，變成三邊的盒子。這條的用意只是「第一列不要有分隔線」。
+    - **頂部＝進度為主**：`.pk-new`（256×50 的珊瑚實心塊）整條砍掉，換成 `.pk-prog` 進度藥丸＋兩顆白底 `.pk-lite`。**珊瑚只留給進度**（實測整頁最大的飽和色塊 12,820px² → 打勾圈 729px²）。進度條沿用 `.pk-sub .bar` 的 4px 純珊瑚，**不要用花費頁的漸層 `.prog`**。分母＝頂層項目（包算 1），跟區的計數同一套口徑。
+    - **誤觸修正＝「先觀察，後接管」（`packGripDown`／`pkPendMove`／`pkClearPend`／`pkArmDrag`／`pkBeginDrag`）**：把手 `touch-action` 從 `none` 改成 **`pan-y`**，`pointerdown` 只進待命；**垂直 >8px 放行給捲動／橫向 >12px 或按住 220ms 才進入拖曳**（常數 `PK_V_ESC`／`PK_H_ARM`／`PK_T_HOLD` 在檔頭）。進入拖曳才 `setPointerCapture`＋`<html>.drag-lock`＋震動；**鎖捲動一定要靠全域 `touchmove` 的 `preventDefault`**（`touch-action` 在手勢一開始就決定了，中途改沒有用）。
+      - ⚠️ **待命期間不可以把原點跟著手指移**（「方向不明就重設基準」那種寫法）＝橫向門檻永遠累積不到，「往左帶」直接失效。
+      - ⚠️ **`pointermove`／`up`／`cancel` 不可以寫回 inline**：手指滑出把手就收不到，門檻式判斷會半殘。
+      - **命中區仍是 44×56，一格都不准縮**（防誤觸靠觸發條件，不是把鈕做小）；`☰` 換成 6 點 SVG 紋理（隔離量測：墨水 84→48px²、加權墨水 −54%），解掉「沿右緣重複成一條柱」——那正是 v2.7 在 `.map-btn` 修過的同一個病。
+      - **行程分頁的 `dragStart`／`dragMove`／`dragEnd` 一行都不准動、也不准套門檻**：那邊的把手只在調整模式出現，本來就不會誤觸，套了只會變難拖。
   - **`ZONES` 的順序與字（🧳 行李／🎒 隨身）維持原樣沒有動**——demo 自己寫了一組（隨身在前、字也不同），但那是 demo 的樣板資料，不在拍板的六件事裡，改它會連帶動到模板編輯與新旅程。
 - **`.gitattributes` 強制 md/js/css/html/json/yml 為 LF**；前後端 parser 開頭都先 `replace(/\r\n/g,'\n')`。壞的 JSON 行 parser 會跳過該行（不整檔炸掉）。（`.yml` 是 v2.5 補的：workflow 的 `run:` 區塊在 ubuntu bash 跑，CRLF 會變成 `$'\r': command not found`。）
 
@@ -153,7 +162,7 @@ UI/UX 以 `demo/index.html`（UX demo v3.1，Benson 拍板）為準，**勿自�
 ## PWA 鐵律（recipe-book 血淚，全部已做，別退步）
 - 所有資源、manifest `start_url`/`scope`、SW scope **一律相對路徑**（Pages 在 `/travel-book/` 子路徑）。
 - SW：`skipWaiting()`＋activate 清舊快取＋`clients.claim()`；`/api/data` network-first、寫入 network-only、殼 cache-first。
-- ⚠️ **`keyring-unlock.js` 走 network-first，刻意不跟 app shell 一起 cache-first**（2026-08-21 加）：它的正本在 keyring repo、由 CI 自動同步過來，**更新時不會跳這裡的 cache 版本號**；若走 cache-first，手機會永遠停在第一次快取到的那一版，模組的修正永遠到不了使用者手上。它仍在 `SHELL` 預先快取，所以離線時一定拿得到快取、不會落到 `offlineJson()`。**別為了「統一策略」把它併回 app shell。****改前端記得把 sw.js 的 cache 版本號 +1**（`travel-shell-vN`，目前 **v19**；**版本號是「比已經上線的那個大」不是「比我開工時看到的大」**——v2.7 這輪就撞到：開工時檔案是 v15，做到一半另一條線先用掉 v16 並推上線了，只好跳 v17；**`SHELL_CACHE` 與 `DATA_CACHE` 兩個都要跳，別只跳一個**）**並同步 `APP_VER`**（見下方「版本與更新」）。
+- ⚠️ **`keyring-unlock.js` 走 network-first，刻意不跟 app shell 一起 cache-first**（2026-08-21 加）：它的正本在 keyring repo、由 CI 自動同步過來，**更新時不會跳這裡的 cache 版本號**；若走 cache-first，手機會永遠停在第一次快取到的那一版，模組的修正永遠到不了使用者手上。它仍在 `SHELL` 預先快取，所以離線時一定拿得到快取、不會落到 `offlineJson()`。**別為了「統一策略」把它併回 app shell。****改前端記得把 sw.js 的 cache 版本號 +1**（`travel-shell-vN`，目前 **v20**；**版本號是「比已經上線的那個大」不是「比我開工時看到的大」**——v2.7 這輪就撞到：開工時檔案是 v15，做到一半另一條線先用掉 v16 並推上線了，只好跳 v17；**`SHELL_CACHE` 與 `DATA_CACHE` 兩個都要跳，別只跳一個**）**並同步 `APP_VER`**（見下方「版本與更新」）。
 - input/textarea/select `font-size ≥ 16px`（iOS 防自動放大）；觸控目標 ≥ 44px；Enter 送出全部走原生 `<form>` + `type=submit`。
 - 換 icon 後 iOS 已安裝的 PWA 要移除主畫面重加才會換。
 

@@ -1,0 +1,1147 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>旅途手帳 — 打包清單 v2 修正（UX demo）</title>
+<style>
+/* ===== 真色票（照 public/styles.css :root，一個都沒改） ===== */
+:root{
+  --bg:#f7f4ee; --card:#ffffff; --ink:#2b2620; --muted:#8f8578; --line:#e8e1d5;
+  --acc:#ff6b5e; --acc-deep:#e2503f; --ok:#2fa87a; --bad:#d64545;
+  --shadow:0 2px 14px rgba(70,55,30,.08);
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0; padding:0;}
+body{background:#e9e4da;
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+  color:var(--ink);}
+#app{max-width:480px; margin:0 auto; min-height:100dvh; background:var(--bg); position:relative; padding-bottom:150px;}
+button{font-family:inherit; border:none; background:none; cursor:pointer; color:inherit; padding:0; font-size:inherit;}
+h1,h2,h3,p,ul{margin:0;}
+/* 拖曳期間才鎖捲動（平常一律放行——這是這一版誤觸修正的核心之一） */
+html.drag-lock, html.drag-lock body{touch-action:none; overscroll-behavior:none;}
+
+/* ===== 抄自 public/styles.css（沿用既有視覺語言，未改動） ===== */
+.trip-head{padding:14px 18px 20px; color:#fff; border-radius:0 0 26px 26px;}
+.head-top{display:flex; align-items:center; justify-content:space-between;}
+.back-btn{display:inline-flex; align-items:center; gap:2px; color:#fff; font-size:15px; font-weight:600;
+  min-height:44px; padding:0 10px 0 0; text-shadow:0 1px 6px rgba(0,0,0,.25);}
+.head-edit{color:#fff; min-height:44px; padding:0 16px; border-radius:99px; background:rgba(255,255,255,.24);
+  font-size:13.5px; font-weight:700; display:inline-flex; align-items:center; gap:4px;}
+.trip-title{display:flex; align-items:center; gap:10px; margin-top:2px;}
+.trip-title .emo{font-size:34px; filter:drop-shadow(0 2px 5px rgba(0,0,0,.25));}
+.trip-title h1{font-size:24px; font-weight:800; text-shadow:0 1px 8px rgba(0,0,0,.3);}
+.trip-sub{font-size:13px; opacity:.95; margin-top:6px; text-shadow:0 1px 6px rgba(0,0,0,.3);}
+.tab-body{padding:16px 16px 40px; position:relative;}
+.pack-sec{margin-top:20px;}
+.pack-head{display:flex; align-items:center; justify-content:space-between; margin:2px 4px 10px;}
+.pack-head .t{font-size:15px; font-weight:800;}
+/* demo：tabbar 墊高 46px 讓開下面的 demo 控制台（正式版是貼底 bottom:0） */
+.tabbar{position:fixed; bottom:46px; left:0; right:0; margin:0 auto; max-width:480px; z-index:20;
+  background:rgba(255,255,255,.93); -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
+  border-top:1px solid var(--line); display:flex; padding-bottom:env(safe-area-inset-bottom);}
+.tabbar button{flex:1; min-height:58px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+  font-size:10.5px; font-weight:700; color:#b0a493;}
+.tabbar button .ico{font-size:21px; line-height:1;}
+.tabbar button.on{color:var(--acc-deep);}
+.btn-primary{width:100%; min-height:52px; border-radius:15px; background:var(--acc); color:#fff; font-size:16px; font-weight:800;}
+.btn-ghost{width:100%; min-height:50px; border-radius:15px; background:#fbfaf6; border:1.5px solid var(--line); color:#6b6154; font-size:15px; font-weight:700;}
+.empty{text-align:center; padding:44px 20px 30px; color:var(--muted);}
+.empty .big{font-size:44px; margin-bottom:10px;}
+.empty p{font-size:14.5px; line-height:1.7; margin-bottom:16px;}
+.hint{font-size:12.5px; color:var(--muted); line-height:1.6;}
+/* sheet */
+#sheet-layer{position:fixed; inset:0; z-index:50;}
+.backdrop{position:absolute; inset:0; background:rgba(35,28,18,.4); animation:fadeIn .2s;}
+.sheet{position:absolute; bottom:0; left:0; right:0; margin:0 auto; max-width:480px;
+  background:#fff; border-radius:22px 22px 0 0; padding:16px 18px calc(20px + env(safe-area-inset-bottom));
+  max-height:88dvh; overflow-y:auto; animation:slideUp .26s cubic-bezier(.2,.8,.3,1);}
+@keyframes slideUp{from{transform:translateY(60%); opacity:.4;} to{transform:none; opacity:1;}}
+@keyframes fadeIn{from{opacity:0;} to{opacity:1;}}
+.sheet-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; gap:8px;}
+.sheet-head h3{font-size:19px; font-weight:800; overflow-wrap:anywhere;}
+.sheet-head button{min-width:44px; min-height:44px; font-size:18px; color:var(--muted); display:flex; align-items:center; justify-content:center; flex:0 0 auto;}
+.field{display:block; margin-bottom:13px;}
+.field .fl{display:block; font-size:13px; font-weight:700; color:var(--muted); margin-bottom:6px;}
+.field input{width:100%; font-size:16px; font-family:inherit; color:var(--ink);
+  padding:12px 13px; border:1.5px solid var(--line); border-radius:13px; background:#fbfaf6; appearance:none; -webkit-appearance:none;}
+.field input:focus{outline:none; border-color:var(--acc); background:#fff;}
+.d-acts{display:flex; flex-direction:column; gap:9px; margin-top:16px;}
+#toast{position:fixed; left:50%; bottom:96px; transform:translateX(-50%); z-index:80;
+  background:rgba(43,38,32,.95); color:#fff; font-size:14px; font-weight:600; padding:12px 18px; border-radius:14px;
+  max-width:86vw; box-shadow:0 8px 24px rgba(0,0,0,.25); transition:opacity .2s;}
+#toast.hidden{opacity:0; pointer-events:none;}
+.loc-list{display:flex; flex-direction:column; gap:7px; margin-top:2px;}
+.loc{display:flex; align-items:center; gap:9px; min-height:48px; padding:0 12px; border-radius:13px;
+  border:1.5px solid var(--line); background:#fbfaf6; font-size:15px; text-align:left; width:100%;}
+.loc.sub{padding-left:26px; font-size:14.5px;}
+.loc.sub .arw{color:#c9beac; margin-left:-14px;}
+.loc.on{border-color:var(--acc); background:#fff1ef; color:var(--acc-deep); font-weight:800;}
+.loc .ck{margin-left:auto; color:var(--acc); font-weight:800;}
+.act-row{display:flex; align-items:center; gap:11px; width:100%; min-height:54px; padding:0 6px;
+  font-size:16px; font-weight:600; border-bottom:1px solid #f5f0e6; text-align:left;}
+.act-row .ai{width:26px; text-align:center; font-size:17px; flex:0 0 auto;}
+.act-row.danger{color:var(--bad);}
+.act-row:last-child{border-bottom:none;}
+.bag-toggle{display:flex; align-items:center; gap:10px; min-height:54px; padding:0 12px; border-radius:14px;
+  border:1.5px solid var(--line); background:#fbfaf6; width:100%; text-align:left; margin-bottom:13px;}
+.bag-toggle .bt-t{flex:1; min-width:0;}
+.bag-toggle .bt-t b{font-size:15px; display:block; font-weight:700;}
+.bag-toggle .bt-t span{font-size:12px; color:var(--muted);}
+.bag-toggle .sw{width:46px; height:28px; border-radius:99px; background:#ded5c4; position:relative; flex:0 0 auto; transition:background .18s;}
+.bag-toggle .sw i{position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:50%; background:#fff;
+  box-shadow:0 1px 3px rgba(0,0,0,.2); transition:transform .18s;}
+.bag-toggle.on{border-color:var(--acc); background:#fff1ef;}
+.bag-toggle.on .sw{background:var(--acc);}
+.bag-toggle.on .sw i{transform:translateX(18px);}
+.tpl-card{display:flex; align-items:center; gap:10px; padding:12px 4px; border-bottom:1px solid #f2ecdf;}
+.tpl-info{flex:1; min-width:0;}
+.tpl-info b{font-size:16px; display:block; overflow-wrap:anywhere;}
+.tpl-info span{font-size:12.5px; color:var(--muted); margin-top:3px; display:block;}
+.tpl-apply{min-height:44px; padding:0 16px; border-radius:12px; background:var(--acc); color:#fff; font-size:14px; font-weight:700; flex:0 0 auto;}
+.sk{background:linear-gradient(90deg,#efe9dd 25%,#f7f3ea 50%,#efe9dd 75%); background-size:200% 100%;
+  animation:sk 1.1s infinite; border-radius:16px; height:66px; margin-bottom:10px;}
+@keyframes sk{from{background-position:200% 0;} to{background-position:-200% 0;}}
+
+/* =========================================================================
+   打包清單（v2.9 已上線的那一版，原樣保留＝對照組）
+   ========================================================================= */
+.pk-top{display:flex; gap:8px; margin-bottom:16px; align-items:center;}
+.pk-top .pk-new{flex:1; min-height:50px; border-radius:15px; background:var(--acc); color:#fff;
+  font-size:15.5px; font-weight:800; display:flex; align-items:center; justify-content:center; gap:6px;
+  box-shadow:0 3px 10px rgba(226,80,63,.24);}
+.pk-top .pk-new:active{background:var(--acc-deep);}
+.pk-top .pk-tpl{flex:0 0 auto; min-height:50px; padding:0 15px; border-radius:15px; background:var(--card);
+  box-shadow:var(--shadow); font-size:13.5px; font-weight:700; color:#6b6154;}
+.pk-cnt{min-height:44px; display:flex; align-items:center; padding:0 4px; margin-right:-4px;}
+.pk-cnt .cp{display:flex; align-items:center; gap:5px; font-size:13px; color:var(--muted);
+  font-variant-numeric:tabular-nums; font-weight:600; border-radius:99px;}
+.pk-cnt.on .cp{color:var(--acc-deep); font-weight:800;}
+.pk-cnt .fdot{width:6px; height:6px; border-radius:50%; background:var(--acc); display:none;}
+.pk-cnt.on .fdot{display:block;}
+.pk-list{position:relative;}
+.pk-slot{display:block; height:0; font-size:0; line-height:0;}
+.pk-card{background:var(--card); border-radius:16px; box-shadow:var(--shadow); margin-bottom:10px;}
+.pk-row{display:flex; align-items:center; min-width:0;}
+.pk-ck{width:44px; min-height:56px; flex:0 0 auto; display:flex; align-items:center; justify-content:center; margin-left:3px;}
+.pk-box{width:27px; height:27px; border-radius:50%; border:2px solid #d6cbb8; flex:0 0 auto;
+  display:flex; align-items:center; justify-content:center; color:#fff; font-size:14px; transition:all .15s;}
+.pk-row.done .pk-box{background:var(--acc); border-color:var(--acc);}
+.pk-txt{flex:1; min-width:0; text-align:left; padding:8px 4px 8px 6px; min-height:56px; display:flex;
+  flex-direction:column; justify-content:center; gap:2px;}
+.pk-txt .t{font-size:16px; overflow-wrap:anywhere; line-height:1.35;}
+.pk-row.done .pk-txt .t{color:#b8ad9c; text-decoration:line-through;}
+.pk-grip{width:44px; min-height:56px; flex:0 0 auto; display:flex; align-items:center; justify-content:center;
+  margin-right:2px;}
+/* ⚠️ v2.9 的把手：touch-action:none ＋ pointerdown 一碰就拖 ＝ 誤觸的來源，只在對照組用 */
+.pk-grip.legacy{color:#cbc0ad; font-size:19px; touch-action:none;}
+.pk-grip.legacy:active{color:#8f8578;}
+/* v2 的把手：捲動照樣放行（pan-y），要「按住」或「橫向帶一下」才進入拖曳 */
+.pk-grip.soft{touch-action:pan-y; color:#cfc5b3;}
+.pk-grip .gv{width:30px; height:30px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+  background:transparent; transition:background .2s linear, color .2s linear, transform .18s;}
+.pk-grip .gd{width:12px; height:18px; display:block; fill:currentColor;}
+/* 「充能」：按住的那 220ms 底色慢慢長出來 —— 還沒開始拖是看得見的，誤按可以立刻鬆手 */
+.pk-grip.arming .gv{background:#efe8db; color:#8f8578; transform:scale(1.06);}
+.pk-grip.hot .gv{background:var(--acc); color:#fff; transform:scale(1.06);}
+
+/* 包＝同一張白卡長高（v2.9 定案，沒有動） */
+.pk-bag{overflow:hidden;}
+.pk-bag .pk-head-row{min-height:60px;}
+.pk-bag .pk-emo{font-size:17px; margin-right:1px;}
+/* ⚠️ 一定要綁 .pk-head-row：寫成 .pk-bag .t 會連包「裡面」每一列一起選到（各勾各的會壞） */
+.pk-bag .pk-head-row .t{font-weight:700;}
+.pk-bag.done .pk-head-row .t{color:#b8ad9c; text-decoration:line-through;}
+.pk-sub{font-size:12.5px; color:var(--muted); display:flex; align-items:center; gap:6px; font-variant-numeric:tabular-nums;}
+.pk-sub .bar{width:34px; height:4px; border-radius:99px; background:#ece5d6; overflow:hidden; flex:0 0 auto;}
+.pk-sub .bar i{display:block; height:100%; background:var(--acc); border-radius:99px;}
+.pk-sub .all{color:var(--ok); font-weight:700;}
+.pk-chev{font-size:14px; color:#b0a493; margin-left:7px; transition:transform .2s; display:inline-block; font-weight:700;}
+.pk-bag.open .pk-chev{transform:rotate(180deg);}
+.pk-inner{border-top:1px solid #f2ecdf; padding:2px 6px 8px 14px; position:relative;}
+.pk-inner::before{content:""; position:absolute; left:18px; top:4px; bottom:10px; width:2px; border-radius:2px; background:#efe8db;}
+.pk-sub-row{display:flex; align-items:center; min-width:0; padding-left:16px; border-bottom:1px solid #f7f2e7;}
+.pk-sub-row:last-of-type{border-bottom:none;}
+.pk-sub-row .pk-ck{width:44px; min-height:50px; margin-left:0;}
+.pk-sub-row .pk-box{width:23px; height:23px; font-size:12px;}
+.pk-sub-row .pk-txt{min-height:50px;}
+.pk-sub-row .pk-txt .t{font-size:15.5px;}
+.pk-sub-row .pk-grip{min-height:50px; width:44px; font-size:17px; margin-right:0;}
+.pk-inner-empty{font-size:13px; color:#b8ad9c; padding:10px 4px 4px 16px;}
+.pk-bagset{min-height:44px; font-size:13.5px; color:var(--muted); border:none; padding-left:16px;}
+.pk-add{display:flex; align-items:center; gap:8px; width:100%; min-height:46px; padding:0 12px;
+  border:1.5px dashed #ded5c4; border-radius:14px; color:#a89d8d; font-size:14.5px; font-weight:600;
+  background:none; margin:2px 0 14px; text-align:left;}
+.pk-add:active{border-color:var(--acc); color:var(--acc-deep);}
+.pk-inner .pk-add{margin:6px 0 2px; min-height:44px; font-size:14px;}
+.pk-form{display:flex; gap:8px; margin:2px 0 14px;}
+.pk-inner .pk-form{margin:6px 0 2px;}
+.pk-form input{flex:1; min-width:0; font-size:16px; padding:11px 13px; border:1.5px solid var(--acc);
+  border-radius:14px; background:var(--card); font-family:inherit; color:var(--ink);}
+.pk-form input:focus{outline:none;}
+.pk-form button{flex:0 0 auto; min-height:46px; min-width:56px; padding:0 14px; border-radius:14px;
+  background:var(--ink); color:#fff; font-size:15px; font-weight:700;}
+
+/* 拖曳中（沿用 v2.9，這一段沒有問題） */
+.pk-card.is-dragging, .pk-sub-row.is-dragging{visibility:hidden;}
+.pk-bag.is-dragging .pk-inner{display:none;}
+#pk-ghost{position:fixed; z-index:70; pointer-events:none; left:0; top:0;
+  box-shadow:0 10px 26px rgba(70,55,30,.28); border-radius:14px; background:var(--card); overflow:hidden;
+  border:1.5px solid var(--acc);}
+#pk-ghost .pk-row{min-height:46px;}
+#pk-ghost .pk-ck,#pk-ghost .pk-grip{min-height:46px;}
+#pk-ghost .pk-grip{color:var(--acc);}
+#pk-ghost .pk-grip .gv{background:var(--acc); color:#fff;}
+#pk-ghost .pk-txt{min-height:46px; padding-right:2px;}
+#pk-ghost .pk-txt .t{white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block;}
+#pk-ghost .pk-sub{display:none;}
+.pk-line{position:absolute; height:0; left:0; right:0; z-index:6; pointer-events:none;}
+.pk-line i{position:absolute; left:0; right:0; top:-2px; height:3px; border-radius:3px; background:var(--acc);}
+.pk-line b{position:absolute; right:0; top:-13px; background:var(--acc); color:#fff; font-size:11px; font-weight:800;
+  padding:4px 9px; border-radius:99px; white-space:nowrap; box-shadow:0 2px 8px rgba(226,80,63,.35);}
+.pk-line .dot{position:absolute; left:-3px; top:-5px; width:9px; height:9px; border-radius:50%; background:var(--acc);}
+.pk-bag.drop-into{box-shadow:0 0 0 2.5px var(--acc), 0 6px 18px rgba(226,80,63,.2);}
+.pk-bag.drop-into .pk-head-row{background:#fff1ef;}
+.pk-bag.drop-into .pk-inner{background:#fffaf9;}
+#pk-dragbar{position:fixed; top:0; left:0; right:0; margin:0 auto; max-width:480px; z-index:72;
+  background:var(--acc); color:#fff; min-height:40px; display:flex; align-items:center; justify-content:center; gap:7px;
+  font-size:13.5px; font-weight:800; padding:0 14px; box-shadow:0 4px 14px rgba(226,80,63,.3);
+  padding-top:env(safe-area-inset-top);}
+#pk-dragbar .w{opacity:.8; font-weight:600;}
+
+/* =========================================================================
+   ↓↓↓ v2 修正：版面（.lay-sheet）＋ 冷靜的頂部工具列（.pk-top.calm）
+   診斷見 DESIGN.md 附錄 E。所有顏色仍取自既有色票，沒有新開一組。
+   ========================================================================= */
+
+/* ── 版面 B：一區＝一張白卡，裡面用 hairline 分列 ──
+   （沿用 App 自己處理長清單的語言＝首頁「回憶」的 .mem-card + .mem-row，
+     不是 .stop-card／.exp-item 那種「一張卡＝一個實體」的語言） */
+.lay-sheet .pk-list{background:var(--card); border-radius:18px; box-shadow:var(--shadow); padding:2px 0 0;}
+.lay-sheet .pk-card{background:none; border-radius:0; box-shadow:none; margin-bottom:0;
+  border-top:1px solid #f4eee2;}
+.lay-sheet .pk-list > .pk-card:first-of-type{border-top:none;}
+.lay-sheet .pk-row{padding-right:2px;}
+/* 包＝白抽屜裡的一個「淡底盒子」：這樣「包」重新變成畫面上唯一的第二層容器 */
+.lay-sheet .pk-bag{background:#fbf7f0; border:1px solid #f1eadd; border-radius:14px; margin:8px;}
+.lay-sheet .pk-bag + .pk-card{border-top:none;}
+.lay-sheet .pk-bag .pk-inner{border-top:1px solid #efe7d8;}
+.lay-sheet .pk-bag .pk-inner::before{background:#e7dfcd;}
+.lay-sheet .pk-sub-row{border-bottom-color:#f2ebdd;}
+/* 就地新增＝抽屜的最後一列（不再是一個虛線方框，少一個矩形） */
+.lay-sheet > .pack-sec .pk-list > .pk-add{border:none; border-top:1px solid #f4eee2; border-radius:0;
+  margin:0; min-height:54px; padding-left:16px; color:#a89d8d;}
+.lay-sheet > .pack-sec .pk-list > .pk-add .plus{color:var(--acc-deep); font-weight:800; font-size:17px;}
+.lay-sheet > .pack-sec .pk-list > .pk-form{margin:8px 10px 10px;}
+.lay-sheet .pk-inner-empty{padding-left:16px;}
+/* 區標題退回 App 標準的 .sec-title 語言（14px／800／muted），不跟內容爭 */
+.lay-sheet .pack-head{margin:2px 6px 8px;}
+.lay-sheet .pack-head .t{font-size:13.5px; font-weight:800; color:var(--muted); letter-spacing:.02em;}
+.lay-sheet .pack-head .t .sub{color:#b3a996; font-weight:600;}
+.lay-sheet .pk-cnt .cp{background:#f3eee4; color:#8f8578; font-size:12px; font-weight:800;
+  padding:5px 11px; border-radius:99px;}
+.lay-sheet .pk-cnt.on .cp{background:#fff1ef; color:var(--acc-deep);}
+.lay-sheet .pack-sec{margin-top:18px;}
+
+/* ── 冷靜的頂部：珊瑚只留給「進度」，工具降成白底輕量鈕 ── */
+.pk-top.calm{gap:7px;}
+.pk-prog{flex:1; min-width:0; display:flex; align-items:center; gap:8px; min-height:46px;
+  background:var(--card); box-shadow:var(--shadow); border-radius:99px; padding:0 14px;
+  font-size:13px; color:var(--muted); font-weight:600; font-variant-numeric:tabular-nums;}
+.pk-prog b{color:var(--ink); font-size:15px; font-weight:800;}
+.pk-prog .bar{flex:1; min-width:26px; height:4px; border-radius:99px; background:#ece5d6; overflow:hidden;}
+.pk-prog .bar i{display:block; height:100%; background:var(--acc); border-radius:99px; transition:width .3s;}
+.pk-prog .allok{color:var(--ok); font-weight:800;}
+.pk-lite{flex:0 0 auto; min-height:46px; padding:0 13px; border-radius:14px; background:var(--card);
+  box-shadow:var(--shadow); font-size:13.5px; font-weight:700; color:#6b6154;
+  display:flex; align-items:center; gap:4px;}
+.pk-lite:active{background:#f7f2e8;}
+.pk-lite .plus{color:var(--acc-deep); font-weight:800; font-size:16px;}
+
+/* ===== demo 控制台（刻意用完全不同的視覺語言，一眼看得出不是 App 的一部分） ===== */
+#dev{position:fixed; left:0; right:0; bottom:0; z-index:90; margin:0 auto; max-width:480px;
+  background:#26211b; color:#e7ded0; font-size:13px;
+  box-shadow:0 -8px 24px rgba(0,0,0,.28); padding-bottom:env(safe-area-inset-bottom);}
+#dev .dv-hd{min-height:46px; width:100%; display:flex; align-items:center; gap:8px; padding:0 16px;
+  font-size:13px; font-weight:800; color:#c9bda9; letter-spacing:.04em;}
+#dev .dv-hd .dv-ch{margin-left:auto; transition:transform .2s;}
+#dev.open .dv-hd .dv-ch{transform:rotate(180deg);}
+#dev .dv-bd{display:none; padding:2px 16px 16px; border-top:1px solid #3a332a; max-height:52dvh; overflow-y:auto;}
+#dev.open .dv-bd{display:block;}
+#dev .dv-lb{font-size:11.5px; color:#8d8272; font-weight:800; margin:13px 0 6px; letter-spacing:.06em;}
+#dev .dv-row{display:flex; gap:7px; flex-wrap:wrap;}
+#dev .dv-row button{min-height:40px; padding:0 12px; border-radius:10px; background:#372f26; color:#cdc0ab;
+  font-size:13px; font-weight:700; border:1px solid #453c31;}
+#dev .dv-row button.on{background:#e7ded0; color:#26211b; border-color:#e7ded0;}
+#dev .dv-ab{display:flex; gap:8px; margin-top:12px;}
+#dev .dv-ab button{flex:1; min-height:46px; border-radius:12px; font-size:13.5px; font-weight:800;
+  background:#3f362b; color:#e7ded0; border:1px solid #574b3c;}
+#dev .dv-ab button.now{background:#e7ded0; color:#26211b; border-color:#e7ded0;}
+#dev .dv-note{font-size:11.5px; color:#8d8272; line-height:1.6; margin-top:10px;}
+#dev .dv-note b{color:#cdc0ab;}
+#dev.drag-hide{display:none;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast" class="hidden"></div>
+<div id="sheet-layer" style="display:none"></div>
+<div id="dev">
+  <button class="dv-hd" onclick="devToggle()">⚙ DEMO 設定（新版 ⇄ 現在線上的 v2.9）<span class="dv-ch">⌄</span></button>
+  <div class="dv-bd" id="devbd"></div>
+</div>
+
+<script>
+/* =========================================================================
+   旅途手帳 — 打包清單 v2 修正（UX demo）
+   Benson 的兩個回報：①「ui 有點醜」②「拖行李很容易不小心按到」
+   資料底＝他真實旅程「本色季3rd」的 22 筆打包清單（原樣，一個字沒改），
+   再把「盥洗包／防水包」變成真的包、補上一個 3C 小包，長短名稱都保留。
+   ========================================================================= */
+var THEME = "linear-gradient(135deg,#5eead4,#3b82f6)";
+var ZONES = [
+  {key:"carry",   emoji:"🎒", label:"隨身",     sub:"上飛機帶著"},
+  {key:"checked", emoji:"🧳", label:"行李托運", sub:"丟進行李箱"}
+];
+var uidN = 0;
+function uid(){ return "x" + (++uidN) + Math.random().toString(36).slice(2,6); }
+
+function seed(){
+  var L = [], bagId;
+  function it(text, zone, done, bag){ L.push({id:uid(), text:text, done:!!done, zone:zone, bag:bag||""}); }
+  function bag(text, zone, done){ var id=uid(); L.push({id:id, text:text, done:!!done, zone:zone, kind:"bag", bag:""}); return id; }
+
+  /* --- 🎒 隨身（他真實清單裡屬於隨身的那幾筆） --- */
+  it("身分證／健保卡", "carry", true);
+  it("悠遊卡", "carry", true);
+  it("錢", "carry", true);
+  it("行動電源", "carry", false);
+  bagId = bag("3C 小包", "carry", false);
+  it("Type-C 充電線 ×2", "carry", true, bagId);
+  it("快充頭 20W", "carry", true, bagId);
+  it("有線耳機", "carry", false, bagId);
+  it("SD 記憶卡（128G）", "carry", true, bagId);
+  it("水壺", "carry", false);
+  it("門票", "carry", true);
+  it("折疊椅", "carry", false);
+  it("扇子", "carry", false);
+  it("保冷劑", "carry", false);
+  it("小冰箱", "carry", false);
+
+  /* --- 🧳 行李托運 --- */
+  it("換洗衣物", "checked", true);
+  bagId = bag("盥洗包", "checked", false);
+  it("電動牙刷", "checked", true, bagId);
+  it("沖牙機", "checked", false, bagId);
+  it("慕斯 髮蠟", "checked", true, bagId);
+  it("鯊魚夾", "checked", false, bagId);
+  it("隱形眼鏡藥水（100ml 以下）", "checked", true, bagId);
+  it("刮鬍刀＋備用刀片", "checked", false, bagId);
+  bagId = bag("防水包", "checked", false);
+  it("泳褲", "checked", false, bagId);
+  it("快乾毛巾", "checked", true, bagId);
+  it("夾腳拖", "checked", false, bagId);
+  it("防水手機袋", "checked", false, bagId);
+  it("摺疊傘", "checked", false);
+  it("拖鞋", "checked", false);
+  it("襪子2雙", "checked", true);
+  it("衛生棉", "checked", false);
+  it("垃圾袋", "checked", false);
+  return L;
+}
+var DATA = seed();
+
+var TEMPLATES = [
+  {id:"intl-basic", name:"出國基本款", items:[
+    {text:"護照＋影本", zone:"carry"},
+    {text:"外幣現金＋信用卡", zone:"carry"},
+    {text:"eSIM／網卡設定好", zone:"carry"},
+    {text:"換洗衣物", zone:"checked"},
+    {text:"盥洗包", zone:"checked", kind:"bag"},
+    {text:"洗面乳（旅行罐）", zone:"checked", bag:"盥洗包"},
+    {text:"洗髮精＋沐浴乳分裝瓶", zone:"checked", bag:"盥洗包"},
+    {text:"常備藥", zone:"checked", bag:"盥洗包"},
+    {text:"萬用轉接頭", zone:"checked"},
+    {text:"裝髒衣的袋子", zone:"checked"}
+  ]},
+  {id:"beach", name:"海邊／溫泉", items:[
+    {text:"防曬乳", zone:"carry"},
+    {text:"墨鏡", zone:"carry"},
+    {text:"防水包", zone:"checked", kind:"bag"},
+    {text:"泳衣", zone:"checked", bag:"防水包"},
+    {text:"快乾毛巾", zone:"checked", bag:"防水包"}
+  ]}
+];
+
+/* ui 狀態
+   opt.layout / opt.top / opt.grip ＝ 這一輪要 Benson 拍板的三個方向
+   （點文字＝編輯、兩區同時顯示 已定案，這裡不再開關） */
+var ui = {
+  opt:{ layout:"sheet", top:"calm", grip:"soft" },
+  edit:false,
+  open:{},
+  filter:{carry:false, checked:false},
+  adding:null,
+  pending:"",
+  state:"ready"
+};
+
+/* ---------- 小工具 ---------- */
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g, function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+function byId(id){ for(var i=0;i<DATA.length;i++) if(DATA[i].id===id) return DATA[i]; return null; }
+function isBag(p){ return p && p.kind==="bag"; }
+function zoneOf(k){ for(var i=0;i<ZONES.length;i++) if(ZONES[i].key===k) return ZONES[i]; return ZONES[0]; }
+function topOf(z){ return DATA.filter(function(p){ return p.zone===z && !p.bag; }); }
+function childrenOf(id){ return DATA.filter(function(p){ return p.bag===id; }); }
+function bagList(){ return DATA.filter(isBag); }
+
+var toastTimer;
+function toast(msg){
+  var el=document.getElementById("toast");
+  el.textContent=msg; el.className="";
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(function(){ el.className="hidden"; }, 2400);
+}
+
+/* =========================================================================
+   資料操作（沿用 v2.9，沒有改）
+   ========================================================================= */
+function moveTo(item, zone, bagId, refId){
+  var kids = isBag(item) ? childrenOf(item.id) : [];
+  var moving = [item].concat(kids);
+  DATA = DATA.filter(function(p){ return moving.indexOf(p)<0; });
+
+  var parentBag = bagId ? byId(bagId) : null;
+  if(isBag(item)) parentBag = null;                 /* 只允許兩層：包永遠直接放在區裡 */
+  var newZone = parentBag ? parentBag.zone : zone;
+  item.zone = newZone; item.bag = parentBag ? parentBag.id : "";
+  kids.forEach(function(k){ k.zone = newZone; });
+
+  var idx;
+  var ref = refId ? byId(refId) : null;
+  if(ref && ref!==item){
+    idx = DATA.indexOf(ref);
+  }else{
+    var list = bagId ? childrenOf(bagId) : topOf(newZone);
+    if(!list.length){
+      idx = parentBag ? DATA.indexOf(parentBag)+1 : DATA.length;
+    }else{
+      var last = list[list.length-1];
+      idx = isBag(last) ? tailIdx(last) : DATA.indexOf(last)+1;
+    }
+  }
+  if(idx<0) idx = DATA.length;
+  DATA.splice.apply(DATA, [idx,0].concat(moving));
+}
+function tailIdx(bagItem){
+  var i = DATA.indexOf(bagItem), last = i;
+  childrenOf(bagItem.id).forEach(function(k){ last = Math.max(last, DATA.indexOf(k)); });
+  return last+1;
+}
+function addItem(text, zone, bagId, asBag){
+  var b = bagId ? byId(bagId) : null;
+  var o = {id:uid(), text:text, done:false, zone:(b?b.zone:zone), bag:(b?b.id:"")};
+  if(asBag){ o.kind="bag"; o.bag=""; }
+  DATA.push(o);
+  moveTo(o, o.zone, o.bag, "");
+  return o;
+}
+function removeItem(item){
+  var kids = isBag(item) ? childrenOf(item.id) : [];
+  kids.forEach(function(k){ k.bag=""; });
+  DATA = DATA.filter(function(p){ return p!==item; });
+  if(kids.length) toast("已刪掉「"+item.text+"」，裡面 "+kids.length+" 樣東西留在 "+zoneOf(item.zone).label);
+  else toast("已刪掉「"+item.text+"」");
+}
+
+/* =========================================================================
+   畫面
+   ========================================================================= */
+function render(){
+  var body;
+  if(ui.state==="loading"){
+    body = '<div class="pk-top"><div class="sk" style="flex:1;height:46px;margin:0;border-radius:99px"></div></div>'
+         + '<div class="sk" style="height:210px"></div>';
+  }else if(!DATA.length){
+    body = topBar()
+      + '<div class="empty"><div class="big">🧳</div>'
+      + '<p>還沒有要帶的東西。<br>想到什麼就直接加，或整套帶入。</p>'
+      + '<button class="btn-primary" onclick="openTplPicker()">📦 從模板帶入一套</button>'
+      + '<div style="height:9px"></div>'
+      + '<button class="btn-ghost" onclick="startAdd(\'carry\',\'\')">＋ 自己加第一樣</button></div>';
+  }else{
+    body = topBar() + ZONES.map(sectionHtml).join("");
+  }
+
+  document.getElementById("app").innerHTML =
+     '<header class="trip-head" style="background:'+THEME+'">'
+   +   '<div class="head-top"><span class="back-btn">‹ 我的旅程</span>'
+   +     '<span class="head-edit">✎ 編輯</span></div>'
+   +   '<div class="trip-title"><span class="emo">🚕</span><h1>本色季3rd</h1></div>'
+   +   '<div class="trip-sub">桃園・8/29（六）– 8/31（一）</div>'
+   + '</header>'
+   + '<div class="tab-body'+(ui.opt.layout==="sheet"?" lay-sheet":"")+'" id="tabbody">' + body + '</div>'
+   + '<nav class="tabbar">'
+   +   '<button><span class="ico">🗓️</span>行程</button>'
+   +   '<button><span class="ico">💰</span>花費</button>'
+   +   '<button class="on"><span class="ico">🎒</span>打包</button>'
+   +   '<button><span class="ico">📝</span>備註</button>'
+   + '</nav>';
+
+  if(ui.adding){
+    var inp = document.getElementById("pk-input");
+    if(inp){ inp.value = ui.pending || ""; inp.focus({preventScroll:true}); }
+  }
+  renderDev();
+}
+
+/* 頂部工具列
+   A（現況 v2.9）：珊瑚實心主按鈕 —— 實測 256×50＝12,820px²，是整頁最大的飽和色塊
+   B（v2 推薦）：珊瑚只留給「進度」，工具降成白底輕量鈕，整列 46px（比現況矮 4px） */
+function topBar(){
+  if(ui.opt.top==="acc"){
+    return '<div class="pk-top">'
+      +   '<button class="pk-new" onclick="openItemSheet()">＋ 新增物品</button>'
+      +   gripEditToggle()
+      +   '<button class="pk-tpl" onclick="openTplPicker()">📦 模板</button>'
+      + '</div>';
+  }
+  var all = DATA.filter(function(p){ return !p.bag; });          /* 分母＝頂層項目（包算 1 件） */
+  var done = all.filter(function(p){ return p.done; }).length;
+  var pct = all.length ? Math.round(done/all.length*100) : 0;
+  var prog = (all.length && done===all.length)
+    ? '<span class="allok">✓ 全部打包好了</span>'
+    : '還要帶 <b>'+(all.length-done)+'</b> 樣<span class="bar"><i style="width:'+pct+'%"></i></span>';
+  return '<div class="pk-top calm">'
+    +   '<div class="pk-prog">'+prog+'</div>'
+    +   gripEditToggle()
+    +   '<button class="pk-lite" onclick="openItemSheet()"><span class="plus">＋</span>新增</button>'
+    +   '<button class="pk-lite" onclick="openTplPicker()">📦 模板</button>'
+    + '</div>';
+}
+function gripEditToggle(){
+  if(ui.opt.grip!=="edit") return "";
+  return '<button class="pk-lite" style="'+(ui.edit?"background:var(--acc);color:#fff;box-shadow:none":"")+'"'
+    + ' onclick="toggleEdit()">'+(ui.edit?"完成":"調整")+'</button>';
+}
+
+function sectionHtml(z){
+  var top = topOf(z.key);
+  var done = top.filter(function(p){return p.done;}).length;
+  var filtered = ui.filter[z.key] ? top.filter(function(p){return !p.done;}) : top;
+  var rows = filtered.map(function(p){ return rowHtml(p, z); }).join("");
+
+  var empty = "";
+  if(!top.length) empty = '<div class="pk-inner-empty">這區還沒有東西</div>';
+  else if(!filtered.length) empty = '<div class="pk-inner-empty">這區都打包好了 🎉</div>';
+
+  var addRow = (ui.adding && ui.adding.zone===z.key && !ui.adding.bag)
+    ? addFormHtml("加到「"+z.emoji+" "+z.label+"」")
+    : '<button class="pk-add" onclick="startAdd(\''+z.key+'\',\'\')">'
+      + '<span class="plus">＋</span>加東西到「'+z.emoji+' '+z.label+'」</button>';
+
+  return '<section class="pack-sec">'
+    + '<div class="pack-head"><span class="t">'+z.emoji+' '+z.label
+    +   '<span class="sub">（'+z.sub+'）</span></span>'
+    +   '<button class="pk-cnt'+(ui.filter[z.key]?" on":"")+'" onclick="toggleFilter(\''+z.key+'\')">'
+    +     '<span class="cp"><span class="fdot"></span>'
+    +       (ui.filter[z.key]?"只看沒打包的":"已打包 "+done+" / "+top.length)+'</span></button>'
+    + '</div>'
+    + '<div class="pk-list" data-zone="'+z.key+'">'
+    +   slotHtml(z.key,"", filtered.length?filtered[0].id:"")
+    +   rows + empty
+    +   addRow
+    + '</div></section>';
+}
+
+function slotHtml(zone, bag, refId){
+  return '<i class="pk-slot" data-z="'+zone+'" data-b="'+bag+'" data-ref="'+refId+'"></i>';
+}
+
+function rowHtml(p, z){
+  if(isBag(p)) return bagHtml(p, z);
+  return '<div class="pk-card" data-id="'+p.id+'">'
+    + '<div class="pk-row'+(p.done?" done":"")+'" data-lp="'+p.id+'">'
+    +   ckHtml(p)
+    +   '<button class="pk-txt" onclick="openItemSheet(\''+p.id+'\')"><span class="t">'+esc(p.text)+'</span></button>'
+    +   gripHtml(p.id)
+    + '</div></div>'
+    + slotHtml(z.key, "", nextTopRef(p, z.key));
+}
+
+function ckHtml(p){
+  return '<button class="pk-ck" onclick="toggleDone(\''+p.id+'\')" aria-label="打勾">'
+    + '<span class="pk-box">'+(p.done?"✓":"")+'</span></button>';
+}
+/* 把手：命中區永遠是 44×56（硬性條件，不因為怕誤觸而縮小），
+   差別在「視覺重量」與「怎麼觸發」——見 DESIGN.md 附錄 E2。 */
+var GRIP_DOTS = '<span class="gv"><svg class="gd" viewBox="0 0 12 18" aria-hidden="true">'
+  + '<circle cx="3.4" cy="4" r="1.35"/><circle cx="8.6" cy="4" r="1.35"/>'
+  + '<circle cx="3.4" cy="9" r="1.35"/><circle cx="8.6" cy="9" r="1.35"/>'
+  + '<circle cx="3.4" cy="14" r="1.35"/><circle cx="8.6" cy="14" r="1.35"/></svg></span>';
+function gripHtml(id){
+  if(ui.opt.grip==="edit" && !ui.edit) return '<span style="width:10px;flex:0 0 auto"></span>';
+  var legacy = (ui.opt.grip==="v29");
+  return '<button class="pk-grip '+(legacy?"legacy":"soft")+'" aria-label="拖曳移動" oncontextmenu="return false"'
+    + ' onpointerdown="gripDown(event,\''+id+'\')">'
+    + (legacy ? "☰" : GRIP_DOTS)
+    + '</button>';
+}
+function nextTopRef(p, zoneKey){
+  var list = ui.filter[zoneKey] ? topOf(zoneKey).filter(function(x){return !x.done;}) : topOf(zoneKey);
+  var i = list.indexOf(p);
+  return (i>=0 && list[i+1]) ? list[i+1].id : "";
+}
+
+function bagHtml(p, z){
+  var kids = childrenOf(p.id);
+  var dn = kids.filter(function(k){return k.done;}).length;
+  var open = !!ui.open[p.id];
+  var pct = kids.length ? Math.round(dn/kids.length*100) : 0;
+  var sub = kids.length
+    ? (dn===kids.length
+        ? '<span class="all">✓ 都裝好了・'+kids.length+' 樣</span>'
+        : '<span class="bar"><i style="width:'+pct+'%"></i></span><span>已裝 '+dn+' / '+kids.length+'</span>')
+    : '<span>還是空的</span>';
+
+  var inner = "";
+  if(open){
+    var addRow = (ui.adding && ui.adding.bag===p.id)
+      ? addFormHtml("加到「"+p.text+"」")
+      : '<button class="pk-add" onclick="startAdd(\''+p.zone+'\',\''+p.id+'\')">'
+        + '<span class="plus">＋</span>加東西到「'+esc(p.text)+'」</button>';
+    inner = '<div class="pk-inner">'
+      + slotHtml(p.zone, p.id, kids.length?kids[0].id:"")
+      + (kids.length ? kids.map(function(k,i){
+          /* ⚠️ 一定要帶 pk-row：所有「已打包」的樣式都掛在 .pk-row.done 上 */
+          return '<div class="pk-row pk-sub-row'+(k.done?" done":"")+'" data-id="'+k.id+'" data-lp="'+k.id+'">'
+            + ckHtml(k)
+            + '<button class="pk-txt" onclick="openItemSheet(\''+k.id+'\')"><span class="t">'+esc(k.text)+'</span></button>'
+            + gripHtml(k.id)
+            + '</div>'
+            + slotHtml(p.zone, p.id, kids[i+1]?kids[i+1].id:"");
+        }).join("")
+        : '<div class="pk-inner-empty">這個包還是空的，加點東西進去</div>')
+      + addRow
+      + '<button class="act-row pk-bagset" onclick="openItemSheet(\''+p.id+'\')">✎　這個包的設定（改名／換區／刪掉）</button>'
+      + '</div>';
+  }
+
+  return '<div class="pk-card pk-bag'+(open?" open":"")+(p.done?" done":"")+'" data-id="'+p.id+'" data-bag="'+p.id+'">'
+    + '<div class="pk-row pk-head-row'+(p.done?" done":"")+'" data-lp="'+p.id+'">'
+    +   ckHtml(p)
+    +   '<button class="pk-txt" onclick="toggleBag(\''+p.id+'\')">'
+    +     '<span class="t"><span class="pk-emo">📦</span> '+esc(p.text)+'<span class="pk-chev">⌄</span></span>'
+    +     '<span class="pk-sub">'+sub+'</span></button>'
+    +   gripHtml(p.id)
+    + '</div>'
+    + inner
+    + '</div>'
+    + slotHtml(z.key, "", nextTopRef(p, z.key));
+}
+
+function addFormHtml(ph){
+  return '<form class="pk-form" onsubmit="submitAdd(event)">'
+    + '<input id="pk-input" placeholder="'+esc(ph)+'" autocomplete="off" enterkeyhint="done" required>'
+    + '<button type="submit">加入</button></form>';
+}
+
+/* =========================================================================
+   互動
+   ========================================================================= */
+function toggleDone(id){
+  var p = byId(id); if(!p) return;
+  p.done = !p.done;
+  if(isBag(p) && p.done) ui.open[p.id] = false;   /* 各勾各的：裡面的東西一個都不動 */
+  render();
+}
+function toggleBag(id){ ui.open[id] = !ui.open[id]; render(); }
+function toggleFilter(z){ ui.filter[z] = !ui.filter[z]; render(); }
+function toggleEdit(){ ui.edit = !ui.edit; render(); }
+function startAdd(zone, bag){
+  ui.adding = {zone:zone, bag:bag}; ui.pending="";
+  if(bag) ui.open[bag] = true;
+  render();
+}
+function submitAdd(ev){
+  ev.preventDefault();
+  var inp = document.getElementById("pk-input");
+  var text = (inp.value||"").trim();
+  if(!text) return;
+  addItem(text, ui.adding.zone, ui.adding.bag, false);
+  ui.pending = "";
+  render();
+  var again = document.getElementById("pk-input");
+  if(again) again.focus({preventScroll:true});
+}
+document.addEventListener("click", function(e){
+  if(!ui.adding || !e.target.closest) return;
+  if(e.target.closest(".pk-form") || e.target.closest(".pk-add")
+     || e.target.closest("#dev") || e.target.closest(".sheet")) return;
+  var inp = document.getElementById("pk-input");
+  if(inp && (inp.value||"").trim()) return;
+  ui.adding = null; render();
+});
+
+/* ---------- 長按一列＝動作選單（拖拉之外的第二條路） ---------- */
+var lp = null, lpFired = false;
+document.addEventListener("pointerdown", function(e){
+  var row = e.target.closest && e.target.closest("[data-lp]");
+  if(!row || e.target.closest(".pk-grip")) return;
+  var id = row.getAttribute("data-lp");
+  lp = {id:id, x:e.clientX, y:e.clientY, t:setTimeout(function(){
+    lp = null; lpFired = true;
+    if(navigator.vibrate) navigator.vibrate(12);
+    openActions(id);
+  }, 450)};
+}, true);
+document.addEventListener("click", function(e){
+  if(!lpFired) return;
+  lpFired = false;
+  if(e.target.closest && e.target.closest(".sheet")) return;
+  e.preventDefault(); e.stopPropagation();
+}, true);
+document.addEventListener("pointermove", function(e){
+  if(!lp) return;
+  if(Math.abs(e.clientX-lp.x)>8 || Math.abs(e.clientY-lp.y)>8){ clearTimeout(lp.t); lp=null; }
+}, true);
+["pointerup","pointercancel"].forEach(function(ev){
+  document.addEventListener(ev, function(){ if(lp){ clearTimeout(lp.t); lp=null; } }, true);
+});
+
+/* =========================================================================
+   拖曳 —— v2 的核心修正：pointerdown 不再等於「開始拖」
+   ---------------------------------------------------------------------
+   v2.9 的問題（實測）：28 個把手全部落在 x=309~357 這條 48px 寬的縱帶上、
+   縱向覆蓋清單 70%，而且 touch-action:none ＝這 70% 完全不捲動，
+   pointerdown 又沒有任何門檻 ⇒ 拇指沿右邊滑清單，必然一路踩地雷。
+
+   v2 的三段式（「先觀察，後接管」）：
+     pointerdown → 只進入「待命」，不攔截、不 preventDefault、touch-action:pan-y
+       ├─ 垂直位移 > V_ESC(8px)  → 放棄（你在捲動）；瀏覽器早就在捲了，不會頓
+       ├─ 橫向位移 > H_ARM(12px) → 進入拖曳（橫向不可能是捲動＝意圖明確）
+       └─ 原地不動滿 T_HOLD(220ms) → 進入拖曳
+     進入拖曳的那一刻才：setPointerCapture ＋ 鎖 touch-action ＋ 震一下
+   ========================================================================= */
+var V_ESC = 8, H_ARM = 12, T_HOLD = 220;
+var pend = null, drag = null;
+
+function gripDown(ev, id){
+  if(drag) return;
+  if(ui.opt.grip==="v29"){                 /* 對照組：v2.9 的行為，一碰就拖 */
+    ev.preventDefault();
+    beginDrag(id, ev.clientX, ev.clientY, ev.currentTarget, ev.pointerId);
+    return;
+  }
+  if(pend) return;
+  var el = ev.currentTarget;
+  pend = {id:id, el:el, pid:ev.pointerId, x:ev.clientX, y:ev.clientY,
+          t:setTimeout(function(){ armDrag("hold"); }, T_HOLD)};
+  el.classList.add("arming");
+  window.addEventListener("pointermove", pendMove, true);
+  window.addEventListener("pointerup", pendDrop, true);
+  window.addEventListener("pointercancel", pendDrop, true);
+  /* 刻意不 preventDefault：把捲動留給瀏覽器（touch-action:pan-y） */
+}
+function pendMove(e){
+  if(!pend || e.pointerId!==pend.pid) return;
+  var dx = e.clientX-pend.x, dy = e.clientY-pend.y;
+  if(Math.abs(dy)>V_ESC && Math.abs(dy)>=Math.abs(dx)){ clearPend(); return; }   /* 在捲動 */
+  if(Math.abs(dx)>H_ARM && Math.abs(dx)>Math.abs(dy)){ armDrag("swipe", e); return; }
+  /* ⚠️ 這裡刻意「不」重設原點：把原點跟著手指移，橫向門檻永遠累積不到（實測直接失效）。
+     方向還不明的小幅晃動，交給 220ms 的倒數處理就好。 */
+}
+function pendDrop(){ clearPend(); }
+function clearPend(){
+  if(!pend) return;
+  clearTimeout(pend.t);
+  pend.el.classList.remove("arming");
+  window.removeEventListener("pointermove", pendMove, true);
+  window.removeEventListener("pointerup", pendDrop, true);
+  window.removeEventListener("pointercancel", pendDrop, true);
+  pend = null;
+}
+function armDrag(how, e){
+  if(!pend || drag) return;
+  var p = pend, x = e?e.clientX:p.x, y = e?e.clientY:p.y;
+  clearPend();
+  if(navigator.vibrate) navigator.vibrate(12);
+  beginDrag(p.id, x, y, p.el, p.pid);
+  if(drag) drag.how = how;
+}
+
+function beginDrag(id, x, y, gripEl, pid){
+  var item = byId(id); if(!item) return;
+  var el = document.querySelector('[data-id="'+id+'"]');
+  if(!el) return;
+  var r = el.getBoundingClientRect();
+
+  var ghost = el.cloneNode(true);
+  ghost.id = "pk-ghost";
+  ghost.className = el.className.replace("is-dragging","");
+  var gi = ghost.querySelector(".pk-inner");   /* 拖一整個包時，浮起來的只有包的那一列 */
+  if(gi) gi.remove();
+  ghost.style.width = Math.min(r.width*0.72, 250) + "px";
+  if(el.classList.contains("pk-sub-row")){ ghost.style.background="#fff"; ghost.style.paddingLeft="6px"; }
+  document.body.appendChild(ghost);
+
+  var bar = document.createElement("div");
+  bar.id = "pk-dragbar"; bar.innerHTML = "";
+  document.body.appendChild(bar);
+  document.getElementById("dev").classList.add("drag-hide");
+
+  drag = { id:id, item:item, el:el, ghost:ghost, bar:bar, grip:gripEl, pid:pid,
+           gw:ghost.offsetWidth, gh:ghost.offsetHeight,
+           x:x, y:y, target:null, raf:0, moved:false };
+  el.classList.add("is-dragging");
+  if(gripEl) gripEl.classList.add("hot");
+  /* 拖曳期間才鎖捲動（平常放行）＋ 這一根手指交給我們 */
+  document.documentElement.classList.add("drag-lock");
+  try{ if(gripEl && pid!=null) gripEl.setPointerCapture(pid); }catch(err){}
+  window.addEventListener("pointermove", dragMove, {passive:false});
+  window.addEventListener("pointerup", dragEnd, true);
+  window.addEventListener("pointercancel", dragEnd, true);
+  paintDrag();
+}
+/* 已經在拖了就吃掉 touchmove —— 這一條是「拖曳期間才鎖捲動」真正生效的地方
+   （touch-action 在手勢一開始就決定了，中途改沒有用；preventDefault 才擋得住） */
+document.addEventListener("touchmove", function(e){ if(drag) e.preventDefault(); }, {passive:false});
+
+function dragMove(ev){
+  if(!drag) return;
+  if(ev.cancelable) ev.preventDefault();
+  drag.x = ev.clientX; drag.y = ev.clientY; drag.moved = true;
+  paintDrag();
+  dragAutoScroll();
+}
+function dragAutoScroll(){
+  if(!drag || drag.raf) return;
+  var TH=80, SPEED=9;                       /* 跟行程分頁 dragAutoScroll 同一組數字 */
+  var step=function(){
+    if(!drag){ return; }
+    var vh = window.innerHeight;
+    var dir = drag.y<TH+40 ? -1 : (drag.y>vh-TH ? 1 : 0);   /* 上緣多讓 40px 給頂部橫條 */
+    if(!dir){ drag.raf=0; return; }
+    window.scrollBy(0, dir*SPEED);
+    paintDrag();
+    drag.raf = requestAnimationFrame(step);
+  };
+  drag.raf = requestAnimationFrame(step);
+}
+function paintDrag(){
+  if(!drag) return;
+  /* 浮卡刻意「浮在手指上方」而不是壓在手指底下（壓底下會蓋住你要放進去的那個包） */
+  var gx = Math.max(8, Math.min(drag.x - drag.gw + 22, window.innerWidth - drag.gw - 8));
+  var gy = Math.max(52, drag.y - drag.gh - 14);
+  drag.ghost.style.transform = "translate("+gx+"px,"+gy+"px)";
+
+  var draggingBag = isBag(drag.item);
+  var y = drag.y, t = null, i;
+
+  /* ① 壓在某個包的「包頭那一列」中間 60% ＝放進去（包不能放進包） */
+  if(!draggingBag){
+    var bags = [].slice.call(document.querySelectorAll(".pk-bag"));
+    for(i=0;i<bags.length;i++){
+      var head = bags[i].querySelector(".pk-head-row");
+      if(!head) continue;
+      var hr = head.getBoundingClientRect();
+      if(!hr.height) continue;
+      var pad = hr.height*0.2;
+      if(y > hr.top+pad && y < hr.bottom-pad){
+        t = {kind:"into", bagId:bags[i].getAttribute("data-bag")};
+        break;
+      }
+    }
+  }
+  /* ② 否則找最近的插入錨（每一幀重量 rect，所以用 client 座標是對的） */
+  if(!t){
+    var slots = [].slice.call(document.querySelectorAll(".pk-slot"));
+    var best=null, bestD=Infinity;
+    for(i=0;i<slots.length;i++){
+      var sr = slots[i].getBoundingClientRect();
+      if(!sr.width) continue;
+      if(draggingBag && slots[i].getAttribute("data-b")) continue;
+      var d = Math.abs(sr.top - y);
+      if(d<bestD){ bestD=d; best=slots[i]; }
+    }
+    if(best) t = {kind:"before", zone:best.getAttribute("data-z"), bagId:best.getAttribute("data-b"),
+                  ref:best.getAttribute("data-ref"), el:best};
+  }
+  drag.target = t;
+
+  var olds = document.querySelectorAll(".drop-into");
+  for(i=0;i<olds.length;i++) olds[i].classList.remove("drop-into");
+  var oldLine = document.querySelector(".pk-line"); if(oldLine) oldLine.remove();
+
+  var label = "";
+  if(t && t.kind==="into"){
+    var bg = document.querySelector('.pk-bag[data-bag="'+t.bagId+'"]');
+    if(bg) bg.classList.add("drop-into");
+    var bagItem = byId(t.bagId);
+    var bz = zoneOf(bagItem?bagItem.zone:"carry");
+    label = '放進　📦 '+esc(bagItem?bagItem.text:"")+'　<span class="w">（'+bz.emoji+' '+bz.label+'）</span>';
+  }else if(t){
+    var line = document.createElement("div");
+    line.className = "pk-line";
+    var host = t.el.parentNode;
+    line.style.top = t.el.offsetTop + "px";
+    host.style.position = "relative";
+    var pb = t.bagId ? byId(t.bagId) : null;
+    var where = pb ? ('📦 '+esc(pb.text)+' 裡') : (zoneOf(t.zone).emoji+' '+zoneOf(t.zone).label);
+    line.innerHTML = '<span class="dot"></span><i></i><b>'+where+'</b>';
+    host.appendChild(line);
+    label = '排到　'+where;
+  }
+  drag.bar.innerHTML = label ? ('→　'+label) : '放開取消';
+}
+function dragEnd(){
+  if(!drag) return;
+  if(drag.raf) cancelAnimationFrame(drag.raf);
+  var t = drag.target, item = drag.item, moved = drag.moved;
+  cleanupDrag();
+  if(t && moved){
+    if(t.kind==="into"){
+      var bag = byId(t.bagId);
+      if(bag){
+        moveTo(item, bag.zone, bag.id, "");
+        ui.open[bag.id] = true;
+        toast("已放進「"+bag.text+"」");
+      }
+    }else{
+      var before = {zone:item.zone, bag:item.bag};
+      moveTo(item, t.zone, t.bagId, t.ref);
+      if(before.bag && !t.bagId) toast("已從包裡拿出來，放在 "+zoneOf(item.zone).label);
+      else if(before.zone!==item.zone) toast("已移到 "+zoneOf(item.zone).emoji+" "+zoneOf(item.zone).label);
+    }
+  }
+  render();
+}
+function cleanupDrag(){
+  if(!drag) return;
+  window.removeEventListener("pointermove", dragMove, {passive:false});
+  window.removeEventListener("pointerup", dragEnd, true);
+  window.removeEventListener("pointercancel", dragEnd, true);
+  document.documentElement.classList.remove("drag-lock");
+  if(drag.grip) drag.grip.classList.remove("hot","arming");
+  if(drag.ghost) drag.ghost.remove();
+  if(drag.bar) drag.bar.remove();
+  if(drag.el) drag.el.classList.remove("is-dragging");
+  document.getElementById("dev").classList.remove("drag-hide");
+  var l = document.querySelector(".pk-line"); if(l) l.remove();
+  var d = document.querySelectorAll(".drop-into");
+  for(var i=0;i<d.length;i++) d[i].classList.remove("drop-into");
+  drag = null;
+}
+
+/* =========================================================================
+   sheet：新增／編輯物品、動作選單、模板（沿用 v2.9）
+   ========================================================================= */
+function openSheet(title, html){
+  var lay = document.getElementById("sheet-layer");
+  document.getElementById("dev").classList.add("drag-hide");
+  lay.style.display = "block";
+  lay.innerHTML = '<div class="backdrop" onclick="closeSheet()"></div>'
+    + '<div class="sheet"><div class="sheet-head"><h3>'+title+'</h3>'
+    + '<button onclick="closeSheet()" aria-label="關閉">✕</button></div>'+html+'</div>';
+}
+function closeSheet(){
+  var lay = document.getElementById("sheet-layer");
+  lay.style.display="none"; lay.innerHTML="";
+  document.getElementById("dev").classList.remove("drag-hide");
+}
+
+var draft = null;
+function openItemSheet(id){
+  var src = id ? byId(id) : null;
+  draft = src
+    ? {id:src.id, text:src.text, zone:src.zone, bag:src.bag, isBag:isBag(src),
+       kids:(isBag(src)?childrenOf(src.id).length:0)}
+    : {id:null, text:"", zone:"carry", bag:"", isBag:false, kids:0};
+  paintItemSheet();
+}
+function syncDraft(){
+  var n = document.getElementById("it-name"); if(n) draft.text = n.value;
+}
+function paintItemSheet(){
+  var locked = draft.isBag && draft.kids>0;
+  openSheet(draft.id ? (draft.isBag?"編輯這個包":"編輯物品") : "新增物品",
+    '<label class="field"><span class="fl">名稱</span>'
+  + '<input id="it-name" value="'+esc(draft.text)+'" placeholder="要帶什麼？" autocomplete="off"></label>'
+  + '<button class="bag-toggle'+(draft.isBag?" on":"")+'" onclick="toggleDraftBag()"'+(locked?' disabled style="opacity:.75"':'')+'>'
+  +   '<span style="font-size:20px">📦</span>'
+  +   '<span class="bt-t"><b>這是一個包</b><span>'
+  +     (locked ? '裡面有 '+draft.kids+' 樣東西，要先清空才能取消'
+             : '包自己也有一個勾（＝整包丟進行李箱了），可以打開編輯裡面的東西')
+  +   '</span></span><span class="sw"><i></i></span></button>'
+  + '<div style="font-size:13px;font-weight:700;color:var(--muted);margin:16px 0 7px">放在哪</div>'
+  + locList(draft.bag ? draft.bag : draft.zone, draft.isBag, draft.id)
+  + '<div class="d-acts">'
+  +   '<button class="btn-primary" onclick="submitItem()">'+(draft.id?"儲存":"加進清單")+'</button>'
+  +   (draft.id ? '<button class="btn-ghost" style="color:var(--bad);border-color:#f0d9d9" onclick="delFromSheet()">刪掉這一'+(draft.isBag?"個包":"樣")+'</button>' : "")
+  + '</div>');
+}
+function locList(cur, asBag, selfId){
+  var out = "";
+  ZONES.forEach(function(z){
+    var on = (cur===z.key);
+    out += '<button class="loc'+(on?" on":"")+'" onclick="pickLoc(\''+z.key+'\',\'\')">'
+        +  '<span>'+z.emoji+'</span><span>'+z.label+'</span>'+(on?'<span class="ck">✓</span>':'')+'</button>';
+    if(asBag) return;
+    DATA.filter(function(p){ return isBag(p) && p.zone===z.key && p.id!==selfId; }).forEach(function(b){
+      var bon = (cur===b.id);
+      out += '<button class="loc sub'+(bon?" on":"")+'" onclick="pickLoc(\''+z.key+'\',\''+b.id+'\')">'
+          +  '<span class="arw">↳</span><span>📦</span><span>'+esc(b.text)+'</span>'+(bon?'<span class="ck">✓</span>':'')+'</button>';
+    });
+  });
+  return '<div class="loc-list">'+out+'</div>';
+}
+function pickLoc(zone, bag){ syncDraft(); draft.zone=zone; draft.bag=bag; paintItemSheet(); }
+function toggleDraftBag(){
+  syncDraft();
+  if(draft.isBag && draft.kids>0) return;
+  draft.isBag = !draft.isBag;
+  if(draft.isBag) draft.bag = "";
+  paintItemSheet();
+}
+function submitItem(){
+  syncDraft();
+  var text = (draft.text||"").trim();
+  if(!text){ toast("先給它一個名字"); return; }
+  if(draft.id){
+    var p = byId(draft.id);
+    p.text = text;
+    if(draft.isBag && !isBag(p)) p.kind = "bag";
+    if(!draft.isBag && isBag(p)) delete p.kind;
+    moveTo(p, draft.zone, draft.bag, "");
+    toast("已更新");
+  }else{
+    var o = addItem(text, draft.zone, draft.bag, draft.isBag);
+    if(o.kind==="bag") ui.open[o.id] = true;
+    if(draft.bag) ui.open[draft.bag] = true;
+    toast("已加入");
+  }
+  draft = null; closeSheet(); render();
+}
+function delFromSheet(){
+  var p = byId(draft.id);
+  if(p) removeItem(p);
+  draft = null; closeSheet(); render();
+}
+
+function openActions(id){
+  var p = byId(id); if(!p) return;
+  openSheet(esc(p.text),
+    '<button class="act-row" onclick="closeSheet();openItemSheet(\''+id+'\')"><span class="ai">✎</span>改名字／換位置</button>'
+  + (isBag(p) ? '<button class="act-row" onclick="closeSheet();toggleBag(\''+id+'\')"><span class="ai">📦</span>'+(ui.open[id]?"收起來":"打開看裡面")+'</button>' : "")
+  + '<button class="act-row" onclick="closeSheet();toggleDone(\''+id+'\')"><span class="ai">'+(p.done?"○":"✓")+'</span>'+(p.done?"取消打勾":"標成已打包")+'</button>'
+  + '<button class="act-row" onclick="dupItem(\''+id+'\')"><span class="ai">⧉</span>複製一份</button>'
+  + '<button class="act-row danger" onclick="delItem(\''+id+'\')"><span class="ai">🗑</span>刪掉</button>');
+}
+function dupItem(id){
+  var p = byId(id); if(!p) return;
+  var o = addItem(p.text, p.zone, p.bag, false);
+  moveTo(o, p.zone, p.bag, "");
+  closeSheet(); render(); toast("已複製一份");
+}
+function delItem(id){
+  var p = byId(id); if(!p) return;
+  removeItem(p); closeSheet(); render();
+}
+
+function openTplPicker(){
+  var rows = TEMPLATES.map(function(tp){
+    var bags = tp.items.filter(function(i){return i.kind==="bag";}).length;
+    return '<div class="tpl-card"><div class="tpl-info"><b>'+esc(tp.name)+'</b>'
+      + '<span>'+tp.items.length+' 樣'+(bags?('・含 '+bags+' 個包'):'')+'</span></div>'
+      + '<button class="tpl-apply" onclick="applyTpl(\''+tp.id+'\')">帶入</button></div>';
+  }).join("");
+  openSheet("從模板帶入", rows
+    + '<div class="hint" style="margin-top:12px">同名的東西會自動跳過。<br>模板裡的包如果你已經有了（例如「盥洗包」），<b>不會多開一個</b>，會把缺的東西補進你原本那個包裡。</div>');
+}
+function applyTpl(id){
+  var tp=null; TEMPLATES.forEach(function(t){ if(t.id===id) tp=t; });
+  if(!tp) return;
+  var added=0, merged=0, bagMap={};
+  tp.items.filter(function(i){return i.kind==="bag";}).forEach(function(i){
+    var exist=null;
+    DATA.forEach(function(p){ if(isBag(p) && p.text.trim()===i.text.trim()) exist=p; });
+    if(exist){ bagMap[i.text]=exist.id; merged++; }
+    else { var o = addItem(i.text, i.zone, "", true); bagMap[i.text]=o.id; added++; ui.open[o.id]=true; }
+  });
+  tp.items.filter(function(i){return i.kind!=="bag";}).forEach(function(i){
+    var targetBag = i.bag ? (bagMap[i.bag]||"") : "";
+    var dup = DATA.some(function(p){
+      return p.text.trim()===i.text.trim() && (p.bag||"")===(targetBag||"") && !isBag(p);
+    });
+    if(dup) return;
+    addItem(i.text, i.zone, targetBag, false); added++;
+  });
+  closeSheet(); render();
+  toast("帶入 "+added+" 樣"+(merged?("，"+merged+" 個包直接合併"):""));
+}
+
+/* =========================================================================
+   demo 控制台
+   ========================================================================= */
+function devToggle(){ document.getElementById("dev").classList.toggle("open"); }
+function setOpt(k,v){ ui.opt[k]=v; if(k==="grip") ui.edit=false; render(); }
+function preset(which){
+  if(which==="v29") ui.opt = {layout:"card", top:"acc", grip:"v29"};
+  else ui.opt = {layout:"sheet", top:"calm", grip:"soft"};
+  ui.edit=false;
+  document.getElementById("dev").classList.remove("open");
+  window.scrollTo(0,0);
+  render();
+  toast(which==="v29" ? "已切成現在線上的 v2.9（對照組）" : "已切成 v2 新版");
+}
+function resetData(){ uidN=0; DATA=seed(); ui.open={}; ui.filter={carry:false,checked:false}; ui.state="ready"; render(); toast("已還原"); }
+function emptyData(){ DATA=[]; ui.state="ready"; render(); }
+function loadingState(){ ui.state="loading"; render(); setTimeout(function(){ ui.state="ready"; render(); }, 1600); }
+function openAllBags(){ bagList().forEach(function(b){ ui.open[b.id]=true; }); render(); }
+function isV29(){ return ui.opt.layout==="card" && ui.opt.top==="acc" && ui.opt.grip==="v29"; }
+function isNew(){ return ui.opt.layout==="sheet" && ui.opt.top==="calm" && ui.opt.grip==="soft"; }
+
+function renderDev(){
+  var b=function(on,label,fn){ return '<button class="'+(on?"on":"")+'" onclick="'+fn+'">'+label+'</button>'; };
+  var el = document.getElementById("devbd");
+  if(!el) return;
+  el.innerHTML =
+     '<div class="dv-ab">'
+   +   '<button class="'+(isV29()?"now":"")+'" onclick="preset(\'v29\')">◀ 現在線上的 v2.9</button>'
+   +   '<button class="'+(isNew()?"now":"")+'" onclick="preset(\'new\')">v2 新版（推薦）▶</button>'
+   + '</div>'
+   + '<div class="dv-lb">① 清單長什麼樣</div><div class="dv-row">'
+   +   b(ui.opt.layout==="sheet","A 一區一張卡＋細線分列（推薦）","setOpt(\'layout\',\'sheet\')")
+   +   b(ui.opt.layout==="card","B 每一筆各自一張浮卡（現況）","setOpt(\'layout\',\'card\')")
+   + '</div>'
+   + '<div class="dv-lb">② 頂部那一列</div><div class="dv-row">'
+   +   b(ui.opt.top==="calm","A 進度＋輕量鈕，珊瑚只給進度（推薦）","setOpt(\'top\',\'calm\')")
+   +   b(ui.opt.top==="acc","B 珊瑚實心主按鈕（現況）","setOpt(\'top\',\'acc\')")
+   + '</div>'
+   + '<div class="dv-lb">③ 把手怎麼觸發（重點：滑滑看會不會誤觸）</div><div class="dv-row">'
+   +   b(ui.opt.grip==="soft","A 按住 0.22 秒／往旁邊帶才拖（推薦）","setOpt(\'grip\',\'soft\')")
+   +   b(ui.opt.grip==="v29","B 一碰就拖（現況＝會誤觸）","setOpt(\'grip\',\'v29\')")
+   +   b(ui.opt.grip==="edit","C 要先按「調整」才有把手","setOpt(\'grip\',\'edit\')")
+   + '</div>'
+   + '<div class="dv-lb">看看各種狀態</div><div class="dv-row">'
+   +   b(false,"全部打開","openAllBags()")
+   +   b(false,"空清單","emptyData()")
+   +   b(false,"載入中","loadingState()")
+   +   b(false,"↺ 還原","resetData()")
+   + '</div>'
+   + '<div class="dv-note">'
+   + '<b>先試誤觸：</b>把 ③ 切到「B 一碰就拖」，用拇指沿著清單<b>右邊</b>快速上下滑 —— 會一直把東西拿起來。<br>'
+   + '再切回「A」用同樣的力道滑：怎麼滑都只會捲動。想拖的時候<b>按住把手不動</b>，'
+   + '看到把手底下浮出一塊淺色方塊＝可以拖了（約 0.22 秒），或是<b>把把手往左帶一下</b>也會直接進入拖曳。<br><br>'
+   + '<b>再試版面：</b>用上面兩顆大鈕在「現在線上的 v2.9」與「v2 新版」之間切，看整頁的感覺。<br><br>'
+   + '拖曳本身沒有改：拖到<b>包頭中間</b>＝放進去、拖到<b>上緣／下緣</b>＝排在它前後，'
+   + '頂部橫條隨時告訴你會掉到哪。不想拖就<b>點名字</b>進編輯選「放在哪」，或<b>長按一列</b>叫出選單。'
+   + '</div>';
+}
+
+render();
+</script>
+</body>
+</html>
