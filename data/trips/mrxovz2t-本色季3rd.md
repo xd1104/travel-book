@@ -7,7 +7,7 @@ start: "2026-08-29"
 days: 3
 budget: 4600
 createdAt: "2026-07-23T15:51:59.575Z"
-updatedAt: "2026-08-28T20:29:29.319Z"
+updatedAt: "2026-08-28T20:29:36.921Z"
 ---
 
 ## 行程
@@ -62,13 +62,13 @@ updatedAt: "2026-08-28T20:29:29.319Z"
 - {"id":"xmtd2cye3ebbb","text":"臉部保濕","done":false,"zone":"checked","bag":"xmrxovz2tqqtt"}
 - {"id":"xmtd2da2kz38a","text":"個人藥物","done":true,"zone":"checked","bag":"xmrxovz2tqqtt"}
 - {"id":"xmtden6b2q3hq","text":"沖牙機","done":true,"zone":"checked","bag":"xmrxovz2tqqtt"}
+- {"id":"xmtbneixlhfdt","text":"電動牙刷","done":false,"zone":"checked","bag":"xmrxovz2tqqtt"}
 - {"id":"xmt2m481oao4q","text":"小冰箱","done":true,"zone":"carry"}
 - {"id":"xmtbq0m1z6cq4","text":"錢","done":true,"zone":"carry"}
 - {"id":"xmtbnaxfm3suo","text":"折疊椅","done":true,"zone":"carry"}
 - {"id":"xmtbnbxu44zb2","text":"衛生棉","done":true,"zone":"checked"}
 - {"id":"xmtbnczt2hs25","text":"拖鞋","done":true,"zone":"checked"}
 - {"id":"xmtbnebs5i06m","text":"鯊魚夾","done":true,"zone":"checked"}
-- {"id":"xmtbneixlhfdt","text":"電動牙刷","done":false,"zone":"checked"}
 - {"id":"xmtbqvi2dzoz8","text":"野餐墊","done":true,"zone":"carry"}
 - {"id":"xmt2m4l04kwzw","text":"門票","done":true,"zone":"carry"}
 - {"id":"xmtbng0qr0o7n","text":"扇子","done":true,"zone":"carry"}
