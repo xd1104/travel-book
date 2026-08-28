@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>旅途手帳 — 包裡面的兩個入口（UX demo v3.2）</title>
+<style>
+/* ===== 真色票（照 public/styles.css :root，一個都沒改） ===== */
+:root{
+  --bg:#f7f4ee; --card:#ffffff; --ink:#2b2620; --muted:#8f8578; --line:#e8e1d5;
+  --acc:#ff6b5e; --acc-deep:#e2503f; --ok:#2fa87a; --bad:#d64545;
+  --shadow:0 2px 14px rgba(70,55,30,.08);
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0; padding:0;}
+body{background:#e9e4da;
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+  color:var(--ink);}
+#app{max-width:480px; margin:0 auto; min-height:100dvh; background:var(--bg); position:relative; padding-bottom:60px;}
+button{font-family:inherit; border:none; background:none; cursor:pointer; color:inherit; padding:0; font-size:inherit;}
+h1,h2,h3,p{margin:0;}
+
+/* ===== demo 自己的外框（不是 App 的一部分，刻意做矮，不要把要看的東西擠出畫面） ===== */
+.demo-head{padding:16px 16px 4px;}
+.demo-head h1{font-size:17px; font-weight:800;}
+.demo-head p{font-size:12.5px; color:var(--muted); line-height:1.55; margin-top:5px;}
+.vsec{padding:0 16px;}
+.vh{display:flex; align-items:center; gap:8px; margin:26px 2px 4px;}
+.vtag{font-size:11.5px; font-weight:800; letter-spacing:.06em; color:#fff; background:#9c9284;
+  padding:4px 9px; border-radius:99px; flex:0 0 auto;}
+.vtag.now{background:#b8ad9c;}
+.vtag.a{background:#2f7d8c;} .vtag.b{background:#7a5ea8;} .vtag.c{background:#8a6a34;}
+.vh b{font-size:14.5px; font-weight:800;}
+.vwhy{font-size:12.5px; color:#7a7265; line-height:1.6; margin:0 2px 12px;}
+
+/* ===== 以下全部抄自 public/styles.css（沿用既有視覺語言，未改動） ===== */
+.pack-sec{margin-top:2px;}
+.pack-head{display:flex; align-items:center; justify-content:space-between; margin:2px 4px 10px;}
+.pack-head .t{font-size:13.5px; font-weight:800; color:var(--muted);}
+.pack-head .t .sub{color:#b3a996; font-weight:600;}
+.pk-box{width:27px; height:27px; border-radius:50%; border:2px solid #d6cbb8; flex:0 0 auto;
+  display:flex; align-items:center; justify-content:center; color:#fff; font-size:14px; transition:all .15s;}
+.pk-cnt{min-height:44px; display:flex; align-items:center; padding:0 4px; margin-right:-4px;}
+.pk-cnt .cp{display:flex; align-items:center; gap:5px; font-size:12px; font-weight:800;
+  color:#8f8578; background:#f3eee4; padding:5px 11px; border-radius:99px;
+  font-variant-numeric:tabular-nums;}
+.pk-cnt.on .cp{background:#fff1ef; color:var(--acc-deep);}
+.pk-cnt .fdot{width:6px; height:6px; border-radius:50%; background:var(--acc); display:none;}
+.pk-cnt.on .fdot{display:block;}
+.pk-list{position:relative; background:var(--card); border-radius:18px; box-shadow:var(--shadow); padding:2px 0 0;}
+.pk-slot{display:block; height:0; font-size:0; line-height:0;}
+.pk-card{border-top:1px solid #f4eee2;}
+.pk-list > .pk-card:first-of-type:not(.pk-bag){border-top:none;}
+.pk-row{display:flex; align-items:center; min-width:0; padding-right:2px;}
+.pk-ck{width:44px; min-height:56px; flex:0 0 auto; display:flex; align-items:center; justify-content:center; margin-left:3px;}
+.pk-row.done .pk-box{background:var(--acc); border-color:var(--acc);}
+.pk-txt{flex:1; min-width:0; text-align:left; padding:8px 4px 8px 6px; min-height:56px; display:flex;
+  flex-direction:column; justify-content:center; gap:2px;}
+.pk-txt .t{font-size:16px; overflow-wrap:anywhere; line-height:1.35;}
+.pk-row.done .pk-txt .t{color:#b8ad9c; text-decoration:line-through;}
+.pk-grip{width:44px; min-height:56px; flex:0 0 auto; display:flex; align-items:center; justify-content:center;
+  color:#cfc5b3; touch-action:pan-y; margin-right:2px;}
+.pk-grip .gv{width:30px; height:30px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+  background:transparent; transition:background .2s linear, color .2s linear, transform .18s;}
+.pk-grip .gd{width:12px; height:18px; display:block; fill:currentColor;}
+.pk-bag{overflow:hidden; background:#fbf7f0; border:1px solid #f1eadd; border-radius:14px; margin:8px;}
+.pk-bag + .pk-slot + .pk-card,
+.pk-bag + .pk-slot + .pk-add{border-top:none;}
+.pk-bag .pk-head-row{min-height:60px;}
+.pk-bag .pk-emo{font-size:17px; margin-right:1px;}
+.pk-bag .pk-head-row .t{font-weight:700;}
+.pk-bag.done .pk-head-row .t{color:#b8ad9c; text-decoration:line-through;}
+.pk-sub{font-size:12.5px; color:var(--muted); display:flex; align-items:center; gap:6px; font-variant-numeric:tabular-nums;}
+.pk-sub .bar{width:34px; height:4px; border-radius:99px; background:#ece5d6; overflow:hidden; flex:0 0 auto;}
+.pk-sub .bar i{display:block; height:100%; background:var(--acc); border-radius:99px;}
+.pk-sub .all{color:var(--ok); font-weight:700;}
+.pk-chev{font-size:14px; color:#b0a493; margin-left:7px; transition:transform .2s; display:inline-block; font-weight:700;}
+.pk-bag.open .pk-chev{transform:rotate(180deg);}
+.pk-inner{border-top:1px solid #efe7d8; padding:2px 6px 8px 14px; position:relative;}
+.pk-inner::before{content:""; position:absolute; left:18px; top:4px; bottom:10px; width:2px; border-radius:2px; background:#e7dfcd;}
+.pk-sub-row{display:flex; align-items:center; min-width:0; margin-left:6px; padding-left:10px;
+  border-bottom:1px solid #f2ebdd;}
+.pk-sub-row:last-of-type{border-bottom:none;}
+.pk-sub-row .pk-ck{width:44px; min-height:50px; margin-left:0;}
+.pk-sub-row .pk-box{width:23px; height:23px; font-size:12px;}
+.pk-sub-row .pk-txt{min-height:50px;}
+.pk-sub-row .pk-txt .t{font-size:15.5px;}
+.pk-sub-row .pk-grip{min-height:50px; width:44px; margin-right:0;}
+.pk-inner-empty{font-size:13px; color:#b8ad9c; padding:10px 4px 4px 16px;}
+.pk-bagset{min-height:44px; font-size:13.5px; color:var(--muted); border:none; padding-left:16px;}
+.pk-add{display:flex; align-items:center; gap:8px; width:100%; min-height:46px; padding:0 12px;
+  border:1.5px dashed #ded5c4; border-radius:14px; color:#a89d8d; font-size:14.5px; font-weight:600;
+  background:none; margin:2px 0 14px; text-align:left;}
+.pk-add:active{border-color:var(--acc); color:var(--acc-deep);}
+.pk-inner .pk-add{margin:6px 0 2px 6px; min-height:44px; font-size:14px;}
+.pk-list > .pk-add{border:none; border-top:1px solid #f4eee2; border-radius:0;
+  margin:0; min-height:54px; padding-left:16px; color:#a89d8d;}
+.pk-list > .pk-add .plus{color:var(--acc-deep); font-weight:800; font-size:17px;}
+.pk-form{display:flex; gap:8px; margin:2px 0 14px;}
+.pk-list > .pk-form{margin:8px 10px 10px;}
+.pk-inner .pk-form{margin:6px 0 2px 6px;}
+.pk-form input{flex:1; min-width:0; font-size:16px; padding:11px 13px; border:1.5px solid var(--acc);
+  border-radius:14px; background:var(--card); font-family:inherit; color:var(--ink);}
+.pk-form input:focus{outline:none;}
+.pk-form button{flex:0 0 auto; min-height:46px; min-width:56px; padding:0 14px; border-radius:14px;
+  background:var(--ink); color:#fff; font-size:15px; font-weight:700;}
+.act-row{display:flex; align-items:center; gap:11px; width:100%; min-height:54px; padding:0 6px;
+  font-size:16px; font-weight:600; border-bottom:1px solid #f5f0e6; text-align:left;}
+.act-row.danger{color:var(--bad);}
+.act-row:last-child{border-bottom:none;}
+.loc-list{display:flex; flex-direction:column; gap:7px; margin-top:2px;}
+.loc{display:flex; align-items:center; gap:9px; min-height:48px; padding:0 12px; border-radius:13px;
+  border:1.5px solid var(--line); background:#fbfaf6; font-size:15px; text-align:left; width:100%;}
+.loc.on{border-color:var(--acc); background:#fff1ef; color:var(--acc-deep); font-weight:800;}
+.loc .ck{margin-left:auto; color:var(--acc); font-weight:800;}
+.pk-loc-lb{font-size:13px; font-weight:700; color:var(--muted); margin:16px 0 7px;}
+#sheet-layer{position:fixed; inset:0; z-index:50;}
+.backdrop{position:absolute; inset:0; background:rgba(30,22,14,.45); animation:fadeIn .2s;}
+.sheet{position:absolute; bottom:0; left:0; right:0; margin:0 auto; max-width:480px;
+  background:#fff; border-radius:22px 22px 0 0; padding:16px 18px calc(20px + env(safe-area-inset-bottom));
+  max-height:88dvh; overflow-y:auto; animation:slideUp .26s cubic-bezier(.2,.8,.3,1);}
+@keyframes slideUp{from{transform:translateY(60%); opacity:.4;} to{transform:none; opacity:1;}}
+@keyframes fadeIn{from{opacity:0;} to{opacity:1;}}
+.sheet-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; gap:8px;}
+.sheet-head h3{font-size:19px; font-weight:800; overflow-wrap:anywhere;}
+.sheet-head button{min-width:44px; min-height:44px; font-size:18px; color:var(--muted); display:flex; align-items:center; justify-content:center; flex:0 0 auto;}
+.field{display:block; margin-bottom:13px;}
+.field .fl{display:block; font-size:13px; font-weight:700; color:var(--muted); margin-bottom:6px;}
+.field input{width:100%; font-size:16px; font-family:inherit; color:var(--ink);
+  padding:12px 13px; border:1.5px solid var(--line); border-radius:13px; background:#fbfaf6; appearance:none; -webkit-appearance:none;}
+.field input:focus{outline:none; border-color:var(--acc);}
+.btn-primary{width:100%; min-height:52px; border-radius:15px; background:var(--acc); color:#fff;
+  font-size:17px; font-weight:800; display:flex; align-items:center; justify-content:center; margin-top:4px;}
+.btn-primary:active{background:var(--acc-deep);}
+#toast{position:fixed; left:50%; transform:translateX(-50%); bottom:24px; z-index:80;
+  background:rgba(43,38,32,.95); color:#fff; font-size:13.5px; font-weight:600; padding:11px 18px;
+  border-radius:99px; max-width:88vw; text-align:center; transition:opacity .25s; pointer-events:none;}
+#toast.hidden{opacity:0;}
+
+/* =========================================================================
+   下面才是這一版真正動到的東西 —— 只有兩個對象：
+   ① .pk-bagset（「這個包的設定（改名／換區／刪掉）」那一行）
+   ② .pk-inner .pk-add（包裡面那個虛線框）
+   包頭那一排、白卡／淡底盒子的層次、區的版面：一行都沒動。
+   ========================================================================= */
+
+/* 【A／B／C 共同】包裡面的「加東西」：虛線圓角框 → hairline 尾列（跟區層 v3.0 同一種語言）。
+   ⚠️ width:auto 是關鍵：原本 .pk-add{width:100%} 配上 .pk-inner .pk-add{margin-left:6px}，
+      右緣會比上面每一條 hairline 多伸 6px，剛好貼在包自己那圈框上（量測腳本會把座標印出來）。
+   ⚠️ 而且不可以寫成 width:auto —— button 就算 display:flex，width:auto 仍然是 shrink-to-fit，
+      實測 border-top 只畫到 x=229 就斷掉（sub-row 是 344）。要 width:calc(100% - 6px)。 */
+.v-a .pk-inner .pk-add,
+.v-b .pk-inner .pk-add,
+.v-c .pk-inner .pk-add{
+  width:calc(100% - 6px); border:none; border-top:1px solid #efe7d8; border-radius:0;
+  margin:0 0 0 6px; min-height:48px; padding:0 6px 0 10px; font-size:14.5px; gap:7px; color:#a09585;}
+.v-a .pk-inner .pk-add .plus,
+.v-b .pk-inner .pk-add .plus,
+.v-c .pk-inner .pk-add .plus{color:var(--acc-deep); font-weight:800; font-size:16px;}
+.v-a .pk-inner .pk-add:active,
+.v-b .pk-inner .pk-add:active,
+.v-c .pk-inner .pk-add:active{background:#f6f0e4; color:var(--acc-deep);}
+
+/* 【方案 A】尾列：左邊「加東西」、右邊「設定」共用同一條 hairline ⇒ 盒子少一列 */
+.v-a .pk-tail{display:flex; align-items:center; margin-left:6px; padding-right:6px;
+  border-top:1px solid #efe7d8;}
+.v-a .pk-tail .pk-add{flex:1 1 auto; width:auto; min-width:0; border-top:none; margin:0;}
+.v-a .pk-set{flex:0 0 auto; display:flex; align-items:center; gap:5px; min-height:48px; padding:0 8px 0 12px;
+  font-size:13.5px; font-weight:700; color:var(--muted);}
+.v-a .pk-set .pen{font-size:14px; color:#b0a493;}
+.v-a .pk-set:active{color:var(--acc-deep);}
+.v-a .pk-tail.adding{display:block; padding-right:0;}
+.v-a .pk-tail.adding .pk-form{margin-left:0;}   /* 尾列自己已經 margin-left:6，不要再疊一次 */
+
+/* 【方案 B】設定回到包頭那一行：展開時才長出來的 ✎（收合時不在 ⇒ 不會沿右緣長成一條柱） */
+.v-b .pk-edit{width:44px; min-height:60px; flex:0 0 auto; display:flex; align-items:center; justify-content:center;
+  color:#b8ad9c; font-size:17px;}
+.v-b .pk-edit:active{color:var(--acc-deep);}
+
+/* 【方案 C】兩條 hairline：位置一格不動，只換語言（動詞當標籤，不用括號解釋自己） */
+.v-c .pk-setrow{display:flex; align-items:center; gap:7px; width:calc(100% - 6px); margin-left:6px;
+  border-top:1px solid #efe7d8; min-height:48px; padding:0 6px 0 10px;
+  font-size:14px; font-weight:600; color:var(--muted); text-align:left;}
+.v-c .pk-setrow .pen{font-size:14px; color:#b0a493;}
+.v-c .pk-setrow:active{background:#f6f0e4; color:var(--acc-deep);}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="demo-head">
+    <h1>包裡面的兩個入口 — 三個方案</h1>
+    <p>只動兩樣：包裡面那個<b>虛線框</b>，跟「<b>這個包的設定</b>」那一行。<br>
+       包頭那一排、白卡／盒子的層次、區的版面都沒動。四塊都可以真的點：展開、勾、加一筆、開設定。</p>
+  </div>
+  <div id="secs"></div>
+</div>
+<div id="toast" class="hidden"></div>
+<script>
+/* =========================================================================
+   旅途手帳 — 打包「包裡面的兩個入口」UX demo（v3.2 提案）
+   資料底＝Benson 真實旅程「本色季3rd」的 🧳 行李托運區（原字不動，只補一件薄外套）。
+   ========================================================================= */
+var VARIANTS = [
+  {k:"now", cls:"now", tag:"現況", name:"現在線上的樣子",
+   why:"對照組。盒子裡有第三個圓角框（虛線），底下再一行用括號解釋自己的「設定」。"},
+  {k:"a", cls:"a", tag:"方案 A", name:"尾列：左邊加東西、右邊設定",
+   why:"把包底下的兩個入口壓成一條尾列 —— 虛線框沒了、盒子也少一列，設定變成「這個盒子的工具」。"},
+  {k:"b", cls:"b", tag:"方案 B", name:"設定回到包頭那一行",
+   why:"設定是包的事，就放回包自己那一行（展開時才出現的 ✎）—— 盒子裡面只剩「東西」。"},
+  {k:"c", cls:"c", tag:"方案 C", name:"兩條 hairline，標籤改成動詞",
+   why:"位置一格都不動，只把虛線框跟括號說明換掉 —— 改動最小、最不會踩到別的東西。"}
+];
+var ZONE = {emoji:"🧳", label:"行李托運", sub:"丟進行李箱"};
+
+function seed(){
+  var L=[];
+  function it(id,text,done,bag){ L.push({id:id,text:text,done:!!done,zone:"checked",bag:bag||""}); }
+  function bg(id,text){ L.push({id:id,text:text,done:false,zone:"checked",kind:"bag",bag:""}); }
+  bg("b1","換洗衣物");
+  it("i1","禮拜日衣服",false,"b1");
+  it("i2","內衣褲",false,"b1");
+  it("i3","襪子",true,"b1");
+  it("i4","禮拜日本色替換衣服",false,"b1");
+  bg("b2","盥洗包");
+  it("i5","乳液",true,"b2");
+  it("i6","牙膏",false,"b2");
+  it("i7","護髮油",false,"b2");
+  it("i8","牙刷",false,"b2");
+  it("i9","衛生棉",false);
+  it("i10","拖鞋",false);
+  it("i11","薄外套",false);
+  return L;
+}
+var ST={};
+VARIANTS.forEach(function(v){ ST[v.k]={items:seed(), open:{b1:true}, adding:null, filter:false}; });
+
+var uidN=0;
+function uid(){ return "n"+(++uidN)+Math.random().toString(36).slice(2,5); }
+function esc(s){ return String(s).replace(/[&<>"]/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]; }); }
+function isBag(p){ return p.kind==="bag"; }
+function topOf(v){ return ST[v].items.filter(function(p){ return !p.bag; }); }
+function kidsOf(v,id){ return ST[v].items.filter(function(p){ return p.bag===id; }); }
+function byId(v,id){ var a=ST[v].items,i; for(i=0;i<a.length;i++){ if(a[i].id===id) return a[i]; } return null; }
+
+/* 落點錨：跟正式版一樣要放，否則 .pk-bag + .pk-slot + .pk-card 那條規則在 demo 裡量不到 */
+function slot(){ return '<i class="pk-slot"></i>'; }
+var DOTS = '<span class="gv"><svg class="gd" viewBox="0 0 12 18" aria-hidden="true" focusable="false">'
+  + '<circle cx="3.4" cy="4" r="1.35"/><circle cx="8.6" cy="4" r="1.35"/>'
+  + '<circle cx="3.4" cy="9" r="1.35"/><circle cx="8.6" cy="9" r="1.35"/>'
+  + '<circle cx="3.4" cy="14" r="1.35"/><circle cx="8.6" cy="14" r="1.35"/></svg></span>';
+function gripHtml(){ return '<button class="pk-grip" aria-label="拖曳移動" oncontextmenu="return false">'+DOTS+'</button>'; }
+function ckHtml(v,p){ return '<button class="pk-ck" onclick="tog(\'' + v + '\',\'' + p.id + '\')" aria-label="打勾">'
+  + '<span class="pk-box">'+(p.done?"✓":"")+'</span></button>'; }
+function formHtml(v,ph){
+  return '<form class="pk-form" onsubmit="submitAdd(event,\'' + v + '\')">'
+    + '<input id="in-'+v+'" placeholder="'+esc(ph)+'" autocomplete="off" enterkeyhint="done" required>'
+    + '<button type="submit">加入</button></form>';
+}
+function rowHtml(v,p){
+  return '<div class="pk-card" data-id="'+p.id+'">'
+    + '<div class="pk-row'+(p.done?" done":"")+'">'
+    +   ckHtml(v,p)
+    +   '<button class="pk-txt" onclick="openSet(\'' + v + '\',\'' + p.id + '\')"><span class="t">'+esc(p.text)+'</span></button>'
+    +   gripHtml()
+    + '</div></div>' + slot();
+}
+/* 包底下那一段＝這次唯一動到的地方；四個變體只差在這裡（以及方案 B 包頭多一顆 ✎） */
+function tailHtml(v,p){
+  var st=ST[v];
+  var adding = (st.adding===p.id);
+  var addBtn = '<button class="pk-add" onclick="startAdd(\'' + v + '\',\'' + p.id + '\')">'
+    + '<span class="plus">＋</span>加東西到「'+esc(p.text)+'」</button>';
+  var setId = '\'' + v + '\',\'' + p.id + '\'';
+  if(v==="now"){
+    return (adding ? formHtml(v,"加到「"+p.text+"」") : addBtn)
+      + '<button class="act-row pk-bagset" onclick="openSet('+setId+')">✎　這個包的設定（改名／換區／刪掉）</button>';
+  }
+  if(v==="a"){
+    if(adding) return '<div class="pk-tail adding">'+formHtml(v,"加到「"+p.text+"」")+'</div>';
+    return '<div class="pk-tail">'+addBtn
+      + '<button class="pk-set" onclick="openSet('+setId+')"><span class="pen">✎</span>設定</button></div>';
+  }
+  if(v==="b"){
+    return adding ? formHtml(v,"加到「"+p.text+"」") : addBtn;
+  }
+  return (adding ? formHtml(v,"加到「"+p.text+"」") : addBtn)
+    + '<button class="pk-setrow" onclick="openSet('+setId+')"><span class="pen">✎</span>改名・換區・刪掉</button>';
+}
+function bagHtml(v,p){
+  var st=ST[v], kids=kidsOf(v,p.id);
+  var dn=kids.filter(function(k){ return k.done; }).length;
+  var open=!!st.open[p.id];
+  var pct=kids.length?Math.round(dn/kids.length*100):0;
+  var sub = kids.length
+    ? (dn===kids.length
+       ? '<span class="all">✓ 都裝好了・'+kids.length+' 樣</span>'
+       : '<span class="bar"><i style="width:'+pct+'%"></i></span><span>已裝 '+dn+' / '+kids.length+'</span>')
+    : '<span>還是空的</span>';
+  var inner="";
+  if(open){
+    inner = '<div class="pk-inner">'
+      + slot()
+      + (kids.length ? kids.map(function(k){
+          return '<div class="pk-row pk-sub-row'+(k.done?" done":"")+'" data-id="'+k.id+'">'
+            + ckHtml(v,k)
+            + '<button class="pk-txt" onclick="openSet(\'' + v + '\',\'' + k.id + '\')"><span class="t">'+esc(k.text)+'</span></button>'
+            + gripHtml() + '</div>' + slot();
+        }).join("")
+        : '<div class="pk-inner-empty">這個包還是空的，加點東西進去</div>')
+      + tailHtml(v,p)
+      + '</div>';
+  }
+  var editBtn = (v==="b" && open)
+    ? '<button class="pk-edit" aria-label="這個包的設定" onclick="openSet(\'' + v + '\',\'' + p.id + '\')">✎</button>' : '';
+  return '<div class="pk-card pk-bag'+(open?" open":"")+(p.done?" done":"")+'" data-id="'+p.id+'" data-bag="'+p.id+'">'
+    + '<div class="pk-row pk-head-row'+(p.done?" done":"")+'">'
+    +   ckHtml(v,p)
+    +   '<button class="pk-txt" onclick="togBag(\'' + v + '\',\'' + p.id + '\')">'
+    +     '<span class="t"><span class="pk-emo">📦</span> '+esc(p.text)+'<span class="pk-chev">⌄</span></span>'
+    +     '<span class="pk-sub">'+sub+'</span></button>'
+    +   editBtn
+    +   gripHtml()
+    + '</div>' + inner + '</div>' + slot();
+}
+function render(v){
+  var st=ST[v], tp=topOf(v);
+  var done=tp.filter(function(p){ return p.done; }).length;
+  var list=st.filter ? tp.filter(function(p){ return !p.done; }) : tp;
+  var rows=list.map(function(p){ return isBag(p)?bagHtml(v,p):rowHtml(v,p); }).join("");
+  var addRow = (st.adding==="__z__")
+    ? formHtml(v,"加到「"+ZONE.emoji+" "+ZONE.label+"」")
+    : '<button class="pk-add" onclick="startAdd(\'' + v + '\',\'__z__\')">'
+      + '<span class="plus">＋</span>加東西到「'+ZONE.emoji+' '+ZONE.label+'」</button>';
+  document.getElementById("sec-"+v).innerHTML =
+      '<div class="pack-head"><span class="t">'+ZONE.emoji+' '+ZONE.label
+    +   '<span class="sub">（'+ZONE.sub+'）</span></span>'
+    +   '<button class="pk-cnt'+(st.filter?" on":"")+'" onclick="togFilter(\'' + v + '\')">'
+    +     '<span class="cp"><span class="fdot"></span>'
+    +     (st.filter ? "只看沒打包的" : "已打包 "+done+" / "+tp.length)
+    +     '</span></button>'
+    + '</div>'
+    + '<div class="pk-list">' + slot() + rows + addRow + '</div>';
+  if(st.adding){
+    var el=document.getElementById("in-"+v);
+    if(el){ el.value=""; el.focus(); }
+  }
+}
+function renderAll(){ VARIANTS.forEach(function(v){ render(v.k); }); }
+
+/* ---- 互動 ---- */
+function tog(v,id){
+  var p=byId(v,id); if(!p) return;
+  p.done=!p.done;
+  if(p.done && isBag(p)) ST[v].open[id]=false;   /* 勾包會自動收合，但還是點得開 */
+  render(v);
+}
+function togBag(v,id){ ST[v].open[id]=!ST[v].open[id]; ST[v].adding=null; render(v); }
+function togFilter(v){ ST[v].filter=!ST[v].filter; render(v); }
+function startAdd(v,where){ ST[v].adding=where; if(where!=="__z__") ST[v].open[where]=true; render(v); }
+function submitAdd(e,v){
+  e.preventDefault();
+  var el=document.getElementById("in-"+v); if(!el) return;
+  var txt=el.value.trim(); if(!txt) return;
+  var where=ST[v].adding;
+  var bag=(where==="__z__") ? "" : where;
+  var items=ST[v].items, idx;
+  if(bag){
+    var k=kidsOf(v,bag);
+    idx = k.length ? items.indexOf(k[k.length-1])+1 : items.indexOf(byId(v,bag))+1;
+  }else{ idx=items.length; }
+  items.splice(idx,0,{id:uid(),text:txt,done:false,zone:"checked",bag:bag});
+  render(v);                       /* render 之後 focus 留在原地 ⇒ Enter 可以一直加 */
+  toast("加好了："+txt);
+}
+document.addEventListener("click", function(e){
+  if(e.target.closest(".pk-form") || e.target.closest(".pk-add") || e.target.closest("#sheet-layer")) return;
+  var dirty=false;
+  VARIANTS.forEach(function(v){ if(ST[v.k].adding){ ST[v.k].adding=null; dirty=true; } });
+  if(dirty) renderAll();
+});
+
+/* ---- 設定 sheet（改名／換區／刪掉；四個版本共用同一張，只差入口長在哪） ---- */
+var SHEET=null;
+function openSet(v,id){
+  var p=byId(v,id); if(!p) return;
+  var bag=isBag(p);
+  var l=document.createElement("div");
+  l.id="sheet-layer";
+  l.innerHTML = '<div class="backdrop" onclick="closeSheet()"></div>'
+    + '<div class="sheet">'
+    +   '<div class="sheet-head"><h3>'+(bag?"包・":"")+esc(p.text)+'</h3>'
+    +     '<button onclick="closeSheet()" aria-label="關閉">✕</button></div>'
+    +   '<label class="field"><span class="fl">名稱</span>'
+    +     '<input id="set-name" value="'+esc(p.text)+'" autocomplete="off"></label>'
+    +   '<div class="pk-loc-lb">放在哪</div>'
+    +   '<div class="loc-list">'
+    +     '<button class="loc" onclick="toast(\'demo：這裡會換到 🎒 隨身\')">🎒 隨身</button>'
+    +     '<button class="loc on">🧳 行李托運<span class="ck">✓</span></button>'
+    +   '</div>'
+    +   '<button class="btn-primary" onclick="saveSet(\'' + v + '\',\'' + id + '\')">存起來</button>'
+    +   '<div style="margin-top:10px"><button class="act-row danger" onclick="delIt(\'' + v + '\',\'' + id + '\')">'
+    +     '<span style="width:26px;text-align:center">🗑</span>'
+    +     (bag?"刪掉這個包（東西留在同一區）":"刪掉")+'</button></div>'
+    + '</div>';
+  document.body.appendChild(l);
+  SHEET=l;
+}
+function closeSheet(){ if(SHEET){ SHEET.remove(); SHEET=null; } }
+function saveSet(v,id){
+  var el=document.getElementById("set-name"), p=byId(v,id);
+  if(el && p && el.value.trim()) p.text=el.value.trim();
+  closeSheet(); render(v); toast("改好了");
+}
+function delIt(v,id){
+  var p=byId(v,id); if(!p) return;
+  var n=0;
+  if(isBag(p)){ kidsOf(v,id).forEach(function(k){ k.bag=""; n++; }); }   /* 包刪掉＝東西倒出來 */
+  ST[v].items=ST[v].items.filter(function(x){ return x.id!==id; });
+  closeSheet(); render(v);
+  toast(isBag(p) ? ("刪了「"+p.text+"」，"+n+" 樣東西留在 🧳 行李托運") : ("刪了「"+p.text+"」"));
+}
+var tT=null;
+function toast(msg){
+  var el=document.getElementById("toast");
+  el.textContent=msg; el.classList.remove("hidden");
+  clearTimeout(tT); tT=setTimeout(function(){ el.classList.add("hidden"); }, 1900);
+}
+
+/* ---- 版面 ---- */
+(function(){
+  var h="";
+  VARIANTS.forEach(function(v){
+    h += '<div class="vsec v v-'+v.cls+'">'
+      + '<div class="vh"><span class="vtag '+v.cls+'">'+v.tag+'</span><b>'+v.name+'</b></div>'
+      + '<p class="vwhy">'+v.why+'</p>'
+      + '<section class="pack-sec" id="sec-'+v.k+'"></section>'
+      + '</div>';
+  });
+  document.getElementById("secs").innerHTML=h;
+  renderAll();
+})();
+</script>
+</body>
+</html>

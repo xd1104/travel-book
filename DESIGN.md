@@ -950,7 +950,8 @@ if(Math.abs(dx)>6){ pend.x = e.clientX; pend.y = e.clientY; }
 - **包重新變成畫面上唯一的第二層容器**：白抽屜裡的一個**淡底盒子**
   （`#fbf7f0` ＋ `1px solid #f1eadd` ＋ `border-radius:14px` ＋ `margin:8px`）。層級一眼就回來了。
 - 就地新增變成**抽屜的最後一列**（`border-top` hairline，不再是一個虛線方框）—— 少一個矩形。
-  **包裡面的 `.pk-inner .pk-add` 維持虛線**（那是盒子內的次要入口，不要一起改掉）。
+  ~~**包裡面的 `.pk-inner .pk-add` 維持虛線**（那是盒子內的次要入口，不要一起改掉）。~~
+  ⚠️ **這一條在 v3.2 被 Benson 推翻**（選了方案 B）：包裡面那條也改成 hairline 尾列，見附錄 F。
 - 區標題退回 App 標準的 `.sec-title` 語言：`13.5px / 800 / var(--muted)`，「（上飛機帶著）」再淡一階。
 - 計數改成小藥丸（`#f3eee4` / `#8f8578`，開啟篩選才變 `#fff1ef` / `--acc-deep`），
   **藥丸只有 26px 高，命中區靠外層 44px 撐**（`.pk-cnt` ≥44、內層 `.cp` 只管視覺）。
@@ -1040,3 +1041,67 @@ if(Math.abs(dx)>6){ pend.x = e.clientX; pend.y = e.clientY; }
    （C 在 demo 裡仍然吃 A 的門檻 —— 真要選 C，門檻留著只有好處。）
 4. （順帶，dev 層可自行調，不必等拍板）**把手的圖形**：現在是 6 個點的淡色紋理，取代 `☰`。
    若覺得太淡可以再加深一階（`#cfc5b3` → `#c2b6a1`）。
+
+---
+
+# 附錄 F — 打包 v3.2「包裡面的兩個入口」（方案 B，Benson 拍板）
+
+規格＝`demo/packing-v3.html` 的 `.v-b` 那一段（lab-ux 出的，已量測）。**只動兩樣東西，資料格式一個位元組都沒動。**
+
+## F1. 病根
+
+包展開之後，盒子裡面同時擺著「東西（hairline 分列）」「一個虛線圓角框（加東西）」「一整行文字按鈕（這個包的設定）」——
+**三種語言、兩個矩形**，而且那兩個入口跟「東西」擠在同一個層級。v3.0 已經把區層改成 hairline 了，包裡面還留著 v2.9 的舊語言。
+
+## F2. 方案 B ＝兩件事
+
+1. **`.pk-inner .pk-add`（包裡面那個虛線圓角框）→ hairline 尾列**，跟區層 v3.0 同一種語言。
+2. **`.pk-bagset`（「✎ 這個包的設定（改名／換區／刪掉）」整行）整條拿掉**，改成
+   **包頭那一行右邊、展開時才出現的一顆 ✎（`.pk-edit`）**。**盒子裡面只剩「東西」。**
+
+```css
+.pk-inner .pk-add{
+  width:calc(100% - 6px); border:none; border-top:1px solid #efe7d8; border-radius:0;
+  margin:0 0 0 6px; min-height:48px; padding:0 6px 0 10px; font-size:14.5px; gap:7px; color:#a09585;}
+.pk-inner .pk-add .plus{color:var(--acc-deep); font-weight:800; font-size:16px;}
+.pk-inner .pk-add:active{background:#f6f0e4; color:var(--acc-deep);}
+
+.pk-edit{width:44px; min-height:60px; flex:0 0 auto; display:flex; align-items:center; justify-content:center;
+  color:#b8ad9c; font-size:17px;}
+.pk-edit:active{color:var(--acc-deep);}
+```
+
+`.pk-edit` 插在包頭 `.pk-txt` 與把手之間，**`open` 時才輸出 markup**（不是用 CSS 藏）。
+
+## F3. 兩個施工坑（lab-ux 踩過，別再踩一次）
+
+1. **`<button>` 就算 `display:flex`，`width:auto` 仍然是 shrink-to-fit** ⇒ `border-top` 只畫到 x=229 就斷掉
+   （`.pk-sub-row` 是 344）。**一定要 `width:calc(100% - 6px)`，不可以寫 `width:auto`。**
+2. **CSS 註解多打一個 `*/` 會把後面整條規則吞掉** ⇒ 量到的還是舊值、看起來像「改了沒生效」。
+   **量到「值沒變」時先懷疑註解與選擇器，不要先懷疑瀏覽器快取。**
+
+## F4. 取捨（Benson 知情後仍選 B）
+
+- **包名可用寬度 −20%**：收合 220px → 展開 176px（`.pk-head-row .t` 的 content box，實測）。
+  他真實的三個包名自然寬 88.66／104.66／120.66px，**展開時餘裕最少的「本色防水包」還有 55px，都不折行**。
+- **✎ 只在展開時出現**：收合時 0 顆 —— 這是刻意的，否則會沿右緣跟把手重複成一條柱（v2.7 `.map-btn` 修過的病）。
+- 「改名／換區／刪掉」的可見入口因此是「先展開、再點 ✎」，多一步；長按 450ms 的動作選單維持既有、當捷徑。
+
+## F5. dev 改哪裡
+
+1. `public/styles.css`：改 `.pk-inner .pk-add`（＋ `.plus` / `:active` 兩條）、刪 `.pk-bagset`、新增 `.pk-edit` / `.pk-edit:active`。
+2. `public/app.js` `pkBagHtml()`：刪掉 `.pk-bagset` 那一行 markup；包頭 `.pk-txt` 與 `pkGripHtml` 之間插
+   `(open ? '<button class="pk-edit" …>✎</button>' : '')`。**包頭其他東西（勾選框／📦／名字／進度條／`.pk-chev`／把手）一格都不准動。**
+3. `APP_VER` ＋ `sw.js` 兩個 cache 版本號一起 +1。
+4. 不用改 `server.js`（沒動資料格式）。
+
+## F6. QA 檢查點（都要附實測值）
+
+- 尾列左右端點**逐字等於 `.pk-sub-row`**（45／344），且離包框（x=351）≥6px。
+- 內容沒被推走：包內列勾選框 x=65.5、文字 x=105（跟 v3.1 同一組）。
+- 觸控目標全掃 0 個 <44px（**1e-5 精度**，有 43.99997 前科）；所有 input `font-size:16px`。
+- `.pk-edit`：收合時 **0 個**；展開時 44×60。
+- 包名可用寬要**實測**，並確認「換洗衣物」「盥洗包」「本色防水包」都不折行（折行偵測器要有負控組）。
+- 包外沒被波及：頂層列 x 16~359、包後第一列 `border-top:0px`、其餘 1px。
+- 行為複驗：各勾各的／已打包的包打得開／兩層／點方塊＝勾／點文字＝展開／Enter 連加／四種拖曳。
+- **拖曳門檻要有負控組**：門檻關掉時「沿右緣快滑」必須測得出誤觸，測不出來代表尺壞了。

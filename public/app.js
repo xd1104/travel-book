@@ -1,6 +1,6 @@
 "use strict";
 /*
- * 旅途手帳 — 前端（視覺與互動照 UX demo v3.1，勿自行改設計）
+ * 旅途手帳 — 前端（視覺與互動照 UX demo v3.2，勿自行改設計）
  * 資料層：DataStore 依 location.hostname 自動切
  *   localhost -> LocalStore：打本機 Node /api（全功能）
  *   其他(GitHub Pages) -> GitHubStore：直接讀寫 GitHub repo
@@ -11,7 +11,7 @@
 /* ============ 常數 ============ */
 /* 版本號的唯一來源：首頁 footer 與「版本」sheet 都讀它。
  * 改前端時跟 sw.js 的 cache 版本號一起 +1（見「版本與更新」段）。 */
-var APP_VER="3.1";
+var APP_VER="3.2";
 
 /* 打包把手的三個門檻（v3.0，DESIGN.md 附錄 E2）——「先觀察，後接管」：
  * pointerdown 只進入「待命」，垂直帶開＝你在捲動就放行，橫向帶開或按住夠久才真的開始拖。
@@ -1734,7 +1734,6 @@ function pkBagHtml(p, z){
         }).join("")
         : '<div class="pk-inner-empty">這個包還是空的，加點東西進去</div>')
       + addRow
-      + '<button class="act-row pk-bagset" onclick="openPackSheet(\''+p.id+'\')">✎　這個包的設定（改名／換區／刪掉）</button>'
       + '</div>';
   }
   return '<div class="pk-card pk-bag'+(open?" open":"")+(p.done?" done":"")+'" data-id="'+p.id+'" data-bag="'+p.id+'">'
@@ -1743,6 +1742,10 @@ function pkBagHtml(p, z){
     +   '<button class="pk-txt" onclick="pkToggleBag(\''+p.id+'\')">'
     +     '<span class="t"><span class="pk-emo">📦</span> '+esc(p.text)+'<span class="pk-chev">⌄</span></span>'
     +     '<span class="pk-sub">'+sub+'</span></button>'
+    /* ✎＝這個包的設定（改名／換區／刪掉）的可見入口，v3.2 從盒子裡的整行搬到包頭。
+     * ⚠️ 只有展開時才輸出：收合時 0 顆，才不會沿著右緣重複成一條柱（v2.7 .map-btn 的老病）。
+     * 包頭「不准動」那條由 Benson 在 v3.2 親自解除，但也只准加這一顆，其餘原樣。 */
+    +   (open ? '<button class="pk-edit" aria-label="這個包的設定" onclick="openPackSheet(\''+p.id+'\')">✎</button>' : '')
     +   pkGripHtml(p.id)
     + '</div>'
     + inner

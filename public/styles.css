@@ -300,8 +300,12 @@ html.drag-lock, html.drag-lock body{touch-action:none; overscroll-behavior:none;
    所以 `.pk-bag + .pk-card` 實測選到 0 個 —— 是死碼。少了這條，包後面那一列
    照樣長出全寬 hairline：它離包那圈 14px 圓角的框只有 8px、左右各多伸 8px，
    一條直線貼著一個圓角盒子＝「線跟框框疊在一起」。包自己的框就是分隔了，不要再補線。
-   （`.pk-add` 也要，包排在區最後一筆時下面接的是它。） */
-.pk-bag + .pk-slot + .pk-card,
+   （`.pk-add` 也要，包排在區最後一筆時下面接的是它。）
+   ⚠️⚠️ **`:not(.pk-bag)` 跟 `:first-of-type` 那條是同一個理由，v3.1 漏了、v3.2 才補**：
+   包自己也帶著 `.pk-card`，所以「包後面接另一個包」時這條會把**第二個包自己那圈框的上邊**
+   吃掉，變成三邊的盒子（Benson 真實資料就是「換洗衣物」後面接「盥洗包」，v3.1 上線後
+   他看到的就是這個）。**這條的用意只有「包後面那一列不要補 hairline」，不是拆掉包的框。** */
+.pk-bag + .pk-slot + .pk-card:not(.pk-bag),
 .pk-bag + .pk-slot + .pk-add{border-top:none;}
 .pk-bag .pk-head-row{min-height:60px;}
 .pk-bag .pk-emo{font-size:17px; margin-right:1px;}
@@ -313,6 +317,12 @@ html.drag-lock, html.drag-lock body{touch-action:none; overscroll-behavior:none;
 .pk-sub .all{color:var(--ok); font-weight:700;}
 .pk-chev{font-size:14px; color:#b0a493; margin-left:7px; transition:transform .2s; display:inline-block; font-weight:700;}
 .pk-bag.open .pk-chev{transform:rotate(180deg);}
+/* v3.2（方案 B，Benson 拍板）：包的設定（改名／換區／刪掉）＝包頭右邊這一顆 ✎。
+   ⚠️ markup 只在 open 時輸出 —— 收合時一顆都沒有，才不會沿右緣跟把手疊成一條柱。
+   代價：包名可用寬度少 19%（他的「換洗衣物」「盥洗包」「本色防水包」實測都還不折行）。 */
+.pk-edit{width:44px; min-height:60px; flex:0 0 auto; display:flex; align-items:center; justify-content:center;
+  color:#b8ad9c; font-size:17px;}
+.pk-edit:active{color:var(--acc-deep);}
 .pk-inner{border-top:1px solid #efe7d8; padding:2px 6px 8px 14px; position:relative;}
 .pk-inner::before{content:""; position:absolute; left:18px; top:4px; bottom:10px; width:2px; border-radius:2px; background:#e7dfcd;}
 /* ⚠️ margin-left 要剛好等於「直軌右緣 − .pk-inner 內容左緣」（2px 軌 + left:18px − padding-left:14px = 6px）：
@@ -328,22 +338,31 @@ html.drag-lock, html.drag-lock body{touch-action:none; overscroll-behavior:none;
 .pk-sub-row .pk-txt .t{font-size:15.5px;}
 .pk-sub-row .pk-grip{min-height:50px; width:44px; font-size:17px; margin-right:0;}
 .pk-inner-empty{font-size:13px; color:#b8ad9c; padding:10px 4px 4px 16px;}
-.pk-bagset{min-height:44px; font-size:13.5px; color:var(--muted); border:none; padding-left:16px;}
 /* 就地快速加：每個容器自己的底部都有一條（「加到哪」由輸入框長在哪裡決定，不用選） */
 .pk-add{display:flex; align-items:center; gap:8px; width:100%; min-height:46px; padding:0 12px;
   border:1.5px dashed #ded5c4; border-radius:14px; color:#a89d8d; font-size:14.5px; font-weight:600;
   background:none; margin:2px 0 14px; text-align:left;}
 .pk-add:active{border-color:var(--acc); color:var(--acc-deep);}
-/* 跟 .pk-sub-row 同一條左緣（直軌右緣）：包裡面所有看得見的邊都對齊在一條線上 */
-.pk-inner .pk-add{margin:6px 0 2px 6px; min-height:44px; font-size:14px;}
-/* 區的就地新增＝抽屜的最後一列（hairline，不再是一個虛線方框，少一個矩形）。
-   ⚠️ 包裡面那條 .pk-inner .pk-add 維持虛線 —— 那是盒子內的次要入口，不要一起改掉。 */
+/* v3.2（方案 B，Benson 拍板；推翻 v3.0「包裡面那條維持虛線」那條）：
+   包裡面的「加東西」也從虛線圓角框改成 hairline 尾列，跟區層同一種語言 —— 盒子裡面只剩「東西」。
+   跟 .pk-sub-row 同一條左緣（直軌右緣 6px），右緣也對齊：包裡面所有看得見的邊都在同一條線上。
+   ⚠️ 一定要 width:calc(100% - 6px)，不可以寫 width:auto ——
+      button 就算 display:flex，width:auto 仍然是 shrink-to-fit，
+      實測 border-top 只畫到 x=229 就斷掉（.pk-sub-row 是 344）。 */
+.pk-inner .pk-add{
+  width:calc(100% - 6px); border:none; border-top:1px solid #efe7d8; border-radius:0;
+  margin:0 0 0 6px; min-height:48px; padding:0 6px 0 10px; font-size:14.5px; gap:7px; color:#a09585;}
+.pk-inner .pk-add .plus{color:var(--acc-deep); font-weight:800; font-size:16px;}
+.pk-inner .pk-add:active{background:#f6f0e4; color:var(--acc-deep);}
+/* 區的就地新增＝抽屜的最後一列（hairline，不再是一個虛線方框，少一個矩形）。 */
 .pk-list > .pk-add{border:none; border-top:1px solid #f4eee2; border-radius:0;
   margin:0; min-height:54px; padding-left:16px; color:#a89d8d;}
 .pk-list > .pk-add .plus{color:var(--acc-deep); font-weight:800; font-size:17px;}
 .pk-form{display:flex; gap:8px; margin:2px 0 14px;}
 .pk-list > .pk-form{margin:8px 10px 10px;}
-.pk-inner .pk-form{margin:6px 0 2px;}
+/* 左緣跟 .pk-sub-row／.pk-inner .pk-add 同一條（直軌右緣 45）：
+   就地新增展開的那一瞬間，輸入框不可以比它取代掉的那一列往左跳 6px。 */
+.pk-inner .pk-form{margin:6px 0 2px 6px;}
 .pk-form input{flex:1; min-width:0; font-size:16px; padding:11px 13px; border:1.5px solid var(--acc);
   border-radius:14px; background:var(--card); font-family:inherit; color:var(--ink);}
 .pk-form input:focus{outline:none;}
