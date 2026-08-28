@@ -296,7 +296,13 @@ html.drag-lock, html.drag-lock body{touch-action:none; overscroll-behavior:none;
 /* 包＝白抽屜裡的一個「淡底盒子」（附錄 E3）：這樣「包」重新變成畫面上唯一的第二層容器。
    層級靠「淡底盒子＋左側 rail」不靠縮排，手機水平空間才不會被吃掉。 */
 .pk-bag{overflow:hidden; background:#fbf7f0; border:1px solid #f1eadd; border-radius:14px; margin:8px;}
-.pk-bag + .pk-card{border-top:none;}
+/* ⚠️ 相鄰選擇器一定要跨過 .pk-slot：每一個縫裡都插了一個零高度的落點錨，
+   所以 `.pk-bag + .pk-card` 實測選到 0 個 —— 是死碼。少了這條，包後面那一列
+   照樣長出全寬 hairline：它離包那圈 14px 圓角的框只有 8px、左右各多伸 8px，
+   一條直線貼著一個圓角盒子＝「線跟框框疊在一起」。包自己的框就是分隔了，不要再補線。
+   （`.pk-add` 也要，包排在區最後一筆時下面接的是它。） */
+.pk-bag + .pk-slot + .pk-card,
+.pk-bag + .pk-slot + .pk-add{border-top:none;}
 .pk-bag .pk-head-row{min-height:60px;}
 .pk-bag .pk-emo{font-size:17px; margin-right:1px;}
 .pk-bag .pk-head-row .t{font-weight:700;}
@@ -309,7 +315,12 @@ html.drag-lock, html.drag-lock body{touch-action:none; overscroll-behavior:none;
 .pk-bag.open .pk-chev{transform:rotate(180deg);}
 .pk-inner{border-top:1px solid #efe7d8; padding:2px 6px 8px 14px; position:relative;}
 .pk-inner::before{content:""; position:absolute; left:18px; top:4px; bottom:10px; width:2px; border-radius:2px; background:#e7dfcd;}
-.pk-sub-row{display:flex; align-items:center; min-width:0; padding-left:16px; border-bottom:1px solid #f2ebdd;}
+/* ⚠️ margin-left 要剛好等於「直軌右緣 − .pk-inner 內容左緣」（2px 軌 + left:18px − padding-left:14px = 6px）：
+   少了它，每一列的 border-bottom 會從直軌「左邊」起跳、往左戳出 4px 一個尾巴，
+   三條橫線各穿過那條直軌一次 —— 就是包裡面「線跟線打架」的來源。
+   padding-left 同步 16→10 把字補回原位，列的內容一格都沒有移動。 */
+.pk-sub-row{display:flex; align-items:center; min-width:0; margin-left:6px; padding-left:10px;
+  border-bottom:1px solid #f2ebdd;}
 .pk-sub-row:last-of-type{border-bottom:none;}
 .pk-sub-row .pk-ck{width:44px; min-height:50px; margin-left:0;}
 .pk-sub-row .pk-box{width:23px; height:23px; font-size:12px;}
@@ -323,7 +334,8 @@ html.drag-lock, html.drag-lock body{touch-action:none; overscroll-behavior:none;
   border:1.5px dashed #ded5c4; border-radius:14px; color:#a89d8d; font-size:14.5px; font-weight:600;
   background:none; margin:2px 0 14px; text-align:left;}
 .pk-add:active{border-color:var(--acc); color:var(--acc-deep);}
-.pk-inner .pk-add{margin:6px 0 2px; min-height:44px; font-size:14px;}
+/* 跟 .pk-sub-row 同一條左緣（直軌右緣）：包裡面所有看得見的邊都對齊在一條線上 */
+.pk-inner .pk-add{margin:6px 0 2px 6px; min-height:44px; font-size:14px;}
 /* 區的就地新增＝抽屜的最後一列（hairline，不再是一個虛線方框，少一個矩形）。
    ⚠️ 包裡面那條 .pk-inner .pk-add 維持虛線 —— 那是盒子內的次要入口，不要一起改掉。 */
 .pk-list > .pk-add{border:none; border-top:1px solid #f4eee2; border-radius:0;
