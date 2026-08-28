@@ -11,7 +11,7 @@
 /* ============ 常數 ============ */
 /* 版本號的唯一來源：首頁 footer 與「版本」sheet 都讀它。
  * 改前端時跟 sw.js 的 cache 版本號一起 +1（見「版本與更新」段）。 */
-var APP_VER="3.3";
+var APP_VER="3.4";
 
 /* 打包把手的三個門檻（v3.0，DESIGN.md 附錄 E2）——「先觀察，後接管」：
  * pointerdown 只進入「待命」，垂直帶開＝你在捲動就放行，橫向帶開或按住夠久才真的開始拖。
@@ -1609,13 +1609,20 @@ function spentOfDay(t, day){
   t.expenses.forEach(function(e){ if(expDayVal(e.day)===day) s += Number(e.amount)||0; });
   return s;
 }
+/* 花費列（v3.4：整列都能點開編輯，不是只有說明文字那一塊）
+   ⚠️ v3.3 只把 `.exp-mid` 做成按鈕，實測命中區在 375px 下只有 x 84~202（約整列的 32%），
+      金額那一大塊跟左邊的 emoji 都是死區 —— 使用者最自然會去點的就是金額。
+      現在 emoji＋說明＋金額整包是一顆按鈕，只有 ✕ 留在外面（刪除必須是獨立的目標，
+      不可以被「點一下開編輯」吃掉）。 */
 function expRowHtml(e){
   var c = ECATS[e.cat]||ECATS.other;
   return '<div class="exp-item">'
-    + '<div class="exp-emo">'+c.emoji+'</div>'
-    + '<button class="exp-mid" onclick="openExpenseSheet(\''+e.id+'\')">'
-    +   '<span class="d">'+esc(e.desc||c.label)+'</span><span class="c">'+c.label+'</span></button>'
-    + '<div class="exp-amt">'+money(e.amount)+'</div>'
+    + '<button class="exp-open" onclick="openExpenseSheet(\''+e.id+'\')">'
+    +   '<span class="exp-emo">'+c.emoji+'</span>'
+    +   '<span class="exp-mid"><span class="d">'+esc(e.desc||c.label)+'</span>'
+    +     '<span class="c">'+c.label+'</span></span>'
+    +   '<span class="exp-amt">'+money(e.amount)+'</span>'
+    + '</button>'
     + '<button class="x-btn" onclick="delExpense(\''+e.id+'\')" aria-label="刪除">✕</button>'
     + '</div>';
 }
