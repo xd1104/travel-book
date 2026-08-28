@@ -7,7 +7,7 @@ start: "2026-08-29"
 days: 3
 budget: 4600
 createdAt: "2026-07-23T15:51:59.575Z"
-updatedAt: "2026-08-28T21:06:53.952Z"
+updatedAt: "2026-08-28T21:11:37.903Z"
 ---
 
 ## 行程
@@ -40,6 +40,7 @@ updatedAt: "2026-08-28T21:06:53.952Z"
 ## 花費
 
 - {"id":"xmtdfzm2l9vs7","amount":60,"cat":"other","desc":"礦泉水*6","day":1}
+- {"id":"xmtdg5p64pvtd","amount":60,"cat":"food","desc":"早餐 - 饅頭夾蛋*2","day":1}
 
 ## 打包
 
