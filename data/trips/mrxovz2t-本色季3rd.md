@@ -7,7 +7,7 @@ start: "2026-08-29"
 days: 3
 budget: 4600
 createdAt: "2026-07-23T15:51:59.575Z"
-updatedAt: "2026-08-28T02:40:24.839Z"
+updatedAt: "2026-08-28T02:40:28.935Z"
 ---
 
 ## 行程
@@ -39,7 +39,6 @@ updatedAt: "2026-08-28T02:40:24.839Z"
 
 ## 花費
 
-- {"id":"xmtccgnwkzvna","amount":200,"cat":"food","desc":"測試","day":"pre"}
 
 ## 打包
 
