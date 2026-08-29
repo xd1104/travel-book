@@ -7,7 +7,7 @@ start: "2026-08-29"
 days: 3
 budget: 4600
 createdAt: "2026-07-23T15:51:59.575Z"
-updatedAt: "2026-08-29T13:10:23.599Z"
+updatedAt: "2026-08-29T14:27:00.521Z"
 ---
 
 ## 行程
@@ -49,6 +49,7 @@ updatedAt: "2026-08-29T13:10:23.599Z"
 - {"id":"xmte7faxx2dfg","amount":250,"cat":"food","desc":"黑狗炸雞 海陸拼盤","day":1}
 - {"id":"xmtedkugju181","amount":160,"cat":"food","desc":"本色停車費","day":1}
 - {"id":"xmteeeo8xn16a","amount":1435,"cat":"food","desc":"加油","day":1}
+- {"id":"xmteh57a7v45s","amount":120,"cat":"food","desc":"中壢夜市- 舒芙蕾","day":1}
 
 ## 打包
 
