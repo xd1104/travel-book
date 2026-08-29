@@ -7,7 +7,7 @@ start: "2026-08-29"
 days: 3
 budget: 4600
 createdAt: "2026-07-23T15:51:59.575Z"
-updatedAt: "2026-08-29T00:08:03.777Z"
+updatedAt: "2026-08-29T06:08:58.131Z"
 ---
 
 ## 行程
@@ -43,6 +43,7 @@ updatedAt: "2026-08-29T00:08:03.777Z"
 - {"id":"xmtdg5p64pvtd","amount":60,"cat":"food","desc":"早餐 - 饅頭夾蛋*2","day":1}
 - {"id":"xmtdhujbckcpq","amount":82,"cat":"food","desc":"超商口香糖跟熱狗","day":1}
 - {"id":"xmtdmgl9z9yzy","amount":450,"cat":"food","desc":"湯包","day":1}
+- {"id":"xmtdzcpvv64x1","amount":145,"cat":"food","desc":"全家 零食喝的","day":1}
 
 ## 打包
 
