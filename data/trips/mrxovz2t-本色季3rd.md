@@ -7,7 +7,7 @@ start: "2026-08-29"
 days: 3
 budget: 4600
 createdAt: "2026-07-23T15:51:59.575Z"
-updatedAt: "2026-08-29T06:09:07.799Z"
+updatedAt: "2026-08-29T06:09:52.458Z"
 ---
 
 ## 行程
@@ -45,6 +45,7 @@ updatedAt: "2026-08-29T06:09:07.799Z"
 - {"id":"xmtdmgl9z9yzy","amount":450,"cat":"food","desc":"湯包","day":1}
 - {"id":"xmtdzcpvv64x1","amount":145,"cat":"food","desc":"全家 零食喝的","day":1}
 - {"id":"xmtdzcxcejo8l","amount":90,"cat":"food","desc":"飯捲","day":1}
+- {"id":"xmtdzdvsyfwiy","amount":100,"cat":"other","desc":"拍貼機","day":1}
 
 ## 打包
 
