@@ -7,7 +7,7 @@ start: "2026-08-29"
 days: 3
 budget: 4600
 createdAt: "2026-07-23T15:51:59.575Z"
-updatedAt: "2026-08-29T14:40:46.513Z"
+updatedAt: "2026-08-29T14:46:43.035Z"
 ---
 
 ## 行程
@@ -52,6 +52,7 @@ updatedAt: "2026-08-29T14:40:46.513Z"
 - {"id":"xmteh57a7v45s","amount":120,"cat":"food","desc":"中壢夜市- 舒芙蕾","day":1}
 - {"id":"xmtehb28xmz2t","amount":100,"cat":"food","desc":"中壢夜市- 家鄉碳烤雞排","day":1}
 - {"id":"xmtehmwm819xy","amount":50,"cat":"food","desc":"中壢夜市- 蔥油餅","day":1}
+- {"id":"xmtehujpnj8d7","amount":140,"cat":"food","desc":"中壢夜市- 炒粿角 餛飩湯","day":1}
 
 ## 打包
 
