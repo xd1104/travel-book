@@ -39,7 +39,7 @@ updatedAt: "2026-08-30T05:40:30.969Z"
 
 ### Day 3
 
-- {"id":"xmtfdnrdv3mlz","title":"其森牛肉湯","time":"05:00","cat":"sight","place":"台南麻豆","mapUrl":"https://maps.app.goo.gl/qGqokNHFiaGSeCWq9?g_st=ic","stayMinutes":30,"hoursOpen":"05:00","hoursClose":"14:00"}
+- {"id":"xmtfdnrdv3mlz","title":"其森牛肉湯","time":"05:00","cat":"sight","place":"台南麻豆","mapUrl":"https://maps.app.goo.gl/qGqokNHFiaGSeCWq9?g_st=ic","addr":"721臺南市麻豆區新興里興民街1號其森牛肉湯-麻豆總店","stayMinutes":30,"hoursOpen":"05:00","hoursClose":"14:00"}
 
 ## 花費
 
