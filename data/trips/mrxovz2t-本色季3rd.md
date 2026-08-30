@@ -7,7 +7,7 @@ start: "2026-08-29"
 days: 3
 budget: 4600
 createdAt: "2026-07-23T15:51:59.575Z"
-updatedAt: "2026-08-30T05:37:14.084Z"
+updatedAt: "2026-08-30T05:40:04.583Z"
 ---
 
 ## 行程
@@ -39,7 +39,7 @@ updatedAt: "2026-08-30T05:37:14.084Z"
 
 ### Day 3
 
-- {"id":"xmtfdnrdv3mlz","title":"其森牛肉湯","time":"05:00","cat":"sight","place":"台南麻豆","mapUrl":"https://maps.app.goo.gl/qGqokNHFiaGSeCWq9?g_st=ic","addr":"721臺南市麻豆區新興里興民街1號其森牛肉湯-麻豆總店","stayMinutes":30,"hoursOpen":"05:00","hoursClose":"14:00"}
+- {"id":"xmtfdnrdv3mlz","title":"其森牛肉湯","time":"05:00","cat":"sight","place":"台南麻豆","mapUrl":"https://maps.app.goo.gl/qGqokNHFiaGSeCWq9?g_st=ic","stayMinutes":30,"hoursOpen":"05:00","hoursClose":"14:00"}
 
 ## 花費
 
@@ -112,4 +112,4 @@ updatedAt: "2026-08-30T05:37:14.084Z"
 
 ## 備註
 
-進退房時間 1600/1100
+進退房時間 1600/100
