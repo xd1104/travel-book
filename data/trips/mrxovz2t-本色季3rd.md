@@ -7,7 +7,7 @@ start: "2026-08-29"
 days: 3
 budget: 4600
 createdAt: "2026-07-23T15:51:59.575Z"
-updatedAt: "2026-08-30T05:35:11.668Z"
+updatedAt: "2026-08-30T05:36:17.274Z"
 ---
 
 ## 行程
@@ -36,7 +36,6 @@ updatedAt: "2026-08-30T05:35:11.668Z"
 - {"id":"xmsoexx42yr6h","type":"transit","note":"開車","stayMinutes":40}
 - {"id":"xmsoeyyr47369","title":"本色季","time":"12:50","cat":"sight","place":"桃園陽光劇場","stayMinutes":530}
 - {"id":"xmt2mi5v52bzy","title":"宵夜","time":"22:00","cat":"food","note":"大廟生炒羊肉\n串燒小棧(中壢)\n橋頭小吃"}
-- {"id":"xmtfdl4wjgi59","title":"其森牛肉湯","time":"05:00","cat":"sight","place":"台南麻豆","mapUrl":"https://maps.app.goo.gl/qGqokNHFiaGSeCWq9?g_st=ic","addr":"721臺南市麻豆區新興里興民街1號其森牛肉湯-麻豆總店","stayMinutes":30,"hoursOpen":"05:00","hoursClose":"14:00"}
 
 ## 花費
 
