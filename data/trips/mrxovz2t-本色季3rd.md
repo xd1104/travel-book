@@ -7,7 +7,7 @@ start: "2026-08-29"
 days: 3
 budget: 4600
 createdAt: "2026-07-23T15:51:59.575Z"
-updatedAt: "2026-08-30T05:40:57.087Z"
+updatedAt: "2026-08-30T05:41:02.705Z"
 ---
 
 ## 行程
@@ -39,7 +39,7 @@ updatedAt: "2026-08-30T05:40:57.087Z"
 
 ### Day 3
 
-- {"id":"xmtfdnrdv3mlz","title":"其森牛肉湯","time":"05:00","cat":"sight","place":"台南麻豆","mapUrl":"https://maps.app.goo.gl/qGqokNHFiaGSeCWq9?g_st=ic","addr":"721臺南市麻豆區新興里興民街1號其森牛肉湯-麻豆總店","stayMinutes":30,"hoursOpen":"05:00","hoursClose":"14:00"}
+- {"id":"xmtfdnrdv3mlz","title":"其森牛肉湯","time":"05:00","cat":"sight","place":"台南麻豆","mapUrl":"https://maps.app.goo.gl/qGqokNHFiaGSeCWq9?g_st=ic","stayMinutes":30,"hoursOpen":"05:00","hoursClose":"14:00"}
 
 ## 花費
 
@@ -72,7 +72,7 @@ updatedAt: "2026-08-30T05:40:57.087Z"
 - {"id":"xmtbqy1jdg5aj","text":"內衣褲","done":true,"zone":"checked","bag":"xmrxovz2tzpno"}
 - {"id":"xmtbqy59s9we9","text":"襪子","done":true,"zone":"checked","bag":"xmrxovz2tzpno"}
 - {"id":"xmtbqxvn2v4it","text":"禮拜日本色替換衣服","done":true,"zone":"checked","bag":"xmrxovz2tzpno"}
-- {"id":"xmrxovz2tqqtt","text":"盥洗包","done":false,"zone":"checked","kind":"bag"}
+- {"id":"xmrxovz2tqqtt","text":"盥洗包","done":true,"zone":"checked","kind":"bag"}
 - {"id":"xmtbqsb9mww8x","text":"乳液","done":true,"zone":"checked","bag":"xmrxovz2tqqtt"}
 - {"id":"xmtbqs6z5lix1","text":"牙膏","done":true,"zone":"checked","bag":"xmrxovz2tqqtt"}
 - {"id":"xmtbr0mtns7je","text":"護髮油","done":true,"zone":"checked","bag":"xmrxovz2tqqtt"}
