@@ -7,13 +7,14 @@ start: "2026-12-31"
 days: 2
 budget: 0
 createdAt: "2026-09-02T05:58:21.324Z"
-updatedAt: "2026-09-02T07:05:11.643Z"
+updatedAt: "2026-09-02T07:05:44.824Z"
 ---
 
 ## 行程
 
 ## 花費
 
+- {"id":"xmtjr555jzhrp","amount":1200,"cat":"stay","desc":"台東鹿野春旅店，過年期間每間要補 1200","day":"pre"}
 
 ## 打包
 
