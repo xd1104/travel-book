@@ -6,8 +6,8 @@
  * 鐵律：skipWaiting + activate 清舊快取 + clients.claim，已安裝 PWA 才吃得到新版
  * 改前端記得把 cache 版本號 +1（SHELL 與 DATA 兩個一起跳，別只跳一個），並同步 app.js 最上面的 APP_VER
  */
-const SHELL_CACHE = 'travel-shell-v27';
-const DATA_CACHE = 'travel-data-v27';
+const SHELL_CACHE = 'travel-shell-v28';
+const DATA_CACHE = 'travel-data-v28';
 const KEEP = [SHELL_CACHE, DATA_CACHE];
 
 // 相對於 SW scope 解析（localhost 根目錄或 Pages 子路徑 /travel-book/ 都對）

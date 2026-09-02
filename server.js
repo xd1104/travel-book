@@ -230,7 +230,10 @@ function expDayVal(v) {
   return (n >= 1 && isFinite(n)) ? n : 0;              // 0 ＝ 沒指定
 }
 function cleanExpense(e) {
+  // `desc` ＝標題（短，列表顯示）；`note`（v3.7）＝說明（長，補充）。
+  // 刻意不改 desc 的語意也不換 key ⇒ 舊資料零遷移。
   const o = { id: String(e.id || ''), amount: Number(e.amount) || 0, cat: String(e.cat || 'other'), desc: String(e.desc || '') };
+  if (String(e.note || '').trim()) o.note = String(e.note).trim();
   const d = expDayVal(e.day);
   if (d) o.day = d;
   // v3.5：plan:true ＝「預計要花、還沒付」。真值刻意是 plan 不是 paid：

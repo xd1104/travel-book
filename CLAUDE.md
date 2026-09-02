@@ -56,7 +56,11 @@ UI/UX 以 `demo/index.html`（UX demo v3.1，Benson 拍板）為準，**勿自�
 - 每趟旅程一個 `data/trips/<id>.md`，id = `<ts36>-<slug>`（slug 保留中文）。
 - 結構：frontmatter（`name/dest/emoji/theme/start/days/budget/createdAt/updatedAt`，字串 JSON-quoted、數字裸寫）＋ 四段 body：
   - `## 行程` → `### Day N` → 每行 `- {一筆行程點的單行 JSON}`（key 順序固定、空值不寫；欄位：id/title/time/cat/place/note/mapUrl/addr/cost/bookingRef/phone/url/hoursOpen/hoursClose/hours24/hours）
-  - `## 花費` → 每行 `- {id,amount,cat,desc,day,plan}`（key 順序固定、空值不寫）
+  - `## 花費` → 每行 `- {id,amount,cat,desc,note,day,plan}`（key 順序固定、空值不寫）
+    - **`desc` ＝標題（短，清單上那一行）、`note`（v3.7）＝說明（長，補充）**。⚠️ **刻意不改 `desc` 的語意也不換 key**：它本來就是清單顯示的那個值，沿用它 ⇒ 舊資料（一句話全塞在 desc）零遷移、該顯示什麼還是顯示什麼，他自己再拆。`note` 空字串／全空白不寫。
+    - ⚠️ **說明在清單上必須自己獨立一行、跨整列**（`.exp-note`，左緣 `padding-left:54px` 對齊標題）：塞進 `.exp-mid` 的話那一欄被 emoji／金額／✕ 夾住**只剩約 130px**，一句話會被截掉大半，分標題與說明就失去意義（實測獨立一行有 **211px**，他真實那句「過年期間每間要補 1200」完整放得下）。仍只給一行＋`text-overflow:ellipsis`，完整內容點進去看；沒有說明就整行不出現。
+    - 表單順序＝「這是什麼」先講完再講 metadata：金額／類別 → 標題 → 說明 →（已經幫他預設好的）哪一天。說明用 `textarea rows=2` 不用 `input`（他真的會寫一整句）。
+    - ⚠️ **`budget` 是 0（還沒設預算）時不可以拿 0 去減**：會顯示「還可以再排 NT$ -1,200」，看起來像超支、其實只是他還沒填。這種時候**進度條整條不出現**，那一列改成一顆「還沒設預算・設一個 ›」的入口（`.budget-row.set-budget`，是 `<button>` 要自己補 `width:100%`／`text-align`／≥44px）。
     - **`plan`（v3.5）＝這筆只是「預計要花」、還沒付**；缺值＝已付。**真值刻意是 `plan` 不是 `paid`**：既有資料全是「已經花掉的」，用「缺值＝已付」才做得到零遷移（跟 `kind`/`bag`/`day` 同一招）。`plan:false` 不寫。
     - **「預計」與「已付」是同一筆的兩個狀態、不是兩份清單**（Benson 拍板）：先記「訂房 3200・預計」，真的付了在編輯裡切成「已經付了」，**不用重打一次**。實測切換後總額不變、金額只是從「還沒付」搬到「已付」。
     - ⚠️ **`spentOf` 的語意在 v3.5 收窄成「只算已付」**（首頁旅程卡也用它——還沒花的錢不叫花費）。新增 `planOf`（還沒付）與 `needOf`＝`spentOf+planOf`（**這趟要準備多少**）。**預算的比較對象是 `needOf` 不是 `spentOf`**，否則規劃期把住宿車票都排進去了，畫面還是說「還可以花 20,000」。

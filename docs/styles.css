@@ -186,6 +186,12 @@ ul{padding:0; list-style:none;}
 .budget-split b{color:var(--ink); font-variant-numeric:tabular-nums;}
 .budget-split .sp-plan b{color:var(--acc-deep);}
 .budget-row{display:flex; justify-content:space-between; font-size:13.5px; color:var(--muted); margin-top:10px;}
+/* 沒設預算時那一列變成入口（不是報一個 -1,200 的假超支）。
+   ⚠️ 它是 <button>，要自己補 width:100%／text-align 與 ≥44px。 */
+.budget-row.set-budget{width:100%; min-height:44px; align-items:center; text-align:left; background:none;}
+.budget-row.set-budget .go{font-weight:700; color:var(--acc-deep);}
+.budget-row.set-budget:active{opacity:.6;}
+.field .fl-opt{margin-left:6px; font-size:11.5px; font-weight:700; color:#b3a996;}
 .budget-row b{color:var(--ink); font-variant-numeric:tabular-nums;}
 .budget-row b.over{color:var(--bad);}
 .cat-sums{display:flex; gap:8px; flex-wrap:wrap; margin:16px 2px 6px;}
@@ -198,13 +204,20 @@ ul{padding:0; list-style:none;}
 /* v3.3：可以點開編輯（沒有編輯＝記錯天只能刪掉重打，那正是打包 v2.9 診斷出來的病根）。
    v3.4：命中區從「說明文字」擴大成「整列」——只有 ✕ 留在外面。
    ⚠️ 子元素從 div 換成 span，要自己補 display:block／display:flex。 */
-.exp-open{flex:1; min-width:0; min-height:44px; display:flex; align-items:center; gap:12px;
+/* v3.7：改成直向 —— 上排是 emoji／標題／金額，說明自己一行跨整列。 */
+.exp-open{flex:1; min-width:0; min-height:44px; display:flex; flex-direction:column; gap:5px;
   text-align:left; background:none;}
 .exp-open:active{opacity:.6;}
+.exp-top{display:flex; align-items:center; gap:12px; min-width:0;}
 .exp-mid{flex:1; min-width:0; display:flex; flex-direction:column;
   justify-content:center; text-align:left; background:none;}
 .exp-mid .d{display:block; font-size:15.5px; font-weight:700; overflow-wrap:anywhere;}
 .exp-mid .c{display:block; font-size:12.5px; color:var(--muted); margin-top:2px;}
+/* v3.7：說明（`note`）自己一行、跨整列，左緣縮排到跟標題對齊（emoji 42 ＋ gap 12）。
+   ⚠️ 單行省略三件事缺一不可：nowrap ＋ overflow:hidden ＋ text-overflow；
+      flex 子項還要 min-width:0，否則它會撐開整列、把金額擠出去。 */
+.exp-note{display:block; min-width:0; padding-left:54px; font-size:12.5px; color:#a89d8d;
+  line-height:1.45; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 /* 按天分組的標題：沿用打包區標題那套語言（.pack-head），不發明第三種群組標頭。
    第一組不要多一段上緣留白，否則「花費紀錄」那行標題跟它中間會開一個洞。
    ⚠️ 第一組的上緣留白**不可以用 `:first-of-type`**：它比的是「兄弟裡第一個 div」，

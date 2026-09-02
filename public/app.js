@@ -42,7 +42,7 @@ function splashReady(){
 /* ============ 常數 ============ */
 /* 版本號的唯一來源：首頁 footer 與「版本」sheet 都讀它。
  * 改前端時跟 sw.js 的 cache 版本號一起 +1（見「版本與更新」段）。 */
-var APP_VER="3.7";
+var APP_VER="3.8";
 
 /* 打包把手的三個門檻（v3.0，DESIGN.md 附錄 E2）——「先觀察，後接管」：
  * pointerdown 只進入「待命」，垂直帶開＝你在捲動就放行，橫向帶開或按住夠久才真的開始拖。
@@ -460,7 +460,11 @@ function expDayVal(v){
   return (n>=1 && isFinite(n)) ? n : 0;               /* 0 ＝ 沒指定 */
 }
 function cleanExpense(e){
+  /* `desc` ＝標題（短，列表上那一行）；`note`（v3.7）＝說明（長，補充用）。
+     ⚠️ 刻意**不改 `desc` 的語意也不換 key**：它本來就是列表顯示的那一個值，
+        沿用它 ⇒ 舊資料（一句話全塞在 desc）零遷移，該顯示什麼還是顯示什麼。 */
   var o = { id:String(e.id||""), amount:Number(e.amount)||0, cat:String(e.cat||"other"), desc:String(e.desc||"") };
+  if(String(e.note||"").trim()) o.note = String(e.note).trim();
   var d = expDayVal(e.day);
   if(d) o.day = d;                                    /* 空值不寫 */
   /* v3.5：`plan:true` ＝ 這筆只是「預計要花」、還沒付。
@@ -1675,11 +1679,18 @@ function expRowHtml(e){
   var c = ECATS[e.cat]||ECATS.other;
   return '<div class="exp-item">'
     + '<button class="exp-open" onclick="openExpenseSheet(\''+e.id+'\')">'
-    +   '<span class="exp-emo">'+c.emoji+'</span>'
-    +   '<span class="exp-mid"><span class="d">'+esc(e.desc||c.label)+'</span>'
-    +     '<span class="c">'+c.label
-    +       (e.plan ? '<span class="plan-pill">預計</span>' : "") + '</span></span>'
-    +   '<span class="exp-amt'+(e.plan?" is-plan":"")+'">'+money(e.amount)+'</span>'
+    +   '<span class="exp-top">'
+    +     '<span class="exp-emo">'+c.emoji+'</span>'
+    +     '<span class="exp-mid"><span class="d">'+esc(e.desc||c.label)+'</span>'
+    +       '<span class="c">'+c.label
+    +         (e.plan ? '<span class="plan-pill">預計</span>' : "") + '</span></span>'
+    +     '<span class="exp-amt'+(e.plan?" is-plan":"")+'">'+money(e.amount)+'</span>'
+    +   '</span>'
+    /* 說明（v3.7）自己獨立一行、跨整列 —— ⚠️ 不可以塞進 .exp-mid：
+       那一欄被 emoji／金額／✕ 夾住只剩約 130px，一句話會被截掉大半，
+       分標題與說明就失去意義了。這裡有 ~223px，他真實那句「過年期間每間要補 1200」放得下。
+       仍然只給一行＋…：清單是用掃的，完整內容點進去看。沒有說明就整行不出現。 */
+    +   (e.note ? '<span class="exp-note">'+esc(e.note)+'</span>' : "")
     + '</button>'
     + '<button class="x-btn" onclick="delExpense(\''+e.id+'\')" aria-label="刪除">✕</button>'
     + '</div>';
@@ -1728,10 +1739,18 @@ function viewBudget(t){
   var pctPlan = t.budget>0 ? Math.min(100-pctPaid, plan/t.budget*100) : 0;
   return '<section class="budget-card">'
     +   '<div class="lbl">這趟要準備</div><div class="big">'+money(need)+'</div>'
-    +   '<div class="prog"><i class="'+(over?"over":"")+'" style="width:'+pctPaid.toFixed(2)+'%"></i>'
-    +     (plan ? '<i class="plan" style="width:'+pctPlan.toFixed(2)+'%"></i>' : "") + '</div>'
-    +   '<div class="budget-row"><span>預算 '+money(t.budget)+'</span>'
-    +     '<span>'+(over?'超出預算 <b class="over">'+money(-remain)+'</b>':'還可以再排 <b>'+money(remain)+'</b>')+'</span></div>'
+    /* 沒設預算就沒有「佔多少」可言，空的灰條不傳達任何東西 ⇒ 整條不出現 */
+    +   (t.budget>0
+        ? '<div class="prog"><i class="'+(over?"over":"")+'" style="width:'+pctPaid.toFixed(2)+'%"></i>'
+          + (plan ? '<i class="plan" style="width:'+pctPlan.toFixed(2)+'%"></i>' : "") + '</div>'
+        : "")
+    /* ⚠️ 沒設預算（budget 0）時不可以拿 0 去減：會變成「還可以再排 NT$ -1,200」，
+       看起來像超支、其實只是他還沒填預算。這種時候整列改成一個「去設預算」的入口。 */
+    +   (t.budget>0
+        ? '<div class="budget-row"><span>預算 '+money(t.budget)+'</span>'
+          + '<span>'+(over?'超出預算 <b class="over">'+money(-remain)+'</b>':'還可以再排 <b>'+money(remain)+'</b>')+'</span></div>'
+        : '<button type="button" class="budget-row set-budget" onclick="openTripSheet(\''+t.id+'\')">'
+          + '<span>還沒設預算</span><span class="go">設一個 ›</span></button>')
     /* 一筆都還沒記的時候「已付 0・還沒付 0」是純噪音，整行不出現 */
     +   (need ? '<div class="budget-split"><span>已付 <b>'+money(spent)+'</b></span>'
     +     '<span class="sp-plan">還沒付 <b>'+money(plan)+'</b></span></div>' : "")
@@ -3005,8 +3024,14 @@ function openExpenseSheet(editId){
     +   '<label class="field"><span class="fl">金額（NT$）*</span><input type="number" name="amount" required min="0" step="1" inputmode="numeric" placeholder="0" value="'+(ex?ex.amount:"")+'"></label>'
     +   '<label class="field"><span class="fl">類別</span><select name="cat">'+opts+'</select></label>'
     + '</div>'
+    /* 欄位順序＝「這是什麼」先講完，再講 metadata：
+       金額／類別 → 標題 → 說明 →（幫他預設好的）哪一天。 */
+    + '<label class="field"><span class="fl">標題</span><input name="desc" placeholder="例：鹿野春旅店" autocomplete="off" value="'+(ex?esc(ex.desc):"")+'"></label>'
+    /* 說明用 textarea 不用 input：他真的會寫一整句（「過年期間每間要補 1200」），
+       單行 input 打到一半就看不到前面。 */
+    + '<label class="field"><span class="fl">說明<span class="fl-opt">選填</span></span>'
+    +   '<textarea name="note" rows="2" placeholder="例：過年期間每間要補 1200">'+(ex?esc(ex.note||""):"")+'</textarea></label>'
     + '<label class="field"><span class="fl">哪一天</span><select name="day">'+expDayOpts(t,curDay)+'</select></label>'
-    + '<label class="field"><span class="fl">說明</span><input name="desc" placeholder="例：teamLab 門票" autocomplete="off" value="'+(ex?esc(ex.desc):"")+'"></label>'
     + '<button class="btn-primary" type="submit">'+(ex?"存起來":"記下來")+'</button>'
     + '</form>');
 }
@@ -3028,9 +3053,11 @@ function submitExpense(ev){
   var isPlan = !!(f.plan && f.plan.value);
   if(id) t.expenses.forEach(function(e){ if(e.id===id) ex=e; });
   if(ex){
-    ex.amount=amt; ex.cat=f.cat.value; ex.desc=f.desc.value.trim(); ex.day=day; ex.plan=isPlan;
+    ex.amount=amt; ex.cat=f.cat.value; ex.desc=f.desc.value.trim();
+    ex.note=f.note.value.trim(); ex.day=day; ex.plan=isPlan;
   }else{
-    t.expenses.push({ id:uid(), amount:amt, cat:f.cat.value, desc:f.desc.value.trim(), day:day, plan:isPlan });
+    t.expenses.push({ id:uid(), amount:amt, cat:f.cat.value, desc:f.desc.value.trim(),
+      note:f.note.value.trim(), day:day, plan:isPlan });
   }
   persistTrip(t); closeSheet(); render();
 }
