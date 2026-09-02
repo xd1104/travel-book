@@ -42,7 +42,7 @@ function splashReady(){
 /* ============ 常數 ============ */
 /* 版本號的唯一來源：首頁 footer 與「版本」sheet 都讀它。
  * 改前端時跟 sw.js 的 cache 版本號一起 +1（見「版本與更新」段）。 */
-var APP_VER="3.8";
+var APP_VER="3.9";
 
 /* 打包把手的三個門檻（v3.0，DESIGN.md 附錄 E2）——「先觀察，後接管」：
  * pointerdown 只進入「待命」，垂直帶開＝你在捲動就放行，橫向帶開或按住夠久才真的開始拖。
@@ -372,9 +372,24 @@ function bufferDiff(list, newT){
   return out;
 }
 function tripEnd(t){ return addDays(parseDate(t.start), t.days-1); }
+/* v3.9：一定要看得到年份（Benson：「單純只有月份的話會很像今年的」）。
+   他的旅程排到一年以上之後（大阪那趟 451 天後），「11/27–12/4」讀起來就像今年。
+   ⚠️ **加了年份就放不下星期了，這是量出來的不是猜的**：首頁卡片那一行只有 188.9px
+      （右邊 110.3px 被「還有 N 天出發」藥丸佔走），13.5px 字。實測——
+        原本「12/31（四） – 1/1（五）・2 天」＝180.6 ✓（本來就貼著邊）
+        帶星期＋完整年份「2026/12/31（四） – 2027/1/1（五）・2 天」＝251.1 ✗
+        拿掉全形括號「2026/12/31 四 – 2027/1/1 五・2 天」＝209.9 ✗（還是不夠）
+        現在這個「2026/12/31 – 2027/1/1・2 天」＝176.9 ✓
+      所以**捨星期留年份**：星期在旅程內頁的 Day 標籤（`9/1 週二`）與花費的「哪一天」
+      選單裡都還看得到，年份則是哪裡都看不到。要改回帶星期，得先解決那 188.9px。 */
 function tripRange(t){
   var s=parseDate(t.start), e=tripEnd(t);
-  return fmtMD(s)+"（"+WD[s.getDay()]+"）– "+fmtMD(e)+"（"+WD[e.getDay()]+"）";
+  var sy=s.getFullYear(), ey=e.getFullYear();
+  /* 跨年才把兩個年份都寫出來（台東跨年旅 2026/12/31 → 2027/1/1 正是最容易誤讀的）；
+     同一年只在開頭標一次，後面不重複。 */
+  return (sy!==ey)
+    ? sy+"/"+fmtMD(s)+" – "+ey+"/"+fmtMD(e)
+    : sy+"/"+fmtMD(s)+" – "+fmtMD(e);
 }
 function tripStatus(t){
   var today=new Date(); today.setHours(0,0,0,0);
