@@ -42,7 +42,7 @@ function splashReady(){
 /* ============ 常數 ============ */
 /* 版本號的唯一來源：首頁 footer 與「版本」sheet 都讀它。
  * 改前端時跟 sw.js 的 cache 版本號一起 +1（見「版本與更新」段）。 */
-var APP_VER="3.6";
+var APP_VER="3.7";
 
 /* 打包把手的三個門檻（v3.0，DESIGN.md 附錄 E2）——「先觀察，後接管」：
  * pointerdown 只進入「待命」，垂直帶開＝你在捲動就放行，橫向帶開或按住夠久才真的開始拖。
@@ -1698,7 +1698,17 @@ function viewBudget(t){
   }).join("");
   var rows;
   if(!t.expenses.length){
-    rows = '<div class="empty"><div class="big">🧾</div><p>還沒有任何花費，<br>點右下角 ＋ 記第一筆</p></div>';
+    /* ⚠️ 空狀態要講「這一頁現在能幫你做什麼」，不是「這裡是空的」。
+       v3.6 加了「預計要花」之後 Benson 直接問「所以我要去哪裡紀錄預計會花的？」——
+       功能在，但整頁沒有一個字提到預計、也沒有按鈕（行程頁的空狀態明明就有一顆）。
+       還沒出發＝他在排預算，出發了＝他在記帳，兩種講法不一樣。 */
+    var planning = (todayExpDay(t)==="pre");
+    rows = '<div class="empty"><div class="big">🧾</div>'
+      + '<p>' + (planning
+          ? '還沒排任何花費。<br>先把住宿、車票這些<b>預計要花的</b>記下來，<br>就算得出這趟總共要準備多少。'
+          : '還沒有任何花費，<br>記一筆吧。') + '</p>'
+      + '<button class="btn-primary" onclick="openExpenseSheet()">'
+      + (planning ? '＋ 記第一筆預計花費' : '＋ 記第一筆花費') + '</button></div>';
   }else{
     rows = expGroups(t).map(function(g, gi){
       var h = expGroupHead(t, g.key);
@@ -1722,8 +1732,9 @@ function viewBudget(t){
     +     (plan ? '<i class="plan" style="width:'+pctPlan.toFixed(2)+'%"></i>' : "") + '</div>'
     +   '<div class="budget-row"><span>預算 '+money(t.budget)+'</span>'
     +     '<span>'+(over?'超出預算 <b class="over">'+money(-remain)+'</b>':'還可以再排 <b>'+money(remain)+'</b>')+'</span></div>'
-    +   '<div class="budget-split"><span>已付 <b>'+money(spent)+'</b></span>'
-    +     '<span class="sp-plan">還沒付 <b>'+money(plan)+'</b></span></div>'
+    /* 一筆都還沒記的時候「已付 0・還沒付 0」是純噪音，整行不出現 */
+    +   (need ? '<div class="budget-split"><span>已付 <b>'+money(spent)+'</b></span>'
+    +     '<span class="sp-plan">還沒付 <b>'+money(plan)+'</b></span></div>' : "")
     + '</section>'
     + (sumChips ? '<div class="cat-sums">'+sumChips+'</div>' : "")
     + '<div class="sec-title">花費紀錄</div>' + rows;
