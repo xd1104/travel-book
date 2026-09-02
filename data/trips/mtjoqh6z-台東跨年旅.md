@@ -4,10 +4,10 @@ dest: "台東"
 emoji: "⛰️"
 theme: "forest"
 start: "2026-12-31"
-days: 3
+days: 2
 budget: 0
 createdAt: "2026-09-02T05:58:21.324Z"
-updatedAt: "2026-09-02T05:58:21.355Z"
+updatedAt: "2026-09-02T05:58:57.063Z"
 ---
 
 ## 行程
