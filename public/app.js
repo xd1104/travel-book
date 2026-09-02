@@ -42,7 +42,7 @@ function splashReady(){
 /* ============ 常數 ============ */
 /* 版本號的唯一來源：首頁 footer 與「版本」sheet 都讀它。
  * 改前端時跟 sw.js 的 cache 版本號一起 +1（見「版本與更新」段）。 */
-var APP_VER="3.5";
+var APP_VER="3.6";
 
 /* 打包把手的三個門檻（v3.0，DESIGN.md 附錄 E2）——「先觀察，後接管」：
  * pointerdown 只進入「待命」，垂直帶開＝你在捲動就放行，橫向帶開或按住夠久才真的開始拖。
@@ -384,9 +384,17 @@ function tripStatus(t){
   if(today<=e) return {text:"旅程進行中 ✨", cls:"now"};
   return {text:"已結束", cls:"past"};
 }
+/* v3.5 起花費有兩種：**已付**與**預計（還沒付）**。
+   ⚠️ `spentOf` 的語意跟著收窄成「**只算已付**」——它是「這趟花掉多少」，
+      首頁旅程卡也是用它，預計的錢不可以混進去（還沒花的錢不叫花費）。
+   要「總共要準備多少」用 `needOf`（＝已付＋預計）。 */
 function spentOf(t){
-  var s=0; for(var i=0;i<t.expenses.length;i++) s+=Number(t.expenses[i].amount)||0; return s;
+  var s=0; (t.expenses||[]).forEach(function(e){ if(!e.plan) s+=Number(e.amount)||0; }); return s;
 }
+function planOf(t){
+  var s=0; (t.expenses||[]).forEach(function(e){ if(e.plan) s+=Number(e.amount)||0; }); return s;
+}
+function needOf(t){ return spentOf(t) + planOf(t); }   /* 這趟總共要準備多少 */
 function zoneCount(items, z){
   return items.filter(function(i){return i.zone===z;}).length;
 }
@@ -455,6 +463,10 @@ function cleanExpense(e){
   var o = { id:String(e.id||""), amount:Number(e.amount)||0, cat:String(e.cat||"other"), desc:String(e.desc||"") };
   var d = expDayVal(e.day);
   if(d) o.day = d;                                    /* 空值不寫 */
+  /* v3.5：`plan:true` ＝ 這筆只是「預計要花」、還沒付。
+     ⚠️ 真值刻意是 plan 不是 paid：既有資料全都是「已經花掉的」，
+        用「缺值＝已付」才做得到零遷移（跟 kind/bag/day 同一招）。 */
+  if(e.plan) o.plan = true;
   return o;
 }
 /* 打包項目（v2.9 起多了 kind／bag 兩個選填欄位＝「包」）
@@ -1205,10 +1217,12 @@ function viewPlan(t){
   }
   /* v3.3：這一天花了多少。**沒花錢就整條不顯示**（0 元不是資訊，只是噪音），
      調整模式也不顯示（跟銜接條同一個理由：會改動 timeline 上方的高度、干擾拖曳讓位）。 */
-  var dSpent = spentOfDay(t, ui.day);
-  var spendBar = (dSpent>0 && !ui.edit)
+  var dS = spentOfDay(t, ui.day);
+  /* 這天還有沒付的 ⇒ 講「要花」（規劃期）；全部付掉了 ⇒ 講「花了」（記帳期）。 */
+  var spendBar = (dS.all>0 && !ui.edit)
     ? '<button type="button" class="day-spend" onclick="setTab(\'budget\')">'
-      + '<span class="ds-l">這天花了</span><b>'+money(dSpent)+'</b>'
+      + '<span class="ds-l">'+(dS.plan>0 ? "這天要花" : "這天花了")+'</span><b>'+money(dS.all)+'</b>'
+      + (dS.plan>0 && dS.paid>0 ? '<span class="ds-sub">已付 '+money(dS.paid)+'</span>' : "")
       + '<span class="ds-go">看花費 ›</span></button>'
     : "";
   return '<div class="day-bar"><div class="day-chips">'+chips+'</div>'
@@ -1412,7 +1426,10 @@ function openStopDetail(idx){
   var rows = "";
   if(sp.place) rows += row("📍","地點",esc(sp.place));
   if(sp.stayMinutes) rows += row("⏱️","預計停留",esc(formatStay(sp.stayMinutes)));
-  if(sp.cost)  rows += row("💰","預估費用",money(sp.cost));
+  /* 「預估費用」v3.5 起不顯示（資料仍保留在檔案裡，比照下面的 bookingRef）：
+     它從來沒有任何地方加總，等於填了也算不出東西——Benson 真實資料一筆都沒填過。
+     預估花費統一走花費頁的「預計」（`plan`），**不要讓兩個地方都能填錢**，
+     否則兩邊加起來不一樣，而且沒有人說得出哪個才算數。 */
   /* 訂位／票券代號欄位 v1.1 起不顯示（資料仍保留在檔案裡） */
   if(sp.phone) rows += row("📞","電話",'<a href="tel:'+esc(String(sp.phone).replace(/[^+\d]/g,""))+'">'+esc(sp.phone)+"</a>");
   if(sp.url)   rows += row("🔗","官網／參考",'<a href="'+esc(extUrl(sp.url))+'" target="_blank" rel="noopener">'+esc(sp.url)+"</a>");
@@ -1554,10 +1571,12 @@ function openStopEdit(idx){
     + '<label class="field"><span class="fl">地點</span><input name="place" value="'+esc(sp.place)+'" autocomplete="off"></label>'
     + mapField(sp)
     + stayField(sp.stayMinutes)
-    + '<div class="f-row2">'
-    +   '<label class="field"><span class="fl">預估費用（NT$）</span><input type="number" name="cost" min="0" step="1" inputmode="numeric" value="'+(sp.cost||"")+'"></label>'
-    +   '<label class="field"><span class="fl">聯絡電話</span><input type="tel" name="phone" value="'+esc(sp.phone||"")+'" autocomplete="off"></label>'
-    + '</div>'
+    /* 「預估費用」欄位 v3.5 移除（見上面 viewStopDetail 的理由）。
+       ⚠️ serializer／parser 的 `cost` 刻意留著（比照 bookingRef）：
+          萬一哪裡還有舊值，不可以因為 UI 拿掉就被無聲清空。
+       ⚠️ 連 `.f-row2` 外框一起拿掉：它是 1fr 1fr 的 grid，只剩電話一格時
+          會孤零零佔左半邊、右邊開一個洞。 */
+    + '<label class="field"><span class="fl">聯絡電話</span><input type="tel" name="phone" value="'+esc(sp.phone||"")+'" autocomplete="off"></label>'
     + '<div class="f-row2">'
     +   '<label class="field"><span class="fl">營業時間（開）</span><input type="time" name="hoursOpen" value="'+esc(sp.hoursOpen||"")+'"'+(sp.hours24?" disabled":"")+'></label>'
     +   '<label class="field"><span class="fl">營業時間（關）</span><input type="time" name="hoursClose" value="'+esc(sp.hoursClose||"")+'"'+(sp.hours24?" disabled":"")+'></label>'
@@ -1584,7 +1603,9 @@ function submitStopEdit(ev, idx){
    * （v2.6 的畫面在「按下貼上／✕ 的當下」就已經把 addr 從表單狀態拿掉了，這裡是落盤那一道） */
   if(newMap !== String(sp.mapUrl||"")) sp.addr = "";
   sp.mapUrl = newMap;
-  sp.cost = Number(f.cost.value)||0;
+  /* ⚠️ 這裡刻意**不寫** sp.cost：欄位 v3.5 從表單移除了，`f.cost` 已經不存在
+     （寫成 f.cost.value 會直接 TypeError），而且也不可以塞 0 ——
+     那等於「一存檔就把舊值清掉」，正是 bookingRef 那條在防的事。 */
   var oldStay = Math.round(Number(sp.stayMinutes)||0);
   sp.stayMinutes = readStay(f); /* 0＝清空（serializer 不寫空值） */
   /* 時間或停留變了＝後面整串跟著移（v1.6；2026-08-21 起「時間」也連鎖）。
@@ -1636,9 +1657,14 @@ function expGroupHead(t, k){
 }
 /* 這一天／這一組花了多少（viewPlan 也用同一支，兩邊口徑一定一樣） */
 function spentOfDay(t, day){
-  var s = 0;
-  t.expenses.forEach(function(e){ if(expDayVal(e.day)===day) s += Number(e.amount)||0; });
-  return s;
+  var r = { paid:0, plan:0, all:0 };
+  t.expenses.forEach(function(e){
+    if(expDayVal(e.day)!==day) return;
+    var n = Number(e.amount)||0;
+    if(e.plan) r.plan += n; else r.paid += n;
+    r.all += n;
+  });
+  return r;
 }
 /* 花費列（v3.4：整列都能點開編輯，不是只有說明文字那一塊）
    ⚠️ v3.3 只把 `.exp-mid` 做成按鈕，實測命中區在 375px 下只有 x 84~202（約整列的 32%），
@@ -1651,17 +1677,19 @@ function expRowHtml(e){
     + '<button class="exp-open" onclick="openExpenseSheet(\''+e.id+'\')">'
     +   '<span class="exp-emo">'+c.emoji+'</span>'
     +   '<span class="exp-mid"><span class="d">'+esc(e.desc||c.label)+'</span>'
-    +     '<span class="c">'+c.label+'</span></span>'
-    +   '<span class="exp-amt">'+money(e.amount)+'</span>'
+    +     '<span class="c">'+c.label
+    +       (e.plan ? '<span class="plan-pill">預計</span>' : "") + '</span></span>'
+    +   '<span class="exp-amt'+(e.plan?" is-plan":"")+'">'+money(e.amount)+'</span>'
     + '</button>'
     + '<button class="x-btn" onclick="delExpense(\''+e.id+'\')" aria-label="刪除">✕</button>'
     + '</div>';
 }
 function viewBudget(t){
+  /* ⚠️ 預算的比較對象是「要準備多少」（已付＋預計）不是「已付」：
+     不然規劃期把住宿車票都排進去了，畫面還是說「還可以花 20,000」。 */
   var spent = spentOf(t);
-  var pct = t.budget>0 ? Math.min(100, Math.round(spent/t.budget*100)) : 0;
-  var over = t.budget>0 && spent>t.budget;
-  var remain = t.budget - spent;
+  var over = t.budget>0 && needOf(t)>t.budget;
+  var remain = t.budget - needOf(t);
   var sums = {};
   t.expenses.forEach(function(e){ sums[e.cat]=(sums[e.cat]||0)+Number(e.amount||0); });
   var sumChips = Object.keys(sums).map(function(k){
@@ -1682,11 +1710,20 @@ function viewBudget(t){
         + g.items.slice().reverse().map(expRowHtml).join("");
     }).join("");
   }
+  /* 主數字＝「這趟要準備多少」（Benson 拍板）＝已付＋預計。
+     進度條做成兩段：實心＝已經付掉的、淡的＝還沒付的預計 ——
+     一眼看得出「預算被吃掉多少」跟「其中有多少已經真的出去了」。 */
+  var plan = planOf(t), need = spentOf(t) + plan;
+  var pctPaid = t.budget>0 ? Math.min(100, spent/t.budget*100) : 0;
+  var pctPlan = t.budget>0 ? Math.min(100-pctPaid, plan/t.budget*100) : 0;
   return '<section class="budget-card">'
-    +   '<div class="lbl">已花費</div><div class="big">'+money(spent)+'</div>'
-    +   '<div class="prog"><i class="'+(over?"over":"")+'" style="width:'+pct+'%"></i></div>'
+    +   '<div class="lbl">這趟要準備</div><div class="big">'+money(need)+'</div>'
+    +   '<div class="prog"><i class="'+(over?"over":"")+'" style="width:'+pctPaid.toFixed(2)+'%"></i>'
+    +     (plan ? '<i class="plan" style="width:'+pctPlan.toFixed(2)+'%"></i>' : "") + '</div>'
     +   '<div class="budget-row"><span>預算 '+money(t.budget)+'</span>'
-    +     '<span>'+(over?'超支 <b class="over">'+money(-remain)+'</b>':'還可以花 <b>'+money(remain)+'</b>')+'</span></div>'
+    +     '<span>'+(over?'超出預算 <b class="over">'+money(-remain)+'</b>':'還可以再排 <b>'+money(remain)+'</b>')+'</span></div>'
+    +   '<div class="budget-split"><span>已付 <b>'+money(spent)+'</b></span>'
+    +     '<span class="sp-plan">還沒付 <b>'+money(plan)+'</b></span></div>'
     + '</section>'
     + (sumChips ? '<div class="cat-sums">'+sumChips+'</div>' : "")
     + '<div class="sec-title">花費紀錄</div>' + rows;
@@ -2934,6 +2971,9 @@ function openExpenseSheet(editId){
   if(editId) t.expenses.forEach(function(e){ if(e.id===editId) ex=e; });
   var curCat = ex ? ex.cat : "food";
   var curDay = ex ? expDayVal(ex.day) : todayExpDay(t);
+  /* 預設：**還沒出發＝預計、已經出發＝已付**。規劃期在排錢、旅程中在記帳，
+     兩邊最常按的那一個先選好，多數情況不用動它。 */
+  var curPlan = ex ? !!ex.plan : (todayExpDay(t)==="pre");
   var opts = Object.keys(ECATS).map(function(k){
     return '<option value="'+k+'"'+(k===curCat?" selected":"")+'>'+ECATS[k].emoji+' '+ECATS[k].label+'</option>';
   }).join("");
@@ -2942,6 +2982,14 @@ function openExpenseSheet(editId){
     /* ⚠️ 這個欄位不可以叫 name="id"：HTMLFormElement 本身就有 .id（元素的 HTML id），
        f.id 會拿到那個字串而不是這個 input，編輯會整個失效。 */
     + '<input type="hidden" name="eid" value="'+(ex?esc(ex.id):"")+'">'
+    /* 預計／已付：放在最上面，因為它決定這筆算不算進「已花費」。
+       用 radio 不用 checkbox —— 兩個狀態都要說得出名字，「沒打勾」不是一個狀態。 */
+    /* ⚠️ `.on` 是 render 當下給的，點 radio 不會重畫整張 sheet ⇒ 一定要有 paySegSync，
+       否則按了「已經付了」畫面上白片不會移動，看起來像沒反應。 */
+    + '<div class="pay-seg">'
+    +   '<label class="'+(curPlan?"on":"")+'"><input type="radio" name="plan" value="1" onchange="paySegSync(this)"'+(curPlan?" checked":"")+'>預計要花</label>'
+    +   '<label class="'+(curPlan?"":"on")+'"><input type="radio" name="plan" value="" onchange="paySegSync(this)"'+(curPlan?"":" checked")+'>已經付了</label>'
+    + '</div>'
     + '<div class="f-row2">'
     +   '<label class="field"><span class="fl">金額（NT$）*</span><input type="number" name="amount" required min="0" step="1" inputmode="numeric" placeholder="0" value="'+(ex?ex.amount:"")+'"></label>'
     +   '<label class="field"><span class="fl">類別</span><select name="cat">'+opts+'</select></label>'
@@ -2951,6 +2999,12 @@ function openExpenseSheet(editId){
     + '<button class="btn-primary" type="submit">'+(ex?"存起來":"記下來")+'</button>'
     + '</form>');
 }
+function paySegSync(el){
+  var seg = el.closest(".pay-seg"); if(!seg) return;
+  [].forEach.call(seg.querySelectorAll("label"), function(l){
+    l.classList.toggle("on", !!l.querySelector("input:checked"));
+  });
+}
 function submitExpense(ev){
   ev.preventDefault();
   if(!requireWrite()) return;
@@ -2958,11 +3012,14 @@ function submitExpense(ev){
   var amt = Number(f.amount.value);
   if(!(amt>=0)) return;
   var day = expDayVal(f.day.value), id = f.eid.value, ex = null;
+  /* radio 群組讀 f.plan.value（RadioNodeList 會給選中的那顆的 value）；
+     value="" ＝已付 ⇒ 直接轉 boolean 就對了。 */
+  var isPlan = !!(f.plan && f.plan.value);
   if(id) t.expenses.forEach(function(e){ if(e.id===id) ex=e; });
   if(ex){
-    ex.amount=amt; ex.cat=f.cat.value; ex.desc=f.desc.value.trim(); ex.day=day;
+    ex.amount=amt; ex.cat=f.cat.value; ex.desc=f.desc.value.trim(); ex.day=day; ex.plan=isPlan;
   }else{
-    t.expenses.push({ id:uid(), amount:amt, cat:f.cat.value, desc:f.desc.value.trim(), day:day });
+    t.expenses.push({ id:uid(), amount:amt, cat:f.cat.value, desc:f.desc.value.trim(), day:day, plan:isPlan });
   }
   persistTrip(t); closeSheet(); render();
 }

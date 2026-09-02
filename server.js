@@ -233,6 +233,9 @@ function cleanExpense(e) {
   const o = { id: String(e.id || ''), amount: Number(e.amount) || 0, cat: String(e.cat || 'other'), desc: String(e.desc || '') };
   const d = expDayVal(e.day);
   if (d) o.day = d;
+  // v3.5：plan:true ＝「預計要花、還沒付」。真值刻意是 plan 不是 paid：
+  // 既有資料全是已經花掉的，用「缺值＝已付」才做得到零遷移。
+  if (e.plan) o.plan = true;
   return o;
 }
 /* 打包項目（v2.9 起多了 kind／bag 兩個選填欄位＝「包」）

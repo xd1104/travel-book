@@ -56,7 +56,16 @@ UI/UX 以 `demo/index.html`（UX demo v3.1，Benson 拍板）為準，**勿自�
 - 每趟旅程一個 `data/trips/<id>.md`，id = `<ts36>-<slug>`（slug 保留中文）。
 - 結構：frontmatter（`name/dest/emoji/theme/start/days/budget/createdAt/updatedAt`，字串 JSON-quoted、數字裸寫）＋ 四段 body：
   - `## 行程` → `### Day N` → 每行 `- {一筆行程點的單行 JSON}`（key 順序固定、空值不寫；欄位：id/title/time/cat/place/note/mapUrl/addr/cost/bookingRef/phone/url/hoursOpen/hoursClose/hours24/hours）
-  - `## 花費` → 每行 `- {id,amount,cat,desc,day}`（key 順序固定、空值不寫）
+  - `## 花費` → 每行 `- {id,amount,cat,desc,day,plan}`（key 順序固定、空值不寫）
+    - **`plan`（v3.5）＝這筆只是「預計要花」、還沒付**；缺值＝已付。**真值刻意是 `plan` 不是 `paid`**：既有資料全是「已經花掉的」，用「缺值＝已付」才做得到零遷移（跟 `kind`/`bag`/`day` 同一招）。`plan:false` 不寫。
+    - **「預計」與「已付」是同一筆的兩個狀態、不是兩份清單**（Benson 拍板）：先記「訂房 3200・預計」，真的付了在編輯裡切成「已經付了」，**不用重打一次**。實測切換後總額不變、金額只是從「還沒付」搬到「已付」。
+    - ⚠️ **`spentOf` 的語意在 v3.5 收窄成「只算已付」**（首頁旅程卡也用它——還沒花的錢不叫花費）。新增 `planOf`（還沒付）與 `needOf`＝`spentOf+planOf`（**這趟要準備多少**）。**預算的比較對象是 `needOf` 不是 `spentOf`**，否則規劃期把住宿車票都排進去了，畫面還是說「還可以花 20,000」。
+    - **花費卡的主數字＝「這趟要準備」（Benson 拍板）**，下面兩行是「預算／還可以再排」與「已付／還沒付」。進度條做成**兩段**（實心＝已付、`#ffd2cb`＝預計）。⚠️ `.prog` 要改 `display:flex`（原本是 block，兩個 `<i>` 會上下疊），**圓角改由容器裁切**（兩段各自圓角的話接縫會出現兩個對背的半圓）。
+    - **新增時的預設：還沒出發＝預計、已經出發＝已付**（規劃期在排錢、旅程中在記帳）。⚠️ `.pay-seg` 的 `.on` 是 render 當下給的，點 radio 不會重畫 sheet ⇒ **一定要 `paySegSync`**，否則按了白片不會移動、看起來像沒反應。
+    - 行程分頁的當天條：**這天還有沒付的 ⇒「這天要花」，全部付掉了 ⇒「這天花了」**；`spentOfDay` v3.5 起回傳 `{paid,plan,all}`（不再是單一數字）。
+    - ⛔ **行程點的 `cost`（「預估費用」）UI v3.5 移除**：它從來沒有任何地方加總、Benson 真實資料一筆都沒填過，而且蓋不到「車票」（那是 transit，transit 刻意不存費用欄位）。**預估花費統一走花費頁的 `plan`——不要讓兩個地方都能填錢**，否則兩邊加起來不一樣、也沒人說得出哪個算數。
+      - ⚠️ **serializer／parser 的 `cost` 刻意留著**（比照 `bookingRef`），而且 `submitStopEdit` **不可以寫 `sp.cost = ...`**：`f.cost` 已不存在（會 TypeError），塞 0 則等於「一存檔就清掉舊值」。實測：塞一個 `cost:999` 進去，開表單→存檔後仍是 999。
+      - ⚠️ 連 `.f-row2` 外框一起拿掉：它是 `1fr 1fr` 的 grid，只剩電話一格時會孤零零佔左半邊、右邊開一個洞。
     - **`day`（v3.3）＝這筆算在哪一天**：`"pre"` ＝**行前**（機票／訂房這種出發前就花的錢，不屬於任何一天但通常最大筆，Benson 拍板要有這個選項）；`1..N` ＝ Day N；**缺值＝沒指定，舊資料零遷移**（實測：舊檔 parse→serialize 逐字不變）。
     - **刻意不驗證上限**：`day` 比目前的 `days` 大時照留、選單也照列得出來（`Day 9（超出目前天數）`）——跟 itinerary 的**縮天不刪資料**同一個哲學。少了選單那條，一點開編輯就會被無聲改成「沒指定」。
     - **前後端各一套 `expDayVal`／`cleanExpense`，改要一起改**（已有逐筆對照測試：9 個邊界 case 兩邊輸出必須逐字相同）。
