@@ -1,0 +1,33 @@
+---
+name: "香港遊ㄧ遊"
+dest: "香港"
+emoji: "🇭🇰"
+theme: "sand"
+start: "2026-11-11"
+days: 4
+budget: 0
+createdAt: "2026-10-07T08:27:03.613Z"
+updatedAt: "2026-10-07T08:27:03.615Z"
+---
+
+## 行程
+
+## 花費
+
+
+## 打包
+
+- {"id":"xmuxugj09y7iq","text":"護照＋影本","done":false,"zone":"carry"}
+- {"id":"xmuxugj09w8iq","text":"外幣現金＋信用卡","done":false,"zone":"carry"}
+- {"id":"xmuxugj09avgm","text":"eSIM／網卡設定好","done":false,"zone":"carry"}
+- {"id":"xmuxugj09nxr7","text":"行動電源＋充電線","done":false,"zone":"carry"}
+- {"id":"xmuxugj095ril","text":"原子筆（入境表）","done":false,"zone":"carry"}
+- {"id":"xmuxugj09y829","text":"換洗衣物","done":false,"zone":"checked"}
+- {"id":"xmuxugj0986qn","text":"盥洗包","done":false,"zone":"checked"}
+- {"id":"xmuxugj098mmz","text":"常備藥","done":false,"zone":"checked"}
+- {"id":"xmuxugj097c5g","text":"摺疊傘","done":false,"zone":"checked"}
+- {"id":"xmuxugj09nak3","text":"萬用轉接頭","done":false,"zone":"checked"}
+- {"id":"xmuxugj09aabx","text":"裝髒衣的袋子","done":false,"zone":"checked"}
+
+## 備註
+
