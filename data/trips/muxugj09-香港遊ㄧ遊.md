@@ -7,10 +7,14 @@ start: "2026-11-11"
 days: 4
 budget: 0
 createdAt: "2026-10-07T08:27:03.613Z"
-updatedAt: "2026-10-07T08:27:03.615Z"
+updatedAt: "2026-10-07T08:28:10.584Z"
 ---
 
 ## 行程
+
+### Day 1
+
+- {"id":"xmuxuhyomia9k","title":"抵達香港","time":"12:00","cat":"transport","stayMinutes":60}
 
 ## 花費
 
