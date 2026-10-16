@@ -20,9 +20,11 @@ updatedAt: "2026-10-16T15:46:13.714Z"
 - {"id":"xhk101603","type":"transit","note":"從飯店沿德輔道西往西走約 7 分","stayMinutes":10}
 - {"id":"xhk101604","title":"新興發點心","time":"14:30","cat":"food","place":"西營盤德輔道西 德美大廈地舖","note":"手工點心，必點鮮蝦腸粉、排骨、燒賣。只收現金；下午部分點心可能賣完，有圖片菜單可以指著點","stayMinutes":50,"phone":"+852 2547 1988","hoursOpen":"07:00","hoursClose":"18:00","hours":"07:00–18:00（週二休）"}
 - {"id":"xhk101605","type":"transit","note":"步行回飯店約 7 分","stayMinutes":10}
-- {"id":"xhk101606","title":"回飯店辦入住、稍作休息","time":"15:30","cat":"stay","place":"頤庭酒店上環","note":"15:00 後可入住，先辦好入住，晚上回來直接休息","stayMinutes":30}
-- {"id":"xhk101607","type":"transit","note":"西營盤→中環站 J2 出口，上坡步行約 15 分到花園道","stayMinutes":25}
-- {"id":"xhk101608","title":"山頂纜車上山","time":"16:25","cat":"transport","place":"花園道山頂纜車總站","note":"平日預估排 30–60 分。纜車＋摩天台 428 套票先網路買好；等太久可改搭 15 號巴士","stayMinutes":50,"url":"https://www.thepeak.com.hk/","hoursOpen":"07:30","hoursClose":"23:00"}
+- {"id":"xhk101606","title":"回飯店辦入住、稍作休息","time":"15:30","cat":"stay","place":"頤庭酒店上環","note":"15:00 後可入住，先辦好入住，晚上回來直接休息","stayMinutes":10}
+- {"id":"xhk10170f","type":"transit","note":"走到西營盤站→港島綫 2 站到中環→D2 出口，經中環街市搭半山扶手電梯上到士丹頓街","stayMinutes":20}
+- {"id":"xhk10170e","title":"Vission Bakery 買點心","time":"16:00","cat":"food","place":"中環蘇豪士丹頓街 7 號翠文樓地下低層","note":"招牌開心果卡士達丹麥酥、抹茶麻糬丹麥酥、杏仁可頌。纜車上不能吃，帶到山頂再吃。走 2 分鐘的擺花街 35 號有泰昌餅家（蛋撻、鹹的皮蛋酥）可順買","stayMinutes":15,"hoursOpen":"08:00","hoursClose":"20:00","hours":"週一至五 08:00–20:00、週六 10:00–20:00、週日休"}
+- {"id":"xhk101607","type":"transit","note":"從士丹頓街下坡經皇后大道中，走到花園道纜車站約 15 分","stayMinutes":15}
+- {"id":"xhk101608","title":"山頂纜車上山","time":"16:30","cat":"transport","place":"花園道山頂纜車總站","note":"平日預估排 30–60 分。纜車＋摩天台 428 套票先網路買好；等太久可改搭 15 號巴士","stayMinutes":45,"url":"https://www.thepeak.com.hk/","hoursOpen":"07:30","hoursClose":"23:00"}
 - {"id":"xhk101609","title":"凌霄閣摩天台 428","time":"17:15","cat":"sight","place":"太平山頂凌霄閣頂樓","note":"17:40 日落 → 18:00 後亮燈，一次看到日景、夕陽、夜景","stayMinutes":70,"hoursOpen":"08:30","hoursClose":"22:00"}
 - {"id":"xhk10160b","title":"纜車下山（或 15 號巴士）","time":"18:25","cat":"transport","place":"山頂 → 中環","note":"看完夜景就排纜車；可先上網領下山纜車電子排隊號碼。沒號碼或等太久就搭 15 號巴士，約 40 分","stayMinutes":40}
 - {"id":"xhk10160c","type":"transit","note":"中環站→西營盤 港島綫 2 站","stayMinutes":20}
