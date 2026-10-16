@@ -39,10 +39,11 @@ updatedAt: "2026-10-16T15:46:13.714Z"
 - {"id":"xhk10160i","title":"香港公園 尤德觀鳥園","time":"12:50","cat":"sight","place":"金鐘","note":"免費。兒童遊樂場讓小朋友放電＋尤德觀鳥園（可走進去的大鳥籠，09:00–17:00）＋溫室","stayMinutes":80}
 - {"id":"xhk10160f","type":"transit","note":"金鐘站→港島綫 1 站到中環→D2 出口，沿皇后大道中、上結志街步行約 8 分","stayMinutes":20}
 - {"id":"xhk10160e","title":"蘭芳園 下午茶","time":"14:30","cat":"food","place":"中環結志街 2 號","note":"絲襪奶茶、豬扒包、蔥油雞扒撈丁。店小要併桌、有最低消費；下午比早上好排","stayMinutes":40,"hours":"07:30–18:00（週日休）"}
-- {"id":"xhk10160n","type":"transit","note":"下坡經國際金融中心天橋走到中環 6 號碼頭，約 20 分","stayMinutes":20}
-- {"id":"xhk10160o","title":"換優先登車證、排隊","time":"15:30","cat":"other","place":"觀光城巴中環總站（6 號碼頭）","note":"買觀光城巴日遊票（City Sightseeing HK App 兌換 QR）才有優先登車。排隊誇張又沒優先證 → 改搭天星小輪過海看日落","stayMinutes":60}
-- {"id":"xhk10160p","title":"落日飛車 H1","time":"16:30","cat":"sight","place":"中環天星碼頭 → 尖沙咀漢口道","note":"全程約 80 分，17:40 日落正好在車上。上層開篷風大，帶外套","stayMinutes":80,"url":"https://eticket.citybus.com.hk/"}
-- {"id":"xhk10160q","type":"transit","note":"漢口道步行到海港城","stayMinutes":10}
+- {"id":"xhk10160n","type":"transit","note":"下坡走到中環 7 號碼頭（約 20 分）→天星小輪到尖沙咀（約 10 分，小朋友會喜歡）→沿海濱步行到太空館","stayMinutes":45}
+- {"id":"xhk10170g","title":"香港太空館","time":"15:55","cat":"sight","place":"尖沙咀梳士巴利道 10 號","note":"平日 13:00–21:00、週二休（11/12 週四有開）。互動展品＋天象廳；天象廳節目有場次，到了先看時刻表","stayMinutes":80}
+- {"id":"xhk10170h","type":"transit","note":"沿海濱經天星碼頭走到海港城海運大廈","stayMinutes":15}
+- {"id":"xhk10170i","title":"海運觀點看日落","time":"17:30","cat":"sight","place":"海港城海運大廈頂樓","note":"免費，17:40 日落，正對維港與中環天際線","stayMinutes":25}
+- {"id":"xhk10160q","type":"transit","note":"海運大廈走到港威商場 4 樓","stayMinutes":5}
 - {"id":"xhk10160r","title":"海港城 Food Atlas","time":"18:00","cat":"food","place":"港威商場 4 樓","note":"不用訂位、上菜快（文記車仔麵、寧記豬腳飯等）。18:50 前要走到尖沙咀 3 號公眾碼頭","stayMinutes":45,"hoursOpen":"11:00","hoursClose":"22:00"}
 - {"id":"xhk10160s","type":"transit","note":"步行到尖沙咀 3 號公眾碼頭","stayMinutes":10}
 - {"id":"xhk10160t","title":"永安號 幻彩詠香江暢飲維港遊","time":"19:10","cat":"sight","place":"尖沙咀 3 號公眾碼頭","note":"提早 10 分到、認黃色船身。20:00 船上看燈光秀；中環 9 號碼頭下船。票不可退改","stayMinutes":60}
@@ -56,18 +57,19 @@ updatedAt: "2026-10-16T15:46:13.714Z"
 - {"id":"xhk10160w","title":"西營盤 早餐","time":"09:40","cat":"food","place":"新興發點心 或 十字冰室","note":"新興發只收現金、週二休","stayMinutes":40}
 - {"id":"xhk10160x","type":"transit","note":"西營盤→中環站，往香港站方向走到交易廣場巴士總站","stayMinutes":20}
 - {"id":"xhk10160y","title":"城巴 260 往赤柱","time":"10:40","cat":"transport","place":"中環交易廣場巴士總站","note":"約 50–60 分，山路彎多，易暈車先吃藥。第 6 號線改繞路，避開","stayMinutes":60}
-- {"id":"xhk10160z","title":"赤柱市集・美利樓・卜公碼頭","time":"11:40","cat":"sight","place":"赤柱","note":"平日人少；美利樓內餐廳已結業","stayMinutes":60}
-- {"id":"xhk101610","title":"赤柱廣場 午餐","time":"12:40","cat":"food","place":"赤柱廣場","note":"Beef & Liberty、鍾菜館、必勝客；海盜船遊樂設施可讓小朋友放電","stayMinutes":60}
+- {"id":"xhk10160z","title":"赤柱市集・美利樓・卜公碼頭","time":"11:40","cat":"sight","place":"赤柱","note":"平日人少；美利樓內餐廳已結業","stayMinutes":45}
+- {"id":"xhk101610","title":"赤柱廣場 午餐","time":"12:25","cat":"food","place":"赤柱廣場","note":"Beef & Liberty、鍾菜館、必勝客；海盜船遊樂設施可讓小朋友放電","stayMinutes":50}
 - {"id":"xhk101611","type":"transit","note":"城巴 260 / 6X 赤柱村上車往淺水灣","stayMinutes":20}
-- {"id":"xhk101612","title":"淺水灣泳灘","time":"14:00","cat":"sight","place":"淺水灣海灘","note":"11 月可能沒有救生員，以玩沙踩水為主。帶毛巾、換洗衣服，離開前幫小朋友沖好換好。16:00 前離開","stayMinutes":120}
-- {"id":"xhk101613","type":"transit","note":"城巴 260 / 6X 回中環交易廣場，再步行到摩天輪","stayMinutes":50}
-- {"id":"xhk101614","title":"中環摩天輪（看日落）","time":"16:50","cat":"sight","place":"中環海濱","note":"一圈約 15 分，17:40 日落剛好在輪上。週五開到 23:00","stayMinutes":30,"hoursOpen":"11:00","hoursClose":"23:00"}
-- {"id":"xhk101615","type":"transit","note":"中環站→佐敦站 荃灣綫，C2 出口","stayMinutes":25}
-- {"id":"xhk101616","title":"澳洲牛奶公司","time":"18:00","cat":"food","place":"佐敦白加士街 47-49 號","note":"炒蛋多士、燉奶。節奏很快，坐下就點、吃完就走。出發前確認當天有營業","stayMinutes":40}
+- {"id":"xhk101612","title":"淺水灣泳灘","time":"13:35","cat":"sight","place":"淺水灣海灘","note":"11 月可能沒有救生員，以玩沙踩水為主。帶毛巾、換洗衣服，離開前幫小朋友沖好換好（等一下坐開篷巴士風大）。15:00 一定要離開趕落日飛車","stayMinutes":85}
+- {"id":"xhk101613","type":"transit","note":"城巴 260 / 6X 回中環交易廣場，再步行到中環 6 號碼頭","stayMinutes":50}
+- {"id":"xhk10160o","title":"換優先登車證、排隊","time":"15:50","cat":"other","place":"觀光城巴中環總站（6 號碼頭）","note":"買觀光城巴日遊票（City Sightseeing HK App 兌換 QR）才有優先登車。排隊誇張又沒優先證 → 改搭天星小輪過海看日落","stayMinutes":40}
+- {"id":"xhk10160p","title":"落日飛車 H1","time":"16:30","cat":"sight","place":"中環天星碼頭 → 尖沙咀漢口道","note":"全程約 80 分，17:40 日落正好在車上。上層開篷風大，帶外套","stayMinutes":80,"url":"https://eticket.citybus.com.hk/"}
+- {"id":"xhk101615","type":"transit","note":"漢口道走到尖沙咀站→荃灣綫 1 站到佐敦 C2 出口","stayMinutes":15}
+- {"id":"xhk101616","title":"澳洲牛奶公司","time":"18:05","cat":"food","place":"佐敦白加士街 47-49 號","note":"炒蛋多士、燉奶。節奏很快，坐下就點、吃完就走。出發前確認當天有營業","stayMinutes":40}
 - {"id":"xhk101617","type":"transit","note":"白加士街步行幾分鐘","stayMinutes":5}
-- {"id":"xhk101618","title":"佳佳甜品","time":"18:45","cat":"food","place":"佐敦白加士街 113-115 號","note":"石磨芝麻糊、杏仁露","stayMinutes":35,"hoursOpen":"12:00","hoursClose":"01:00"}
+- {"id":"xhk101618","title":"佳佳甜品","time":"18:50","cat":"food","place":"佐敦白加士街 113-115 號","note":"石磨芝麻糊、杏仁露","stayMinutes":35,"hoursOpen":"12:00","hoursClose":"01:00"}
 - {"id":"xhk101619","type":"transit","note":"佐敦→中環→西營盤 地鐵約 30 分","stayMinutes":30}
-- {"id":"xhk10161a","title":"回到飯店","time":"19:50","cat":"stay","place":"頤庭酒店上環"}
+- {"id":"xhk10161a","title":"回到飯店","time":"19:55","cat":"stay","place":"頤庭酒店上環"}
 
 ### Day 4
 
@@ -116,7 +118,7 @@ updatedAt: "2026-10-16T15:46:13.714Z"
 
 🎫 出發前要先訂
 □ 山頂纜車＋摩天台 428 套票（網路）
-□ 觀光城巴日遊票（下載 City Sightseeing HK App 兌換）
+□ 觀光城巴日遊票（下載 City Sightseeing HK App 兌換）— 落日飛車改 11/13 搭
 □ 永安號 11/12 19:10 船票（不可退改，問小童票價）
 □ 香港快運加購託運行李
 
