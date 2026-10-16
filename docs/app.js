@@ -42,7 +42,7 @@ function splashReady(){
 /* ============ 常數 ============ */
 /* 版本號的唯一來源：首頁 footer 與「版本」sheet 都讀它。
  * 改前端時跟 sw.js 的 cache 版本號一起 +1（見「版本與更新」段）。 */
-var APP_VER="3.9";
+var APP_VER="3.10";
 
 /* 打包把手的三個門檻（v3.0，DESIGN.md 附錄 E2）——「先觀察，後接管」：
  * pointerdown 只進入「待命」，垂直帶開＝你在捲動就放行，橫向帶開或按住夠久才真的開始拖。
@@ -435,6 +435,15 @@ function toast(msg, isErr, act){
 
 /* ============ md 序列化（server.js 的 mirror，改要一起改） ============ */
 function isTransit(s){ return s && s.type==="transit"; } /* 缺 type＝行程點（舊資料無痛） */
+/* v3.10 移動的「逐步說明」：備註裡用 ①②③… 或換行分段 ⇒ 拆成一步一行，在外面邊走邊看才看得清楚。
+ * 只是「顯示」的拆法，資料仍是同一個 note 字串（transit 只存 {id,type,note,stayMinutes} 這條不變）。
+ * 少於 2 步就回 null ⇒ 一句話的移動（「走路」「計程車」）維持原本輕薄一條。 */
+function transitSteps(note){
+  var parts = String(note||"").split(/\n+|(?=[\u2460-\u2473])/)
+    .map(function(x){ return x.replace(/^\s*[\u2460-\u2473]\s*/,"").trim(); })
+    .filter(Boolean);
+  return parts.length >= 2 ? parts : null;
+}
 function cleanStop(s){
   /* v1.3 移動（transit）：刻意只留 note＋stayMinutes（＝移動時間），
    * 不寫 title/cat/place 等站點欄位，讓「路上」不佔版面也不佔資料 */
@@ -1179,20 +1188,27 @@ function viewPlan(t){
       }
       /* v1.3 移動：灰色輕薄一條，內容只有備註＋時間；rail 用小空心點＋虛線＝「路上」不是站點 */
       if(isTransit(sp)){
+        var steps = transitSteps(sp.note);
         var parts = [];
-        if(sp.note) parts.push(esc(sp.note));
+        if(sp.note && !steps) parts.push(esc(sp.note));
         if(sp.stayMinutes) parts.push(formatStay(sp.stayMinutes));
         var txt = parts.join("・") || "移動";
+        if(steps) txt = '<b class="tr-head">移動'+(sp.stayMinutes?' '+formatStay(sp.stayMinutes):'')+'</b>';
+        var stepsHtml = steps
+          ? '<ol class="tr-steps">'+steps.map(function(x,k){
+              return '<li><span class="tr-n">'+(k+1)+'</span><span class="tr-s">'+esc(x)+'</span></li>'; }).join("")+'</ol>'
+          : "";
         /* v2.4 路線鈕：上下兩站都算得出地址才長出來（調整模式不顯示，跟卡片的 .map-btn 一致） */
         var dir = ui.edit ? "" : routeLink(list, idx);
         return '<div class="stop transit">'
           + '<div class="rail"><span class="dot mini"></span><span class="ln dash'+nextLate+'"></span></div>'
-          + '<div class="transit-bar'+(ui.edit?"":" tappable")+'"'
+          + '<div class="transit-bar'+(steps?" has-steps":"")+(ui.edit?"":" tappable")+'"'
           +   (ui.edit?"":' onclick="openTransitEdit('+idx+')"')+'>'
-          +   '<span class="tr-ico">🚶</span><span class="tr-txt">'+txt+'</span>'
+          +   '<div class="tr-row"><span class="tr-ico">🚶</span><span class="tr-txt">'+txt+'</span>'
           +   (dir ? '<a class="map-btn" href="'+esc(dir)+'" target="_blank" rel="noopener"'
                    + ' onclick="event.stopPropagation()" aria-label="看這一段路線">'+ICO.route+'</a>' : "")
-          +   (ui.edit ? right : '')
+          +   (ui.edit ? right : '')+'</div>'
+          +   (ui.edit ? "" : stepsHtml)
           + '</div></div>';
       }
       if(!ui.edit){
@@ -2872,7 +2888,7 @@ function openTransitSheet(){
   openSheet("新增移動・Day "+ui.day,
     '<form onsubmit="submitTransit(event)">'
     + '<label class="field"><span class="fl">怎麼移動</span>'
-    +   '<input name="note" placeholder="例：地鐵銀座線、走路、計程車" autocomplete="off"></label>'
+    +   '<textarea name="note" rows="3" placeholder="例：走路；或分步驟：① 走到某某站 ② 搭某某線…（每一步換行也可以）"></textarea></label>'
     + stayField(0, "移動時間", true)
     + '<button class="btn-primary" type="submit">加入 Day '+ui.day+'</button>'
     + '</form>');
@@ -2900,7 +2916,7 @@ function openTransitEdit(idx){
   openSheet("編輯移動",
     '<form onsubmit="submitTransitEdit(event,'+idx+')">'
     + '<label class="field"><span class="fl">怎麼移動</span>'
-    +   '<input name="note" value="'+esc(sp.note||"")+'" placeholder="例：地鐵銀座線、走路、計程車" autocomplete="off"></label>'
+    +   '<textarea name="note" rows="'+(transitSteps(sp.note)?6:3)+'" placeholder="例：走路；或分步驟：① 走到某某站 ② 搭某某線…（每一步換行也可以）">'+esc(sp.note||"")+'</textarea></label>'
     + stayField(sp.stayMinutes, "移動時間", true)
     + '<button class="btn-primary" type="submit">儲存</button>'
     + '</form>');

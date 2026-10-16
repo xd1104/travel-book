@@ -637,7 +637,7 @@ html.drag-lock, html.drag-lock body{touch-action:none; overscroll-behavior:none;
   background:#f1ece2; border-radius:11px; padding:7px 12px; margin-bottom:12px; min-height:38px;}
 .transit-bar.tappable:active{background:#e9e3d6;}
 .tr-ico{font-size:14px; flex:0 0 auto; opacity:.75;}
-.tr-txt{flex:1; min-width:0; font-size:13px; color:#7a7265; overflow-wrap:anywhere; line-height:1.4;}
+.tr-txt{flex:1; min-width:0; font-size:14.5px; color:#5f574b; overflow-wrap:anywhere; line-height:1.45;} /* v3.10：13px 淡灰在戶外看不清，加大加深 */
 .transit-bar .stop-tools{margin-left:auto;}
 /* v2.4 路線鈕：外觀比照卡片的 .map-btn（同一個圖示語言），但視覺縮到 38px、
  * 上下用負 margin 吃掉多出來的高度——灰條「輕薄一條、不佔版面」的調性不能變；
@@ -656,6 +656,22 @@ html.drag-lock, html.drag-lock body{touch-action:none; overscroll-behavior:none;
   position:relative;}
 .transit-bar .tool-btn::before,.transit-bar .drag-handle::before{content:""; position:absolute; inset:-3px;}
 /* rail：小空心點＋虛線＝「路上」不是站點 */
+/* v3.10 移動的逐步說明（Benson：在外面要看著它走，必須看得清楚）：
+ * 一句話的移動維持上面那條輕薄灰條（.tr-row 單獨一行、高度不變）；
+ * 備註有 ①②③ 或換行分段時才長出 .has-steps：一步一行、字級放大、深色字。
+ * ⚠️ 選擇器一律綁 .transit-bar 底下，不要寫裸的 .tr-s／li（會掃到別的清單）。 */
+.tr-row{flex:1; display:flex; align-items:center; gap:8px; min-width:0;}
+.transit-bar.has-steps{flex-direction:column; align-items:stretch; gap:0; padding:9px 12px 10px;}
+.transit-bar .tr-head{font-size:14px; font-weight:800; color:#4a433a;}
+.transit-bar .tr-steps{list-style:none; margin:6px 0 0; padding:0;}
+.transit-bar .tr-steps li{display:flex; align-items:flex-start; gap:10px; padding:9px 0;
+  border-top:1px dashed #ddd4c4;}
+.transit-bar .tr-steps li:first-child{border-top:none; padding-top:4px;}
+.transit-bar .tr-n{flex:0 0 auto; width:24px; height:24px; border-radius:50%; background:#fff;
+  color:#5d554a; font-size:13px; font-weight:800; display:flex; align-items:center; justify-content:center;
+  margin-top:1px; box-shadow:0 0 0 1px #e2d9c9;}
+.transit-bar .tr-s{flex:1; min-width:0; font-size:16px; line-height:1.55; color:#2b2620;
+  overflow-wrap:anywhere;}
 .stop.transit .rail .dot{width:7px; height:7px; margin-top:16px; background:transparent;
   border:1.5px solid #cdc3b2; box-shadow:none;}
 .stop.transit .rail .ln{background:none;
