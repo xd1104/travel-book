@@ -7,27 +7,27 @@ start: "2026-11-11"
 days: 4
 budget: 0
 createdAt: "2026-10-07T08:27:03.613Z"
-updatedAt: "2026-10-16T14:54:58.384Z"
+updatedAt: "2026-10-16T15:12:02.186Z"
 ---
 
 ## 行程
 
 ### Day 1
 
-- {"id":"xhk101600","title":"抵達香港機場 T1","time":"11:45","cat":"transport","place":"香港國際機場","note":"香港快運 10:00 起飛。入境＋領行李抓 45–60 分；機場買小童八達通、換匯","mapUrl":"https://maps.app.goo.gl/qmvx46KQg4BkSdrV9?g_st=ic","addr":"香港新界赤鱲角翔天路1號香港國際機場","stayMinutes":60}
-- {"id":"xhk101601","type":"transit","note":"機場快綫到香港站，走地下通道到中環站，轉港島綫 2 站到西營盤","stayMinutes":50}
-- {"id":"xhk101602","title":"頤庭酒店上環 寄放行李","time":"13:45","cat":"stay","place":"西營盤德輔道西 156-160 號","note":"西營盤站 A2 出口旁。15:00 才能入住、11:00 退房；沒有早餐也沒有餐廳","mapUrl":"https://maps.app.goo.gl/SX76Mr8oyeKqBgvR9?g_st=ic","addr":"156-160, Eco Tree Hotel Sheung Wan, Des Voeux Rd W, Sai Ying Pun, Hong Kong Island, 香港","stayMinutes":10,"phone":"+852 2217 1888"}
+- {"id":"xhk101600","title":"抵達香港機場 T1","time":"11:45","cat":"transport","place":"香港國際機場","note":"香港快運 10:00 起飛。入境＋領行李抓 45–60 分；大人在機場 7-Eleven 買旅客版八達通，小孩先付零錢，到東涌站再買小童八達通","mapUrl":"https://maps.app.goo.gl/qmvx46KQg4BkSdrV9?g_st=ic","addr":"香港新界赤鱲角翔天路1號香港國際機場","stayMinutes":60}
+- {"id":"xhk1016b0","type":"transit","note":"龍運 S1 巴士：機場 → 東涌站，約 15 分＋等車。大人刷八達通，小童半價付零錢；行李放車上行李架","stayMinutes":20}
+- {"id":"xhk1016b1","title":"東薈城 Bakehouse","time":"13:05","cat":"food","place":"東涌 東薈城名店倉（東涌站旁）","note":"外帶酸種蛋撻當點心（九記的午餐比較晚）。順便在東涌站港鐵客務中心買小童八達通","stayMinutes":30}
+- {"id":"xhk1016b2","type":"transit","note":"港鐵東涌綫：東涌 → 香港站（終點）約 30 分，走地下通道到中環站，轉港島綫 2 站到西營盤","stayMinutes":55}
+- {"id":"xhk101602","title":"頤庭酒店上環 寄放行李","time":"14:30","cat":"stay","place":"西營盤德輔道西 156-160 號","note":"西營盤站 A2 出口旁。15:00 才能入住、11:00 退房；沒有早餐也沒有餐廳","mapUrl":"https://maps.app.goo.gl/SX76Mr8oyeKqBgvR9?g_st=ic","addr":"156-160, Eco Tree Hotel Sheung Wan, Des Voeux Rd W, Sai Ying Pun, Hong Kong Island, 香港","stayMinutes":10,"phone":"+852 2217 1888"}
 - {"id":"xhk101603","type":"transit","note":"港島綫西營盤→上環 1 站，步行約 10 分","stayMinutes":10}
-- {"id":"xhk101604","title":"九記牛腩","time":"14:05","cat":"food","place":"中環歌賦街 21 號","note":"必點上湯牛腩伊麵。14:00 是午餐尾段排隊較短；週日公休、晚上 6 點後人龍很長","stayMinutes":50,"hours":"12:30–22:30（週日休）"}
-- {"id":"xhk101605","type":"transit","note":"步行回上環站，搭港島綫回西營盤","stayMinutes":20}
-- {"id":"xhk101606","title":"回飯店入住、休息","time":"15:15","cat":"stay","place":"頤庭酒店上環","stayMinutes":35}
-- {"id":"xhk101607","type":"transit","note":"西營盤→中環站 J2 出口，上坡步行約 15 分到花園道","stayMinutes":25}
+- {"id":"xhk101604","title":"九記牛腩","time":"14:55","cat":"food","place":"中環歌賦街 21 號","note":"必點上湯牛腩伊麵。下午 3 點前後是午餐尾段，排隊較短；週日公休、晚上 6 點後人龍很長","stayMinutes":50,"hours":"12:30–22:30（週日休）"}
+- {"id":"xhk1016b3","type":"transit","note":"歌賦街步行下坡經皇后大道中，到花園道山頂纜車站約 20 分","stayMinutes":20}
 - {"id":"xhk101608","title":"山頂纜車上山","time":"16:15","cat":"transport","place":"花園道山頂纜車總站","note":"平日預估排 30–60 分。纜車＋摩天台 428 套票先網路買好；等太久可改搭 15 號巴士","stayMinutes":50,"url":"https://www.thepeak.com.hk/","hoursOpen":"07:30","hoursClose":"23:00"}
 - {"id":"xhk101609","title":"凌霄閣摩天台 428","time":"17:05","cat":"sight","place":"太平山頂凌霄閣頂樓","note":"17:40 日落 → 18:00 後亮燈，一次看到日景、夕陽、夜景","stayMinutes":80,"hoursOpen":"08:30","hoursClose":"22:00"}
 - {"id":"xhk10160a","title":"阿甘蝦餐廳（靠窗位）","time":"18:25","cat":"food","place":"凌霄閣 3 樓","note":"要先訂位。吃飯前先上網領下山纜車的電子排隊號碼（排隊易）","stayMinutes":70,"hoursOpen":"12:00","hoursClose":"22:00"}
 - {"id":"xhk10160b","title":"纜車下山（或 15 號巴士）","time":"19:35","cat":"transport","place":"山頂 → 中環","note":"沒號碼或等太久就搭 15 號巴士，約 40 分","stayMinutes":40}
 - {"id":"xhk10160c","type":"transit","note":"中環站→西營盤 港島綫 2 站","stayMinutes":20}
-- {"id":"xhk10160d","title":"回到飯店","time":"20:35","cat":"stay","place":"頤庭酒店上環"}
+- {"id":"xhk10160d","title":"回到飯店 辦入住","time":"20:35","cat":"stay","place":"頤庭酒店上環"}
 
 ### Day 2
 
