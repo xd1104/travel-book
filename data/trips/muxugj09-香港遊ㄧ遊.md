@@ -30,13 +30,11 @@ updatedAt: "2026-10-16T15:46:13.714Z"
 
 ### Day 2
 
-- {"id":"xhk10170a","title":"從飯店出發","time":"07:35","cat":"stay","place":"頤庭酒店上環"}
+- {"id":"xhk10170a","title":"從飯店出發","time":"08:20","cat":"stay","place":"頤庭酒店上環"}
 - {"id":"xhk10170b","type":"transit","note":"走到西營盤站（約 3 分）→港島綫往柴灣 2 站到中環（約 5 分）→D2 出口，沿皇后大道中、上結志街步行約 8 分","stayMinutes":25}
-- {"id":"xhk10160e","title":"蘭芳園 早餐","time":"08:00","cat":"food","place":"中環結志街 2 號","note":"絲襪奶茶、蔥油雞扒撈丁。店小要併桌、有最低消費；早點到少排隊","stayMinutes":45,"hours":"07:30–18:00（週日休）"}
-- {"id":"xhk10160f","type":"transit","note":"上坡步行","stayMinutes":20}
-- {"id":"xhk10160g","title":"香港動植物公園","time":"09:05","cat":"sight","place":"中環雅賓利道","note":"免費。紅鸛、猴子、兒童遊樂場；爬行動物區暫停開放","stayMinutes":50}
-- {"id":"xhk10160h","type":"transit","note":"下坡步行","stayMinutes":15}
-- {"id":"xhk10160i","title":"香港公園 尤德觀鳥園","time":"10:10","cat":"sight","place":"金鐘","note":"可以走進去的大鳥籠","stayMinutes":45}
+- {"id":"xhk10160e","title":"蘭芳園 早餐","time":"08:45","cat":"food","place":"中環結志街 2 號","note":"絲襪奶茶、蔥油雞扒撈丁。店小要併桌、有最低消費；早點到少排隊","stayMinutes":45,"hours":"07:30–18:00（週日休）"}
+- {"id":"xhk10160f","type":"transit","note":"下坡回中環站→港島綫 1 站到金鐘→C1 出口經太古廣場扶手電梯上香港公園，約 20 分","stayMinutes":20}
+- {"id":"xhk10160i","title":"香港公園 尤德觀鳥園","time":"09:50","cat":"sight","place":"金鐘","note":"可以走進去的大鳥籠（09:00 開）；旁邊有溫室和兒童遊樂場，可讓小朋友放電","stayMinutes":75}
 - {"id":"xhk10160j","type":"transit","note":"金鐘站→灣仔站 A4，港島綫 1 站＋步行 5 分","stayMinutes":15}
 - {"id":"xhk10160k","title":"甘牌燒鵝","time":"11:20","cat":"food","place":"灣仔軒尼詩道 226 號","note":"米其林一星。11:30 開門前先排，避開 12 點後人龍；燒鵝脾瀨粉限量。座位擠，可能併桌","stayMinutes":60,"hoursOpen":"11:30","hoursClose":"21:30"}
 - {"id":"xhk10160l","type":"transit","note":"灣仔→西營盤 港島綫約 15 分","stayMinutes":20}
