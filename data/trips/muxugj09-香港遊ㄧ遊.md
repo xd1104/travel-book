@@ -39,8 +39,10 @@ updatedAt: "2026-10-16T15:46:13.714Z"
 - {"id":"xhk10160i","title":"香港公園 尤德觀鳥園","time":"12:50","cat":"sight","place":"金鐘","note":"免費。兒童遊樂場讓小朋友放電＋尤德觀鳥園（可走進去的大鳥籠，09:00–17:00）＋溫室","stayMinutes":90}
 - {"id":"xhk10160f","type":"transit","note":"金鐘站→荃灣綫 1 站直達尖沙咀→沿彌敦道往北、轉金巴利道步行約 6 分","stayMinutes":20}
 - {"id":"xhk10170g","title":"下午茶 聰嫂私房甜品","time":"14:40","cat":"food","place":"尖沙咀金巴利道（蓮香樓斜對面）","note":"米其林推介糖水。招牌芝麻糊湯圓、椰汁西米仙草、楊枝甘露、芒果類。先付款再上餐，可刷卡；晚上排隊、下午較好進","stayMinutes":40,"hoursOpen":"12:00","hoursClose":"00:00"}
-- {"id":"xhk10170k","type":"transit","note":"沿彌敦道往南走到 1881 Heritage，約 10 分","stayMinutes":10}
-- {"id":"xhk10170j","title":"尖沙咀散步：1881 → 鐘樓 → 星光大道 → 海港城","time":"15:30","cat":"sight","place":"尖沙咀海濱","note":"1881 Heritage 拍照 → 天星碼頭旁鐘樓 → 沿海濱長廊走星光大道（對岸是中環天際線）→ 走回廣東道、海港城逛街。累了海濱有很多長椅可以坐。17:30 前到海運大廈","stayMinutes":120}
+- {"id":"xhk10170k","type":"transit","note":"金巴利道轉漢口道往南走，約 5 分","stayMinutes":5}
+- {"id":"xhk10170l","title":"Bakehouse 買蛋撻","time":"15:25","cat":"food","place":"尖沙咀漢口道 44 號","note":"招牌酸種蛋撻，評價 4.4。常排隊但三個櫃台結帳很快；可頌、杏仁丹麥也好吃。現烤的趁熱吃，多買幾顆當隔天早餐也行","stayMinutes":15,"hoursOpen":"08:00","hoursClose":"21:00"}
+- {"id":"xhk10170m","type":"transit","note":"沿漢口道往南走到 1881 Heritage，約 5 分","stayMinutes":5}
+- {"id":"xhk10170j","title":"尖沙咀散步：1881 → 鐘樓 → 星光大道 → 海港城","time":"15:45","cat":"sight","place":"尖沙咀海濱","note":"1881 Heritage 拍照 → 天星碼頭旁鐘樓 → 沿海濱長廊走星光大道（對岸是中環天際線）→ 走回廣東道、海港城逛街。累了海濱有很多長椅可以坐。17:30 前到海運大廈","stayMinutes":105}
 - {"id":"xhk10170i","title":"海運觀點看日落","time":"17:30","cat":"sight","place":"海港城海運大廈頂樓","note":"免費，17:40 日落，正對維港與中環天際線","stayMinutes":25}
 - {"id":"xhk10160q","type":"transit","note":"海運大廈走到港威商場 4 樓","stayMinutes":5}
 - {"id":"xhk10160r","title":"海港城 Food Atlas","time":"18:00","cat":"food","place":"港威商場 4 樓","note":"不用訂位、上菜快（文記車仔麵、寧記豬腳飯等）。18:50 前要走到尖沙咀 3 號公眾碼頭","stayMinutes":45,"hoursOpen":"11:00","hoursClose":"22:00"}
