@@ -32,17 +32,15 @@ updatedAt: "2026-10-16T15:46:13.714Z"
 
 ### Day 2
 
-- {"id":"xhk10170a","title":"從飯店出發","time":"09:30","cat":"stay","place":"頤庭酒店上環"}
-- {"id":"xhk10170b","type":"transit","note":"走到西營盤站（約 3 分）→港島綫往柴灣 2 站到中環（約 5 分）→D2 出口，沿皇后大道中、上結志街步行約 8 分","stayMinutes":25}
-- {"id":"xhk10160e","title":"蘭芳園 早餐","time":"09:55","cat":"food","place":"中環結志街 2 號","note":"絲襪奶茶、蔥油雞扒撈丁。店小要併桌、有最低消費；10 點前後可能要排 10–20 分","stayMinutes":45,"hours":"07:30–18:00（週日休）"}
-- {"id":"xhk10160f","type":"transit","note":"下坡回中環站→港島綫 1 站到金鐘→C1 出口經太古廣場扶手電梯上香港公園，約 20 分","stayMinutes":20}
-- {"id":"xhk10160i","title":"香港公園 尤德觀鳥園","time":"11:00","cat":"sight","place":"金鐘","note":"可以走進去的大鳥籠（09:00 開）；旁邊有溫室和兒童遊樂場，可讓小朋友放電","stayMinutes":45}
-- {"id":"xhk10160j","type":"transit","note":"金鐘站→灣仔站 A4，港島綫 1 站＋步行 5 分","stayMinutes":15}
-- {"id":"xhk10160k","title":"甘牌燒鵝","time":"12:00","cat":"food","place":"灣仔軒尼詩道 226 號","note":"米其林一星。中午尖峰，預留排隊時間（可能 20–40 分）；燒鵝脾瀨粉限量，晚到可能賣完。座位擠，可能併桌","stayMinutes":75,"hoursOpen":"11:30","hoursClose":"21:30"}
-- {"id":"xhk10160l","type":"transit","note":"灣仔→西營盤 港島綫約 15 分","stayMinutes":20}
-- {"id":"xhk10160m","title":"回飯店午睡","time":"13:35","cat":"stay","place":"頤庭酒店上環","note":"晚上會玩到 20:45，一定要睡","stayMinutes":105}
-- {"id":"xhk10160n","type":"transit","note":"西營盤→中環站 K 出口，步行約 10 分到天星碼頭","stayMinutes":30}
-- {"id":"xhk10160o","title":"換優先登車證、排隊","time":"15:50","cat":"other","place":"觀光城巴中環總站（6 號碼頭）","note":"買觀光城巴日遊票（City Sightseeing HK App 兌換 QR）才有優先登車。排隊誇張又沒優先證 → 改搭天星小輪過海看日落","stayMinutes":40}
+- {"id":"xhk10170a","title":"從飯店出發","time":"10:45","cat":"stay","place":"頤庭酒店上環"}
+- {"id":"xhk10170b","type":"transit","note":"走到西營盤站（約 3 分）→港島綫往柴灣 4 站到灣仔→A4 出口步行約 5 分","stayMinutes":25}
+- {"id":"xhk10160k","title":"甘牌燒鵝","time":"11:10","cat":"food","place":"灣仔軒尼詩道 226 號","note":"米其林一星。11:30 開門前先排，第一批入座；燒鵝脾瀨粉限量。座位擠，可能併桌。當早午餐，出門前怕小朋友餓可先買麵包牛奶墊肚子","stayMinutes":70,"hoursOpen":"11:30","hoursClose":"21:30"}
+- {"id":"xhk10160j","type":"transit","note":"叮叮電車：甘牌門口軒尼詩道往西（堅尼地城／屈地街方向）坐到金鐘，搶上層最前排；下車步行經太古廣場上香港公園，約 30 分","stayMinutes":30}
+- {"id":"xhk10160i","title":"香港公園 尤德觀鳥園","time":"12:50","cat":"sight","place":"金鐘","note":"免費。兒童遊樂場讓小朋友放電＋尤德觀鳥園（可走進去的大鳥籠，09:00–17:00）＋溫室","stayMinutes":80}
+- {"id":"xhk10160f","type":"transit","note":"金鐘站→港島綫 1 站到中環→D2 出口，沿皇后大道中、上結志街步行約 8 分","stayMinutes":20}
+- {"id":"xhk10160e","title":"蘭芳園 下午茶","time":"14:30","cat":"food","place":"中環結志街 2 號","note":"絲襪奶茶、豬扒包、蔥油雞扒撈丁。店小要併桌、有最低消費；下午比早上好排","stayMinutes":40,"hours":"07:30–18:00（週日休）"}
+- {"id":"xhk10160n","type":"transit","note":"下坡經國際金融中心天橋走到中環 6 號碼頭，約 20 分","stayMinutes":20}
+- {"id":"xhk10160o","title":"換優先登車證、排隊","time":"15:30","cat":"other","place":"觀光城巴中環總站（6 號碼頭）","note":"買觀光城巴日遊票（City Sightseeing HK App 兌換 QR）才有優先登車。排隊誇張又沒優先證 → 改搭天星小輪過海看日落","stayMinutes":60}
 - {"id":"xhk10160p","title":"落日飛車 H1","time":"16:30","cat":"sight","place":"中環天星碼頭 → 尖沙咀漢口道","note":"全程約 80 分，17:40 日落正好在車上。上層開篷風大，帶外套","stayMinutes":80,"url":"https://eticket.citybus.com.hk/"}
 - {"id":"xhk10160q","type":"transit","note":"漢口道步行到海港城","stayMinutes":10}
 - {"id":"xhk10160r","title":"海港城 Food Atlas","time":"18:00","cat":"food","place":"港威商場 4 樓","note":"不用訂位、上菜快（文記車仔麵、寧記豬腳飯等）。18:50 前要走到尖沙咀 3 號公眾碼頭","stayMinutes":45,"hoursOpen":"11:00","hoursClose":"22:00"}
