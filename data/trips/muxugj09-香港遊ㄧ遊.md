@@ -33,22 +33,22 @@ updatedAt: "2026-10-16T15:46:13.714Z"
 ### Day 2
 
 - {"id":"xhk10170a","title":"從飯店出發","time":"10:45","cat":"stay","place":"頤庭酒店上環"}
-- {"id":"xhk10170b","type":"transit","note":"走到西營盤站（約 3 分）→港島綫往柴灣 4 站到灣仔→A4 出口步行約 5 分","stayMinutes":25}
+- {"id":"xhk10170b","type":"transit","note":"① 走 3 分鐘到西營盤站 ② 港島綫（藍色）往「柴灣」方向坐 4 站到「灣仔」（約 10 分）③ A4 出口出站，沿軒尼詩道走約 5 分到甘牌（寶華商業中心地下）","stayMinutes":25}
 - {"id":"xhk10160k","title":"甘牌燒鵝","time":"11:10","cat":"food","place":"灣仔軒尼詩道 226 號","note":"米其林一星。11:30 開門前先排，第一批入座；燒鵝脾瀨粉限量。座位擠，可能併桌。當早午餐，出門前怕小朋友餓可先買麵包牛奶墊肚子","stayMinutes":70,"hoursOpen":"11:30","hoursClose":"21:30"}
-- {"id":"xhk10160j","type":"transit","note":"叮叮電車：甘牌門口軒尼詩道往西（堅尼地城／屈地街方向）坐到金鐘，搶上層最前排；下車步行經太古廣場上香港公園，約 30 分","stayMinutes":30}
+- {"id":"xhk10160j","type":"transit","note":"① 在甘牌門口的軒尼詩道找往西（中環／上環方向）的電車站 ② 後門上車，前門下車時拍八達通（大人約 HK$3.3、小童約 HK$1.6）③ 坐約 15 分到「金鐘」站下車（太古廣場旁）④ 走進太古廣場，跟著「香港公園 Hong Kong Park」指示搭扶手電梯往上走，約 10 分","stayMinutes":30}
 - {"id":"xhk10160i","title":"香港公園 尤德觀鳥園","time":"12:50","cat":"sight","place":"金鐘","note":"免費。兒童遊樂場讓小朋友放電＋尤德觀鳥園（可走進去的大鳥籠，09:00–17:00）＋溫室","stayMinutes":90}
-- {"id":"xhk10160f","type":"transit","note":"金鐘站→荃灣綫 1 站直達尖沙咀→沿彌敦道往北、轉金巴利道步行約 6 分","stayMinutes":20}
-- {"id":"xhk10170g","title":"下午茶 聰嫂私房甜品","time":"14:40","cat":"food","place":"尖沙咀金巴利道（蓮香樓斜對面）","note":"米其林推介糖水。招牌芝麻糊湯圓、椰汁西米仙草、楊枝甘露、芒果類。先付款再上餐，可刷卡；晚上排隊、下午較好進","stayMinutes":40,"hoursOpen":"12:00","hoursClose":"00:00"}
-- {"id":"xhk10170k","type":"transit","note":"金巴利道轉漢口道往南走，約 5 分","stayMinutes":5}
-- {"id":"xhk10170l","title":"Bakehouse 買蛋撻","time":"15:25","cat":"food","place":"尖沙咀漢口道 44 號","note":"招牌酸種蛋撻，評價 4.4。常排隊但三個櫃台結帳很快；可頌、杏仁丹麥也好吃。現烤的趁熱吃，多買幾顆當隔天早餐也行","stayMinutes":15,"hoursOpen":"08:00","hoursClose":"21:00"}
-- {"id":"xhk10170m","type":"transit","note":"沿漢口道往南走到 1881 Heritage，約 5 分","stayMinutes":5}
-- {"id":"xhk10170j","title":"尖沙咀散步：1881 → 鐘樓 → 星光大道 → 海港城","time":"15:45","cat":"sight","place":"尖沙咀海濱","note":"1881 Heritage 拍照 → 天星碼頭旁鐘樓 → 沿海濱長廊走星光大道（對岸是中環天際線）→ 走回廣東道、海港城逛街。累了海濱有很多長椅可以坐。17:30 前到海運大廈","stayMinutes":105}
+- {"id":"xhk10160f","type":"transit","note":"① 從香港公園下坡走回金鐘站（約 10 分）② 荃灣綫（紅色）往「荃灣」方向坐 1 站到「尖沙咀」（約 5 分）③ 出站往金巴利道走約 6 分到聰嫂","stayMinutes":25}
+- {"id":"xhk10170g","title":"下午茶 聰嫂私房甜品","time":"14:45","cat":"food","place":"尖沙咀金巴利道（蓮香樓斜對面）","note":"米其林推介糖水。招牌芝麻糊湯圓、椰汁西米仙草、楊枝甘露、芒果類。先付款再上餐，可刷卡；晚上排隊、下午較好進","stayMinutes":40,"hoursOpen":"12:00","hoursClose":"00:00"}
+- {"id":"xhk10170k","type":"transit","note":"沿金巴利道往西過彌敦道，轉漢口道往南走，約 10 分","stayMinutes":10}
+- {"id":"xhk10170l","title":"Bakehouse 買蛋撻","time":"15:35","cat":"food","place":"尖沙咀漢口道 44 號","note":"招牌酸種蛋撻，評價 4.4。常排隊但三個櫃台結帳很快；可頌、杏仁丹麥也好吃。現烤的趁熱吃，多買幾顆當隔天早餐也行","stayMinutes":15,"hoursOpen":"08:00","hoursClose":"21:00"}
+- {"id":"xhk10170m","type":"transit","note":"沿漢口道往南走到底、過梳士巴利道就是 1881 Heritage，約 5 分","stayMinutes":5}
+- {"id":"xhk10170j","title":"尖沙咀散步：1881 → 鐘樓 → 星光大道 → 海港城","time":"15:55","cat":"sight","place":"尖沙咀海濱","note":"1881 Heritage 拍照 → 天星碼頭旁鐘樓 → 沿海濱長廊走星光大道（對岸是中環天際線）→ 走回廣東道、海港城逛街。累了海濱有很多長椅可以坐。17:30 前到海運大廈","stayMinutes":95}
 - {"id":"xhk10170i","title":"海運觀點看日落","time":"17:30","cat":"sight","place":"海港城海運大廈頂樓","note":"免費，17:40 日落，正對維港與中環天際線","stayMinutes":25}
-- {"id":"xhk10160q","type":"transit","note":"海運大廈走到港威商場 4 樓","stayMinutes":5}
+- {"id":"xhk10160q","type":"transit","note":"從海運大廈頂樓下來，沿商場走到港威商場 4 樓，約 5 分","stayMinutes":5}
 - {"id":"xhk10160r","title":"海港城 Food Atlas","time":"18:00","cat":"food","place":"港威商場 4 樓","note":"不用訂位、上菜快（文記車仔麵、寧記豬腳飯等）。18:50 前要走到尖沙咀 3 號公眾碼頭","stayMinutes":45,"hoursOpen":"11:00","hoursClose":"22:00"}
-- {"id":"xhk10160s","type":"transit","note":"步行到尖沙咀 3 號公眾碼頭","stayMinutes":10}
+- {"id":"xhk10160s","type":"transit","note":"從海港城沿廣東道往南走到天星碼頭旁的尖沙咀公眾碼頭（3 號梯台），約 10 分","stayMinutes":10}
 - {"id":"xhk10160t","title":"永安號 幻彩詠香江暢飲維港遊","time":"19:10","cat":"sight","place":"尖沙咀 3 號公眾碼頭","note":"提早 10 分到、認黃色船身。20:00 船上看燈光秀；中環 9 號碼頭下船。票不可退改","stayMinutes":60}
-- {"id":"xhk10160u","type":"transit","note":"中環 9 號碼頭步行 15 分到中環站，港島綫 2 站回西營盤","stayMinutes":35}
+- {"id":"xhk10160u","type":"transit","note":"① 船在中環 9 號碼頭靠岸 ② 經國金中心天橋走到中環站（約 15 分）③ 港島綫往「堅尼地城」方向坐 2 站回西營盤，A2 出口就是飯店","stayMinutes":35}
 - {"id":"xhk10160v","title":"回到飯店","time":"20:45","cat":"stay","place":"頤庭酒店上環"}
 
 ### Day 3
