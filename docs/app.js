@@ -42,7 +42,7 @@ function splashReady(){
 /* ============ 常數 ============ */
 /* 版本號的唯一來源：首頁 footer 與「版本」sheet 都讀它。
  * 改前端時跟 sw.js 的 cache 版本號一起 +1（見「版本與更新」段）。 */
-var APP_VER="3.10";
+var APP_VER="3.11";
 
 /* 打包把手的三個門檻（v3.0，DESIGN.md 附錄 E2）——「先觀察，後接管」：
  * pointerdown 只進入「待命」，垂直帶開＝你在捲動就放行，橫向帶開或按住夠久才真的開始拖。
@@ -71,7 +71,9 @@ var ICO = {
   paste:'<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">'
     + '<path d="M9 4.5h6M8.2 5.6H6.6A1.6 1.6 0 0 0 5 7.2v12.2A1.6 1.6 0 0 0 6.6 21h10.8a1.6 1.6 0 0 0 1.6-1.6V7.2a1.6 1.6 0 0 0-1.6-1.6h-1.6"/>'
     + '<rect x="9" y="2.9" width="6" height="3.4" rx="1.2"/>'
-    + '<path d="M8.6 12h6.8M8.6 15.6h4.6"/></svg>'
+    + '<path d="M8.6 12h6.8M8.6 15.6h4.6"/></svg>',
+  chev:'<svg viewBox="0 0 24 24" class="ico" aria-hidden="true" focusable="false">'
+    + '<path d="M6.5 9.5 12 15l5.5-5.5"/></svg>'
 };
 
 /* 行程點類別（v1.1 起）＝可管理的全域資源：清單存 db.categories（同步 data/categories.md），
@@ -443,6 +445,19 @@ function transitSteps(note){
     .map(function(x){ return x.replace(/^\s*[\u2460-\u2473]\s*/,"").trim(); })
     .filter(Boolean);
   return parts.length >= 2 ? parts : null;
+}
+/* v3.11 移動的展開狀態：只是這台裝置的瀏覽偏好（不進資料、不同步），讀寫一律包 try/catch */
+var TR_OPEN_KEY="travel.trOpen";
+var trOpenMap=(function(){ try{ return JSON.parse(localStorage.getItem(TR_OPEN_KEY)||"{}")||{}; }catch(e){ return {}; } })();
+function trIsOpen(id){ return !!trOpenMap[id]; }
+function trToggle(ev,id){
+  ev.stopPropagation();
+  var bar = ev.currentTarget.closest(".transit-bar"); if(!bar) return;
+  var open = !bar.classList.contains("open");
+  bar.classList.toggle("open", open);          /* 不整頁 render：捲動位置不跳 */
+  var row = bar.querySelector(".tr-toggle"); if(row) row.setAttribute("aria-expanded", open?"true":"false");
+  if(open) trOpenMap[id]=1; else delete trOpenMap[id];
+  try{ localStorage.setItem(TR_OPEN_KEY, JSON.stringify(trOpenMap)); }catch(e){}
 }
 function cleanStop(s){
   /* v1.3 移動（transit）：刻意只留 note＋stayMinutes（＝移動時間），
@@ -1188,27 +1203,43 @@ function viewPlan(t){
       }
       /* v1.3 移動：灰色輕薄一條，內容只有備註＋時間；rail 用小空心點＋虛線＝「路上」不是站點 */
       if(isTransit(sp)){
-        var steps = transitSteps(sp.note);
+        var steps = ui.edit ? null : transitSteps(sp.note);
         var parts = [];
-        if(sp.note && !steps) parts.push(esc(sp.note));
+        if(sp.note && !transitSteps(sp.note)) parts.push(esc(sp.note));
         if(sp.stayMinutes) parts.push(formatStay(sp.stayMinutes));
         var txt = parts.join("・") || "移動";
-        if(steps) txt = '<b class="tr-head">移動'+(sp.stayMinutes?' '+formatStay(sp.stayMinutes):'')+'</b>';
-        var stepsHtml = steps
-          ? '<ol class="tr-steps">'+steps.map(function(x,k){
-              return '<li><span class="tr-n">'+(k+1)+'</span><span class="tr-s">'+esc(x)+'</span></li>'; }).join("")+'</ol>'
-          : "";
+        if(transitSteps(sp.note)) txt = '<b class="tr-head">移動'+(sp.stayMinutes?' '+formatStay(sp.stayMinutes):'')+'</b>';
         /* v2.4 路線鈕：上下兩站都算得出地址才長出來（調整模式不顯示，跟卡片的 .map-btn 一致） */
         var dir = ui.edit ? "" : routeLink(list, idx);
-        return '<div class="stop transit">'
-          + '<div class="rail"><span class="dot mini"></span><span class="ln dash'+nextLate+'"></span></div>'
-          + '<div class="transit-bar'+(steps?" has-steps":"")+(ui.edit?"":" tappable")+'"'
+        var dirBtn = dir ? '<a class="map-btn" href="'+esc(dir)+'" target="_blank" rel="noopener"'
+                   + ' onclick="event.stopPropagation()" aria-label="看這一段路線">'+ICO.route+'</a>' : "";
+        var rail = '<div class="rail"><span class="dot mini"></span><span class="ln dash'+nextLate+'"></span></div>';
+        /* v3.11 逐步說明可摺疊：點標題列＝展開／收合（不是編輯）；收合時露出第 1 步當預覽，
+         * 展開後最下面才有「編輯這段移動」。展開狀態記在這台裝置（trOpen），重畫不會跑掉。 */
+        if(steps){
+          var open = trIsOpen(sp.id);
+          return '<div class="stop transit">' + rail
+            + '<div class="transit-bar has-steps'+(open?" open":"")+'">'
+            +   '<div class="tr-row tr-toggle tappable" role="button" aria-expanded="'+(open?"true":"false")+'"'
+            +     ' onclick="trToggle(event,\''+esc(sp.id)+'\')">'
+            +     '<span class="tr-ico">🚶</span><span class="tr-txt">'+txt
+            +       '<span class="tr-cnt">'+steps.length+' 步</span></span>'
+            +     '<span class="tr-chev" aria-hidden="true">'+ICO.chev+'</span>'
+            +     dirBtn
+            +   '</div>'
+            +   '<div class="tr-peek" onclick="trToggle(event,\''+esc(sp.id)+'\')">'
+            +     '<span class="tr-n">1</span><span class="tr-pk">'+esc(steps[0])+'</span></div>'
+            +   '<ol class="tr-steps">'+steps.map(function(x,k){
+                  return '<li><span class="tr-n">'+(k+1)+'</span><span class="tr-s">'+esc(x)+'</span></li>'; }).join("")+'</ol>'
+            +   '<button type="button" class="tr-edit" onclick="openTransitEdit('+idx+')">✎ 編輯這段移動</button>'
+            + '</div></div>';
+        }
+        return '<div class="stop transit">' + rail
+          + '<div class="transit-bar'+(ui.edit?"":" tappable")+'"'
           +   (ui.edit?"":' onclick="openTransitEdit('+idx+')"')+'>'
           +   '<div class="tr-row"><span class="tr-ico">🚶</span><span class="tr-txt">'+txt+'</span>'
-          +   (dir ? '<a class="map-btn" href="'+esc(dir)+'" target="_blank" rel="noopener"'
-                   + ' onclick="event.stopPropagation()" aria-label="看這一段路線">'+ICO.route+'</a>' : "")
+          +   dirBtn
           +   (ui.edit ? right : '')+'</div>'
-          +   (ui.edit ? "" : stepsHtml)
           + '</div></div>';
       }
       if(!ui.edit){

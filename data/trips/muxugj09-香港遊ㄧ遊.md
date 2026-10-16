@@ -15,19 +15,19 @@ updatedAt: "2026-10-16T15:46:13.714Z"
 ### Day 1
 
 - {"id":"xhk101600","title":"抵達香港機場 T1","time":"11:45","cat":"transport","place":"香港國際機場","note":"香港快運 10:00 起飛。入境＋領行李抓 45–60 分；大人在機場 7-Eleven 買旅客版八達通，小孩先付零錢，之後在上環／西營盤站客務中心買小童八達通","mapUrl":"https://maps.app.goo.gl/qmvx46KQg4BkSdrV9?g_st=ic","addr":"香港新界赤鱲角翔天路1號香港國際機場","stayMinutes":60}
-- {"id":"xhk1016a1","type":"transit","note":"城巴 A11 機場巴士（機場巴士總站，入境大堂外）→ 上環港澳碼頭站，約 45–60 分；下層放行李、上層看青馬大橋。下車走路到飯店約 15 分","stayMinutes":80}
+- {"id":"xhk1016a1","type":"transit","note":"① 出入境大堂後跟著「巴士 Buses」指示走到機場巴士總站\n② 搭城巴 A11（往北角碼頭）。上車拍八達通（大人約 HK$40）；小朋友沒有八達通就投零錢，車上不找零\n③ 大件行李放下層行李架，人坐上層前排可以看青馬大橋\n④ 坐約 45–60 分，在「港澳碼頭」站（信德中心）下車\n⑤ 沿德輔道中→德輔道西往西走約 15 分到飯店；行李太重可改搭港鐵上環站→西營盤 1 站，A2 出口就是飯店","stayMinutes":80}
 - {"id":"xhk101602","title":"頤庭酒店上環 寄放行李","time":"14:05","cat":"stay","place":"西營盤德輔道西 156-160 號","note":"西營盤站 A2 出口旁。15:00 才能入住、11:00 退房；沒有早餐也沒有餐廳","mapUrl":"https://maps.app.goo.gl/SX76Mr8oyeKqBgvR9?g_st=ic","addr":"156-160, Eco Tree Hotel Sheung Wan, Des Voeux Rd W, Sai Ying Pun, Hong Kong Island, 香港","stayMinutes":10,"phone":"+852 2217 1888"}
-- {"id":"xhk101603","type":"transit","note":"從飯店沿德輔道西往西走約 7 分","stayMinutes":10}
+- {"id":"xhk101603","type":"transit","note":"① 出飯店沿德輔道西往西（往堅尼地城方向）走\n② 約 7 分到德美大廈地舖的新興發。只收現金","stayMinutes":10}
 - {"id":"xhk101604","title":"新興發點心","time":"14:30","cat":"food","place":"西營盤德輔道西 德美大廈地舖","note":"手工點心，必點鮮蝦腸粉、排骨、燒賣。只收現金；下午部分點心可能賣完，有圖片菜單可以指著點","stayMinutes":50,"phone":"+852 2547 1988","hoursOpen":"07:00","hoursClose":"18:00","hours":"07:00–18:00（週二休）"}
-- {"id":"xhk101605","type":"transit","note":"步行回飯店約 7 分","stayMinutes":10}
+- {"id":"xhk101605","type":"transit","note":"① 沿德輔道西往東走回來\n② 約 7 分回到飯店","stayMinutes":10}
 - {"id":"xhk101606","title":"回飯店辦入住、稍作休息","time":"15:30","cat":"stay","place":"頤庭酒店上環","note":"15:00 後可入住，先辦好入住，晚上回來直接休息","stayMinutes":10}
-- {"id":"xhk10170f","type":"transit","note":"走到西營盤站→港島綫 2 站到中環→D2 出口，經中環街市搭半山扶手電梯上到士丹頓街","stayMinutes":20}
+- {"id":"xhk10170f","type":"transit","note":"① 走 3 分鐘到西營盤站（A2 出口就在飯店旁）\n② 港島綫（藍色）往「柴灣」方向坐 2 站到「中環」\n③ D2 出口出站，往中環街市走\n④ 從中環街市 2 樓接半山扶手電梯往上，到「士丹頓街」下來，Vission 就在路口附近","stayMinutes":20}
 - {"id":"xhk10170e","title":"Vission Bakery 買點心","time":"16:00","cat":"food","place":"中環蘇豪士丹頓街 7 號翠文樓地下低層","note":"招牌開心果卡士達丹麥酥、抹茶麻糬丹麥酥、杏仁可頌。纜車上不能吃，帶到山頂再吃。走 2 分鐘的擺花街 35 號有泰昌餅家（蛋撻、鹹的皮蛋酥）可順買","stayMinutes":15,"hoursOpen":"08:00","hoursClose":"20:00","hours":"週一至五 08:00–20:00、週六 10:00–20:00、週日休"}
-- {"id":"xhk101607","type":"transit","note":"從士丹頓街下坡經皇后大道中，走到花園道纜車站約 15 分","stayMinutes":15}
+- {"id":"xhk101607","type":"transit","note":"① 從士丹頓街往下坡走回皇后大道中\n② 沿皇后大道中往東走到花園道\n③ 花園道往上坡走約 5 分到山頂纜車總站（約 15 分）","stayMinutes":15}
 - {"id":"xhk101608","title":"山頂纜車上山","time":"16:30","cat":"transport","place":"花園道山頂纜車總站","note":"平日預估排 30–60 分。纜車＋摩天台 428 套票先網路買好；等太久可改搭 15 號巴士","stayMinutes":45,"url":"https://www.thepeak.com.hk/","hoursOpen":"07:30","hoursClose":"23:00"}
 - {"id":"xhk101609","title":"凌霄閣摩天台 428","time":"17:15","cat":"sight","place":"太平山頂凌霄閣頂樓","note":"17:40 日落 → 18:00 後亮燈，一次看到日景、夕陽、夜景","stayMinutes":70,"hoursOpen":"08:30","hoursClose":"22:00"}
 - {"id":"xhk10160b","title":"纜車下山（或 15 號巴士）","time":"18:25","cat":"transport","place":"山頂 → 中環","note":"看完夜景就排纜車；可先上網領下山纜車電子排隊號碼。沒號碼或等太久就搭 15 號巴士，約 40 分","stayMinutes":40}
-- {"id":"xhk10160c","type":"transit","note":"中環站→西營盤 港島綫 2 站","stayMinutes":20}
+- {"id":"xhk10160c","type":"transit","note":"① 纜車下山到花園道總站，往下坡走到中環站（約 10 分）\n② 港島綫往「堅尼地城」方向坐 2 站到「西營盤」\n③ A2 出口出站就是飯店","stayMinutes":20}
 - {"id":"xhk10160d","title":"回到飯店","time":"19:25","cat":"stay","place":"頤庭酒店上環"}
 
 ### Day 2
@@ -39,14 +39,14 @@ updatedAt: "2026-10-16T15:46:13.714Z"
 - {"id":"xhk10160i","title":"香港公園 尤德觀鳥園","time":"12:50","cat":"sight","place":"金鐘","note":"免費。兒童遊樂場讓小朋友放電＋尤德觀鳥園（可走進去的大鳥籠，09:00–17:00）＋溫室","stayMinutes":90}
 - {"id":"xhk10160f","type":"transit","note":"① 從香港公園下坡走回金鐘站（約 10 分）② 荃灣綫（紅色）往「荃灣」方向坐 1 站到「尖沙咀」（約 5 分）③ 出站往金巴利道走約 6 分到聰嫂","stayMinutes":25}
 - {"id":"xhk10170g","title":"下午茶 聰嫂私房甜品","time":"14:45","cat":"food","place":"尖沙咀金巴利道（蓮香樓斜對面）","note":"米其林推介糖水。招牌芝麻糊湯圓、椰汁西米仙草、楊枝甘露、芒果類。先付款再上餐，可刷卡；晚上排隊、下午較好進","stayMinutes":40,"hoursOpen":"12:00","hoursClose":"00:00"}
-- {"id":"xhk10170k","type":"transit","note":"沿金巴利道往西過彌敦道，轉漢口道往南走，約 10 分","stayMinutes":10}
+- {"id":"xhk10170k","type":"transit","note":"① 從聰嫂沿金巴利道往西走，過彌敦道\n② 轉進漢口道往南走，約 10 分到 Bakehouse（漢口道 44 號）","stayMinutes":10}
 - {"id":"xhk10170l","title":"Bakehouse 買蛋撻","time":"15:35","cat":"food","place":"尖沙咀漢口道 44 號","note":"招牌酸種蛋撻，評價 4.4。常排隊但三個櫃台結帳很快；可頌、杏仁丹麥也好吃。現烤的趁熱吃，多買幾顆當隔天早餐也行","stayMinutes":15,"hoursOpen":"08:00","hoursClose":"21:00"}
-- {"id":"xhk10170m","type":"transit","note":"沿漢口道往南走到底、過梳士巴利道就是 1881 Heritage，約 5 分","stayMinutes":5}
+- {"id":"xhk10170m","type":"transit","note":"① 沿漢口道繼續往南走到底\n② 過梳士巴利道就是 1881 Heritage（約 5 分）","stayMinutes":5}
 - {"id":"xhk10170j","title":"尖沙咀散步：1881 → 鐘樓 → 星光大道 → 海港城","time":"15:55","cat":"sight","place":"尖沙咀海濱","note":"1881 Heritage 拍照 → 天星碼頭旁鐘樓 → 沿海濱長廊走星光大道（對岸是中環天際線）→ 走回廣東道、海港城逛街。累了海濱有很多長椅可以坐。17:30 前到海運大廈","stayMinutes":95}
 - {"id":"xhk10170i","title":"海運觀點看日落","time":"17:30","cat":"sight","place":"海港城海運大廈頂樓","note":"免費，17:40 日落，正對維港與中環天際線","stayMinutes":25}
-- {"id":"xhk10160q","type":"transit","note":"從海運大廈頂樓下來，沿商場走到港威商場 4 樓，約 5 分","stayMinutes":5}
+- {"id":"xhk10160q","type":"transit","note":"① 從海運大廈頂樓下來\n② 沿商場走到港威商場 4 樓 Food Atlas（約 5 分）","stayMinutes":5}
 - {"id":"xhk10160r","title":"海港城 Food Atlas","time":"18:00","cat":"food","place":"港威商場 4 樓","note":"不用訂位、上菜快（文記車仔麵、寧記豬腳飯等）。18:50 前要走到尖沙咀 3 號公眾碼頭","stayMinutes":45,"hoursOpen":"11:00","hoursClose":"22:00"}
-- {"id":"xhk10160s","type":"transit","note":"從海港城沿廣東道往南走到天星碼頭旁的尖沙咀公眾碼頭（3 號梯台），約 10 分","stayMinutes":10}
+- {"id":"xhk10160s","type":"transit","note":"① 從海港城走出廣東道往南走\n② 經天星碼頭旁到尖沙咀公眾碼頭（3 號梯台），約 10 分\n③ 19:00 前到，認黃色船身的永安號","stayMinutes":10}
 - {"id":"xhk10160t","title":"永安號 幻彩詠香江暢飲維港遊","time":"19:10","cat":"sight","place":"尖沙咀 3 號公眾碼頭","note":"提早 10 分到、認黃色船身。20:00 船上看燈光秀；中環 9 號碼頭下船。票不可退改","stayMinutes":60}
 - {"id":"xhk10160u","type":"transit","note":"① 船在中環 9 號碼頭靠岸 ② 經國金中心天橋走到中環站（約 15 分）③ 港島綫往「堅尼地城」方向坐 2 站回西營盤，A2 出口就是飯店","stayMinutes":35}
 - {"id":"xhk10160v","title":"回到飯店","time":"20:45","cat":"stay","place":"頤庭酒店上環"}
@@ -54,28 +54,28 @@ updatedAt: "2026-10-16T15:46:13.714Z"
 ### Day 3
 
 - {"id":"xhk10170c","title":"從飯店出發","time":"09:30","cat":"stay","place":"頤庭酒店上環"}
-- {"id":"xhk10170d","type":"transit","note":"走到西營盤站（約 3 分）→港島綫往柴灣 2 站到中環→D2 出口，沿皇后大道中、上結志街步行約 8 分","stayMinutes":25}
+- {"id":"xhk10170d","type":"transit","note":"① 走 3 分鐘到西營盤站\n② 港島綫（藍色）往「柴灣」方向坐 2 站到「中環」\n③ D2 出口出站，沿皇后大道中走、轉上結志街，約 8 分到蘭芳園","stayMinutes":25}
 - {"id":"xhk10160e","title":"蘭芳園 早餐","time":"09:55","cat":"food","place":"中環結志街 2 號","note":"絲襪奶茶、豬扒包、蔥油雞扒撈丁。店小要併桌、有最低消費。吃完下坡走到交易廣場搭 260","stayMinutes":35,"hours":"07:30–18:00（週日休）"}
-- {"id":"xhk10160x","type":"transit","note":"下坡經皇后大道中、天橋走到交易廣場巴士總站，約 10 分","stayMinutes":10}
+- {"id":"xhk10160x","type":"transit","note":"① 從結志街下坡走回皇后大道中\n② 經天橋往交易廣場方向走，約 10 分到交易廣場巴士總站\n③ 找城巴 260（往赤柱）的月台排隊","stayMinutes":10}
 - {"id":"xhk10160y","title":"城巴 260 往赤柱","time":"10:40","cat":"transport","place":"中環交易廣場巴士總站","note":"約 50–60 分，山路彎多，易暈車先吃藥。第 6 號線改繞路，避開","stayMinutes":60}
 - {"id":"xhk10160z","title":"赤柱市集・美利樓・卜公碼頭","time":"11:40","cat":"sight","place":"赤柱","note":"平日人少；美利樓內餐廳已結業","stayMinutes":45}
 - {"id":"xhk101610","title":"赤柱廣場 午餐","time":"12:25","cat":"food","place":"赤柱廣場","note":"Beef & Liberty、鍾菜館、必勝客；海盜船遊樂設施可讓小朋友放電","stayMinutes":50}
-- {"id":"xhk101611","type":"transit","note":"城巴 260 / 6X 赤柱村上車往淺水灣","stayMinutes":20}
+- {"id":"xhk101611","type":"transit","note":"① 走回赤柱村巴士總站\n② 搭城巴 260 或 6X（往中環方向）\n③ 坐約 15 分在「淺水灣海灘」站下車","stayMinutes":20}
 - {"id":"xhk101612","title":"淺水灣泳灘","time":"13:35","cat":"sight","place":"淺水灣海灘","note":"11 月可能沒有救生員，以玩沙踩水為主。帶毛巾、換洗衣服，離開前幫小朋友沖好換好（等一下坐開篷巴士風大）。15:00 一定要離開趕落日飛車","stayMinutes":85}
-- {"id":"xhk101613","type":"transit","note":"城巴 260 / 6X 回中環交易廣場，再步行到中環 6 號碼頭","stayMinutes":50}
+- {"id":"xhk101613","type":"transit","note":"① 15:00 離開沙灘，走到淺水灣道往中環方向的巴士站\n② 搭城巴 260 或 6X 回中環，坐約 35–40 分到交易廣場\n③ 經天橋往碼頭方向走到中環 6 號碼頭，約 10 分","stayMinutes":50}
 - {"id":"xhk10160o","title":"換優先登車證、排隊","time":"15:50","cat":"other","place":"觀光城巴中環總站（6 號碼頭）","note":"買觀光城巴日遊票（City Sightseeing HK App 兌換 QR）才有優先登車。排隊誇張又沒優先證 → 改搭天星小輪過海看日落","stayMinutes":40}
 - {"id":"xhk10160p","title":"落日飛車 H1","time":"16:30","cat":"sight","place":"中環天星碼頭 → 尖沙咀漢口道","note":"全程約 80 分，17:40 日落正好在車上。上層開篷風大，帶外套","stayMinutes":80,"url":"https://eticket.citybus.com.hk/"}
-- {"id":"xhk101615","type":"transit","note":"漢口道走到尖沙咀站→荃灣綫 1 站到佐敦 C2 出口","stayMinutes":15}
+- {"id":"xhk101615","type":"transit","note":"① 落日飛車在尖沙咀漢口道下車，走到尖沙咀站\n② 荃灣綫（紅色）往「荃灣」方向坐 1 站到「佐敦」\n③ C2 出口出站，白加士街就在旁邊，澳洲牛奶公司在 47-49 號","stayMinutes":15}
 - {"id":"xhk101616","title":"澳洲牛奶公司","time":"18:05","cat":"food","place":"佐敦白加士街 47-49 號","note":"炒蛋多士、燉奶。節奏很快，坐下就點、吃完就走。出發前確認當天有營業","stayMinutes":40}
-- {"id":"xhk101617","type":"transit","note":"白加士街步行幾分鐘","stayMinutes":5}
+- {"id":"xhk101617","type":"transit","note":"① 沿白加士街往北走\n② 約 3 分到 113-115 號的佳佳甜品","stayMinutes":5}
 - {"id":"xhk101618","title":"佳佳甜品","time":"18:50","cat":"food","place":"佐敦白加士街 113-115 號","note":"石磨芝麻糊、杏仁露","stayMinutes":35,"hoursOpen":"12:00","hoursClose":"01:00"}
-- {"id":"xhk101619","type":"transit","note":"佐敦→中環→西營盤 地鐵約 30 分","stayMinutes":30}
+- {"id":"xhk101619","type":"transit","note":"① 走回佐敦站\n② 荃灣綫往「中環」方向坐 2 站到「金鐘」\n③ 在金鐘轉港島綫往「堅尼地城」方向，坐 3 站到「西營盤」\n④ A2 出口出站就是飯店（全程約 30 分）","stayMinutes":30}
 - {"id":"xhk10161a","title":"回到飯店","time":"19:55","cat":"stay","place":"頤庭酒店上環"}
 
 ### Day 4
 
 - {"id":"xhk10161b","title":"早餐・整理行李・退房","time":"07:45","cat":"stay","place":"西營盤","note":"前一晚先在香港快運 App 網上登機、確認行李重量","stayMinutes":60}
-- {"id":"xhk10161c","type":"transit","note":"西營盤→中環站→香港站，港島綫 2 站＋步行 10 分","stayMinutes":30}
+- {"id":"xhk10161c","type":"transit","note":"① 拖行李走 3 分鐘到西營盤站\n② 港島綫往「柴灣」方向坐 2 站到「中環」\n③ 跟著「機場快綫 Airport Express／香港站」指示走地下通道到香港站，約 10 分","stayMinutes":30}
 - {"id":"xhk10161d","title":"機場快綫往機場","time":"09:15","cat":"transport","place":"香港站","note":"香港快運不能市區預辦登機，行李帶去機場。約 24 分；下車走列車前進方向右側車門去 T2","stayMinutes":30}
 - {"id":"xhk10161e","title":"T2 U 行段 辦登機・託運","time":"09:45","cat":"transport","place":"機場二號客運大樓","note":"櫃檯 09:45 開、11:45 關。T2 L7 美食廣場可以吃東西","stayMinutes":45}
 - {"id":"xhk10161f","title":"旅客捷運到 T1 登機閘口","time":"10:30","cat":"transport","place":"T1","note":"登機閘口起飛前 20–30 分鐘關"}

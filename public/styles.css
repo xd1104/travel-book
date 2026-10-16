@@ -661,9 +661,30 @@ html.drag-lock, html.drag-lock body{touch-action:none; overscroll-behavior:none;
  * 備註有 ①②③ 或換行分段時才長出 .has-steps：一步一行、字級放大、深色字。
  * ⚠️ 選擇器一律綁 .transit-bar 底下，不要寫裸的 .tr-s／li（會掃到別的清單）。 */
 .tr-row{flex:1; display:flex; align-items:center; gap:8px; min-width:0;}
-.transit-bar.has-steps{flex-direction:column; align-items:stretch; gap:0; padding:9px 12px 10px;}
+.transit-bar.has-steps{flex-direction:column; align-items:stretch; gap:0; padding:0 12px;}
+/* v3.11 可摺疊：標題列整條是展開鈕（≥44px），收合時只露第 1 步當預覽 */
+.transit-bar .tr-toggle{min-height:46px; cursor:pointer; margin:0 -12px; padding:0 12px; border-radius:11px;}
+.transit-bar .tr-toggle:active{background:#e9e3d6;}
+.transit-bar .tr-cnt{margin-left:8px; font-size:12.5px; font-weight:700; color:#8a8174;
+  background:#fff; border-radius:999px; padding:2px 8px; box-shadow:0 0 0 1px #e2d9c9; white-space:nowrap;}
+.transit-bar .tr-chev{flex:0 0 auto; width:28px; height:28px; display:flex; align-items:center; justify-content:center;
+  color:#8a8174; transition:transform .2s;}
+.transit-bar .tr-chev .ico{width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:2;
+  stroke-linecap:round; stroke-linejoin:round;}
+.transit-bar.open .tr-chev{transform:rotate(180deg);}
+.transit-bar .tr-chev + .map-btn{margin-left:2px;}
+.transit-bar .tr-peek{display:flex; align-items:center; gap:10px; padding:0 0 11px; cursor:pointer;}
+.transit-bar .tr-pk{flex:1; min-width:0; font-size:15px; color:#4a433a; white-space:nowrap;
+  overflow:hidden; text-overflow:ellipsis;}
+.transit-bar .tr-steps,.transit-bar .tr-edit{display:none;}
+.transit-bar.open .tr-peek{display:none;}
+.transit-bar.open .tr-steps{display:block;}
+.transit-bar.open .tr-edit{display:flex;}
+.transit-bar .tr-edit{width:100%; min-height:44px; align-items:center; justify-content:center; margin:2px 0 8px;
+  border:none; border-top:1px dashed #ddd4c4; background:none; font:inherit; font-size:14px; font-weight:700;
+  color:#8a8174; cursor:pointer;}
 .transit-bar .tr-head{font-size:14px; font-weight:800; color:#4a433a;}
-.transit-bar .tr-steps{list-style:none; margin:6px 0 0; padding:0;}
+.transit-bar .tr-steps{list-style:none; margin:0; padding:0 0 4px;}
 .transit-bar .tr-steps li{display:flex; align-items:flex-start; gap:10px; padding:9px 0;
   border-top:1px dashed #ddd4c4;}
 .transit-bar .tr-steps li:first-child{border-top:none; padding-top:4px;}
