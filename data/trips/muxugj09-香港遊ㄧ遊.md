@@ -37,8 +37,9 @@ updatedAt: "2026-10-16T15:46:13.714Z"
 - {"id":"xhk10160k","title":"甘牌燒鵝","time":"11:10","cat":"food","place":"灣仔軒尼詩道 226 號","note":"米其林一星。11:30 開門前先排，第一批入座；燒鵝脾瀨粉限量。座位擠，可能併桌。當早午餐，出門前怕小朋友餓可先買麵包牛奶墊肚子","stayMinutes":70,"hoursOpen":"11:30","hoursClose":"21:30"}
 - {"id":"xhk10160j","type":"transit","note":"叮叮電車：甘牌門口軒尼詩道往西（堅尼地城／屈地街方向）坐到金鐘，搶上層最前排；下車步行經太古廣場上香港公園，約 30 分","stayMinutes":30}
 - {"id":"xhk10160i","title":"香港公園 尤德觀鳥園","time":"12:50","cat":"sight","place":"金鐘","note":"免費。兒童遊樂場讓小朋友放電＋尤德觀鳥園（可走進去的大鳥籠，09:00–17:00）＋溫室","stayMinutes":90}
-- {"id":"xhk10160f","type":"transit","note":"金鐘站→荃灣綫 1 站直達尖沙咀→步行約 5 分到漢口道","stayMinutes":20}
-- {"id":"xhk10170g","title":"下午茶 富華冰廳","time":"14:40","cat":"food","place":"尖沙咀漢口道 6 號","note":"菠蘿油、鹹蛋黃流沙菠蘿包、奶茶，掃 QR 點餐。想要正式英式下午茶可改走 3 分鐘的半島酒店大堂茶座（2 人套餐約 HK$987，常要排隊、有服裝規定）","stayMinutes":50,"hoursOpen":"06:30","hoursClose":"23:00"}
+- {"id":"xhk10160f","type":"transit","note":"金鐘站→荃灣綫 1 站直達尖沙咀→沿彌敦道往北、轉金巴利道步行約 6 分","stayMinutes":20}
+- {"id":"xhk10170g","title":"下午茶 聰嫂私房甜品","time":"14:40","cat":"food","place":"尖沙咀金巴利道（蓮香樓斜對面）","note":"米其林推介糖水。招牌芝麻糊湯圓、椰汁西米仙草、楊枝甘露、芒果類。先付款再上餐，可刷卡；晚上排隊、下午較好進","stayMinutes":40,"hoursOpen":"12:00","hoursClose":"00:00"}
+- {"id":"xhk10170k","type":"transit","note":"沿彌敦道往南走到 1881 Heritage，約 10 分","stayMinutes":10}
 - {"id":"xhk10170j","title":"尖沙咀散步：1881 → 鐘樓 → 星光大道 → 海港城","time":"15:30","cat":"sight","place":"尖沙咀海濱","note":"1881 Heritage 拍照 → 天星碼頭旁鐘樓 → 沿海濱長廊走星光大道（對岸是中環天際線）→ 走回廣東道、海港城逛街。累了海濱有很多長椅可以坐。17:30 前到海運大廈","stayMinutes":120}
 - {"id":"xhk10170i","title":"海運觀點看日落","time":"17:30","cat":"sight","place":"海港城海運大廈頂樓","note":"免費，17:40 日落，正對維港與中環天際線","stayMinutes":25}
 - {"id":"xhk10160q","type":"transit","note":"海運大廈走到港威商場 4 樓","stayMinutes":5}
