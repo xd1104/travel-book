@@ -24,13 +24,14 @@ updatedAt: "2026-10-16T15:46:13.714Z"
 - {"id":"xhk101607","type":"transit","note":"西營盤→中環站 J2 出口，上坡步行約 15 分到花園道","stayMinutes":25}
 - {"id":"xhk101608","title":"山頂纜車上山","time":"16:25","cat":"transport","place":"花園道山頂纜車總站","note":"平日預估排 30–60 分。纜車＋摩天台 428 套票先網路買好；等太久可改搭 15 號巴士","stayMinutes":50,"url":"https://www.thepeak.com.hk/","hoursOpen":"07:30","hoursClose":"23:00"}
 - {"id":"xhk101609","title":"凌霄閣摩天台 428","time":"17:15","cat":"sight","place":"太平山頂凌霄閣頂樓","note":"17:40 日落 → 18:00 後亮燈，一次看到日景、夕陽、夜景","stayMinutes":70,"hoursOpen":"08:30","hoursClose":"22:00"}
-- {"id":"xhk10160a","title":"阿甘蝦餐廳（靠窗位）","time":"18:25","cat":"food","place":"凌霄閣 3 樓","note":"要先訂位。吃飯前先上網領下山纜車的電子排隊號碼（排隊易）","stayMinutes":70,"hoursOpen":"12:00","hoursClose":"22:00"}
-- {"id":"xhk10160b","title":"纜車下山（或 15 號巴士）","time":"19:35","cat":"transport","place":"山頂 → 中環","note":"沒號碼或等太久就搭 15 號巴士，約 40 分","stayMinutes":40}
+- {"id":"xhk10160b","title":"纜車下山（或 15 號巴士）","time":"18:25","cat":"transport","place":"山頂 → 中環","note":"看完夜景就排纜車；可先上網領下山纜車電子排隊號碼。沒號碼或等太久就搭 15 號巴士，約 40 分","stayMinutes":40}
 - {"id":"xhk10160c","type":"transit","note":"中環站→西營盤 港島綫 2 站","stayMinutes":20}
-- {"id":"xhk10160d","title":"回到飯店","time":"20:35","cat":"stay","place":"頤庭酒店上環"}
+- {"id":"xhk10160d","title":"回到飯店","time":"19:25","cat":"stay","place":"頤庭酒店上環"}
 
 ### Day 2
 
+- {"id":"xhk10170a","title":"從飯店出發","time":"07:35","cat":"stay","place":"頤庭酒店上環"}
+- {"id":"xhk10170b","type":"transit","note":"走到西營盤站（約 3 分）→港島綫往柴灣 2 站到中環（約 5 分）→D2 出口，沿皇后大道中、上結志街步行約 8 分","stayMinutes":25}
 - {"id":"xhk10160e","title":"蘭芳園 早餐","time":"08:00","cat":"food","place":"中環結志街 2 號","note":"絲襪奶茶、蔥油雞扒撈丁。店小要併桌、有最低消費；早點到少排隊","stayMinutes":45,"hours":"07:30–18:00（週日休）"}
 - {"id":"xhk10160f","type":"transit","note":"上坡步行","stayMinutes":20}
 - {"id":"xhk10160g","title":"香港動植物公園","time":"09:05","cat":"sight","place":"中環雅賓利道","note":"免費。紅鸛、猴子、兒童遊樂場；爬行動物區暫停開放","stayMinutes":50}
@@ -52,6 +53,8 @@ updatedAt: "2026-10-16T15:46:13.714Z"
 
 ### Day 3
 
+- {"id":"xhk10170c","title":"從飯店出發","time":"08:20","cat":"stay","place":"頤庭酒店上環"}
+- {"id":"xhk10170d","type":"transit","note":"新興發：沿德輔道西往西步行約 7 分；十字冰室：沿東邊街上坡走到高街，約 8 分（坡陡，或從西營盤站內搭升降機到高街出口）","stayMinutes":10}
 - {"id":"xhk10160w","title":"西營盤 早餐","time":"08:30","cat":"food","place":"新興發點心 或 十字冰室","note":"新興發只收現金、週二休","stayMinutes":40}
 - {"id":"xhk10160x","type":"transit","note":"西營盤→中環站，往香港站方向走到交易廣場巴士總站","stayMinutes":20}
 - {"id":"xhk10160y","title":"城巴 260 往赤柱","time":"09:40","cat":"transport","place":"中環交易廣場巴士總站","note":"約 50–60 分，山路彎多，易暈車先吃藥。第 6 號線改繞路，避開","stayMinutes":60}
@@ -115,7 +118,6 @@ updatedAt: "2026-10-16T15:46:13.714Z"
 
 🎫 出發前要先訂
 □ 山頂纜車＋摩天台 428 套票（網路）
-□ 阿甘蝦餐廳 11/11 晚餐靠窗位
 □ 觀光城巴日遊票（下載 City Sightseeing HK App 兌換）
 □ 永安號 11/12 19:10 船票（不可退改，問小童票價）
 □ 香港快運加購託運行李
