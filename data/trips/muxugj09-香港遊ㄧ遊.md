@@ -36,12 +36,11 @@ updatedAt: "2026-10-16T15:46:13.714Z"
 - {"id":"xhk10170b","type":"transit","note":"走到西營盤站（約 3 分）→港島綫往柴灣 4 站到灣仔→A4 出口步行約 5 分","stayMinutes":25}
 - {"id":"xhk10160k","title":"甘牌燒鵝","time":"11:10","cat":"food","place":"灣仔軒尼詩道 226 號","note":"米其林一星。11:30 開門前先排，第一批入座；燒鵝脾瀨粉限量。座位擠，可能併桌。當早午餐，出門前怕小朋友餓可先買麵包牛奶墊肚子","stayMinutes":70,"hoursOpen":"11:30","hoursClose":"21:30"}
 - {"id":"xhk10160j","type":"transit","note":"叮叮電車：甘牌門口軒尼詩道往西（堅尼地城／屈地街方向）坐到金鐘，搶上層最前排；下車步行經太古廣場上香港公園，約 30 分","stayMinutes":30}
-- {"id":"xhk10160i","title":"香港公園 尤德觀鳥園","time":"12:50","cat":"sight","place":"金鐘","note":"免費。兒童遊樂場讓小朋友放電＋尤德觀鳥園（可走進去的大鳥籠，09:00–17:00）＋溫室","stayMinutes":80}
-- {"id":"xhk10160f","type":"transit","note":"金鐘站→港島綫 1 站到中環→D2 出口，沿皇后大道中、上結志街步行約 8 分","stayMinutes":20}
-- {"id":"xhk10160e","title":"蘭芳園 下午茶","time":"14:30","cat":"food","place":"中環結志街 2 號","note":"絲襪奶茶、豬扒包、蔥油雞扒撈丁。店小要併桌、有最低消費；下午比早上好排","stayMinutes":40,"hours":"07:30–18:00（週日休）"}
-- {"id":"xhk10160n","type":"transit","note":"下坡走到中環 7 號碼頭（約 20 分）→天星小輪到尖沙咀（約 10 分，小朋友會喜歡）→沿海濱步行到太空館","stayMinutes":45}
-- {"id":"xhk10170g","title":"香港太空館","time":"15:55","cat":"sight","place":"尖沙咀梳士巴利道 10 號","note":"平日 13:00–21:00、週二休（11/12 週四有開）。互動展品＋天象廳；天象廳節目有場次，到了先看時刻表","stayMinutes":80}
+- {"id":"xhk10160i","title":"香港公園 尤德觀鳥園","time":"12:50","cat":"sight","place":"金鐘","note":"免費。兒童遊樂場讓小朋友放電＋尤德觀鳥園（可走進去的大鳥籠，09:00–17:00）＋溫室","stayMinutes":90}
+- {"id":"xhk10160f","type":"transit","note":"金鐘站→荃灣綫 1 站直達尖沙咀→步行約 10 分到太空館","stayMinutes":20}
+- {"id":"xhk10170g","title":"香港太空館","time":"14:40","cat":"sight","place":"尖沙咀梳士巴利道 10 號","note":"平日 13:00–21:00、週二休（11/12 週四有開）。互動展品＋天象廳；天象廳節目有場次，到了先看時刻表","stayMinutes":90}
 - {"id":"xhk10170h","type":"transit","note":"沿海濱經天星碼頭走到海港城海運大廈","stayMinutes":15}
+- {"id":"xhk10170j","title":"海港城 海運大廈逛逛","time":"16:25","cat":"shop","place":"海港城海運大廈","note":"玩具反斗城讓小朋友逛；大人可逛商場。17:30 前上頂樓海運觀點","stayMinutes":65}
 - {"id":"xhk10170i","title":"海運觀點看日落","time":"17:30","cat":"sight","place":"海港城海運大廈頂樓","note":"免費，17:40 日落，正對維港與中環天際線","stayMinutes":25}
 - {"id":"xhk10160q","type":"transit","note":"海運大廈走到港威商場 4 樓","stayMinutes":5}
 - {"id":"xhk10160r","title":"海港城 Food Atlas","time":"18:00","cat":"food","place":"港威商場 4 樓","note":"不用訂位、上菜快（文記車仔麵、寧記豬腳飯等）。18:50 前要走到尖沙咀 3 號公眾碼頭","stayMinutes":45,"hoursOpen":"11:00","hoursClose":"22:00"}
@@ -53,9 +52,9 @@ updatedAt: "2026-10-16T15:46:13.714Z"
 ### Day 3
 
 - {"id":"xhk10170c","title":"從飯店出發","time":"09:30","cat":"stay","place":"頤庭酒店上環"}
-- {"id":"xhk10170d","type":"transit","note":"新興發：沿德輔道西往西步行約 7 分；十字冰室：沿東邊街上坡走到高街，約 8 分（坡陡，或從西營盤站內搭升降機到高街出口）","stayMinutes":10}
-- {"id":"xhk10160w","title":"西營盤 早餐","time":"09:40","cat":"food","place":"新興發點心 或 十字冰室","note":"新興發只收現金、週二休","stayMinutes":40}
-- {"id":"xhk10160x","type":"transit","note":"西營盤→中環站，往香港站方向走到交易廣場巴士總站","stayMinutes":20}
+- {"id":"xhk10170d","type":"transit","note":"走到西營盤站（約 3 分）→港島綫往柴灣 2 站到中環→D2 出口，沿皇后大道中、上結志街步行約 8 分","stayMinutes":25}
+- {"id":"xhk10160e","title":"蘭芳園 早餐","time":"09:55","cat":"food","place":"中環結志街 2 號","note":"絲襪奶茶、豬扒包、蔥油雞扒撈丁。店小要併桌、有最低消費。吃完下坡走到交易廣場搭 260","stayMinutes":35,"hours":"07:30–18:00（週日休）"}
+- {"id":"xhk10160x","type":"transit","note":"下坡經皇后大道中、天橋走到交易廣場巴士總站，約 10 分","stayMinutes":10}
 - {"id":"xhk10160y","title":"城巴 260 往赤柱","time":"10:40","cat":"transport","place":"中環交易廣場巴士總站","note":"約 50–60 分，山路彎多，易暈車先吃藥。第 6 號線改繞路，避開","stayMinutes":60}
 - {"id":"xhk10160z","title":"赤柱市集・美利樓・卜公碼頭","time":"11:40","cat":"sight","place":"赤柱","note":"平日人少；美利樓內餐廳已結業","stayMinutes":45}
 - {"id":"xhk101610","title":"赤柱廣場 午餐","time":"12:25","cat":"food","place":"赤柱廣場","note":"Beef & Liberty、鍾菜館、必勝客；海盜船遊樂設施可讓小朋友放電","stayMinutes":50}
