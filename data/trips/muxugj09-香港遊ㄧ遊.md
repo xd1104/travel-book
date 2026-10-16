@@ -17,10 +17,10 @@ updatedAt: "2026-10-16T15:46:13.714Z"
 - {"id":"xhk101600","title":"抵達香港機場 T1","time":"11:45","cat":"transport","place":"香港國際機場","note":"香港快運 10:00 起飛。入境＋領行李抓 45–60 分；大人在機場 7-Eleven 買旅客版八達通，小孩先付零錢，之後在上環／西營盤站客務中心買小童八達通","mapUrl":"https://maps.app.goo.gl/qmvx46KQg4BkSdrV9?g_st=ic","addr":"香港新界赤鱲角翔天路1號香港國際機場","stayMinutes":60}
 - {"id":"xhk1016a1","type":"transit","note":"城巴 A11 機場巴士（機場巴士總站，入境大堂外）→ 上環港澳碼頭站，約 45–60 分；下層放行李、上層看青馬大橋。下車走路到飯店約 15 分","stayMinutes":80}
 - {"id":"xhk101602","title":"頤庭酒店上環 寄放行李","time":"14:05","cat":"stay","place":"西營盤德輔道西 156-160 號","note":"西營盤站 A2 出口旁。15:00 才能入住、11:00 退房；沒有早餐也沒有餐廳","mapUrl":"https://maps.app.goo.gl/SX76Mr8oyeKqBgvR9?g_st=ic","addr":"156-160, Eco Tree Hotel Sheung Wan, Des Voeux Rd W, Sai Ying Pun, Hong Kong Island, 香港","stayMinutes":10,"phone":"+852 2217 1888"}
-- {"id":"xhk101603","type":"transit","note":"港島綫西營盤→上環 1 站，步行約 10 分","stayMinutes":10}
-- {"id":"xhk101604","title":"九記牛腩","time":"14:30","cat":"food","place":"中環歌賦街 21 號","note":"必點上湯牛腩伊麵。下午兩點半是午餐尾段，排隊較短；週日公休、晚上 6 點後人龍很長","stayMinutes":50,"hours":"12:30–22:30（週日休）"}
-- {"id":"xhk101605","type":"transit","note":"步行回上環站，搭港島綫回西營盤","stayMinutes":20}
-- {"id":"xhk101606","title":"回飯店辦入住、稍作休息","time":"15:40","cat":"stay","place":"頤庭酒店上環","note":"15:00 後可入住，先辦好入住，晚上回來直接休息","stayMinutes":20}
+- {"id":"xhk101603","type":"transit","note":"從飯店沿德輔道西往西走約 7 分","stayMinutes":10}
+- {"id":"xhk101604","title":"新興發點心","time":"14:30","cat":"food","place":"西營盤德輔道西 德美大廈地舖","note":"手工點心，必點鮮蝦腸粉、排骨、燒賣。只收現金；下午部分點心可能賣完，有圖片菜單可以指著點","stayMinutes":50,"phone":"+852 2547 1988","hoursOpen":"07:00","hoursClose":"18:00","hours":"07:00–18:00（週二休）"}
+- {"id":"xhk101605","type":"transit","note":"步行回飯店約 7 分","stayMinutes":10}
+- {"id":"xhk101606","title":"回飯店辦入住、稍作休息","time":"15:30","cat":"stay","place":"頤庭酒店上環","note":"15:00 後可入住，先辦好入住，晚上回來直接休息","stayMinutes":30}
 - {"id":"xhk101607","type":"transit","note":"西營盤→中環站 J2 出口，上坡步行約 15 分到花園道","stayMinutes":25}
 - {"id":"xhk101608","title":"山頂纜車上山","time":"16:25","cat":"transport","place":"花園道山頂纜車總站","note":"平日預估排 30–60 分。纜車＋摩天台 428 套票先網路買好；等太久可改搭 15 號巴士","stayMinutes":50,"url":"https://www.thepeak.com.hk/","hoursOpen":"07:30","hoursClose":"23:00"}
 - {"id":"xhk101609","title":"凌霄閣摩天台 428","time":"17:15","cat":"sight","place":"太平山頂凌霄閣頂樓","note":"17:40 日落 → 18:00 後亮燈，一次看到日景、夕陽、夜景","stayMinutes":70,"hoursOpen":"08:30","hoursClose":"22:00"}
