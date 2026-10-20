@@ -7,7 +7,7 @@ start: "2026-11-11"
 days: 4
 budget: 0
 createdAt: "2026-10-07T08:27:03.613Z"
-updatedAt: "2026-10-20T16:09:17.000Z"
+updatedAt: "2026-10-20T16:20:31.000Z"
 ---
 
 ## 行程
@@ -93,14 +93,6 @@ updatedAt: "2026-10-20T16:09:17.000Z"
 - {"id":"xhkexp01","amount":2050,"cat":"sight","desc":"山頂纜車＋摩天台 428 套票","note":"預估：成人約 HK$150–180、小童約 HK$75–120，各網站價格不一，網路買前以官網為準（以 2 大 2 小、匯率 1 港幣≈4.1 台幣估算）。港幣小計約 HK$500","day":"pre","plan":true}
 - {"id":"xhkexp02","amount":4220,"cat":"sight","desc":"永安號 幻彩詠香江暢飲維港遊","note":"預估：沒查到永安號票價，先用同類船（張保仔號）成人 HK$295、小童 HK$220 估。不可退改，買前打 2928 8882 確認（以 2 大 2 小、匯率 1 港幣≈4.1 台幣估算）。港幣小計約 HK$1030","day":"pre","plan":true}
 - {"id":"xhkexp03","amount":1400,"cat":"sight","desc":"觀光城巴夜遊票（H2K）","note":"預估：成人約 HK$114，小童價格各資料不一先用半價估，App 買前確認（以 2 大 2 小、匯率 1 港幣≈4.1 台幣估算）。港幣小計約 HK$342","day":"pre","plan":true}
-- {"id":"xhkexp04","amount":630,"cat":"transport","desc":"Day 1 交通（八達通）","note":"A10 機場巴士約 HK$40＋港鐵 2 趟；纜車已含在套票（以 2 大 2 小、匯率 1 港幣≈4.1 台幣估算）。港幣小計約 HK$154","day":1,"plan":true}
-- {"id":"xhkexp05","amount":320,"cat":"transport","desc":"Day 2 交通（八達通）","note":"港鐵 3 趟＋叮叮車；永安號另計（以 2 大 2 小、匯率 1 港幣≈4.1 台幣估算）。港幣小計約 HK$78","day":2,"plan":true}
-- {"id":"xhkexp06","amount":690,"cat":"transport","desc":"Day 3 交通（八達通）","note":"260 巴士 3 段＋港鐵 4 趟；H2K 另計（以 2 大 2 小、匯率 1 港幣≈4.1 台幣估算）。港幣小計約 HK$168","day":3,"plan":true}
-- {"id":"xhkexp07","amount":490,"cat":"transport","desc":"Day 4 交通（八達通）","note":"A11 機場巴士約 HK$40（以 2 大 2 小、匯率 1 港幣≈4.1 台幣估算）。港幣小計約 HK$120","day":4,"plan":true}
-- {"id":"xhkexp08","amount":3610,"cat":"food","desc":"Day 1 餐飲","note":"預估每人：新興發 HK$60、Vission 麵包 HK$40、坤記 HK$120，小朋友吃得少會更低（以 2 大 2 小、匯率 1 港幣≈4.1 台幣估算）。港幣小計約 HK$880","day":1,"plan":true}
-- {"id":"xhkexp09","amount":4100,"cat":"food","desc":"Day 2 餐飲","note":"預估每人：甘牌 HK$100、聰嫂 HK$50、Bakehouse HK$30、Food Atlas HK$70（以 2 大 2 小、匯率 1 港幣≈4.1 台幣估算）。港幣小計約 HK$1000","day":2,"plan":true}
-- {"id":"xhkexp10","amount":4100,"cat":"food","desc":"Day 3 餐飲","note":"預估每人：蘭芳園 HK$60（有最低消費）、赤柱午餐 HK$100、棟記 HK$90（以 2 大 2 小、匯率 1 港幣≈4.1 台幣估算）。港幣小計約 HK$1000","day":3,"plan":true}
-- {"id":"xhkexp11","amount":1150,"cat":"food","desc":"Day 4 早餐","note":"預估每人：六安居／新五龍 HK$70（以 2 大 2 小、匯率 1 港幣≈4.1 台幣估算）。港幣小計約 HK$280","day":4,"plan":true}
 
 ## 打包
 
