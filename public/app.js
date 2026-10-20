@@ -42,7 +42,7 @@ function splashReady(){
 /* ============ 常數 ============ */
 /* 版本號的唯一來源：首頁 footer 與「版本」sheet 都讀它。
  * 改前端時跟 sw.js 的 cache 版本號一起 +1（見「版本與更新」段）。 */
-var APP_VER="3.11";
+var APP_VER="3.12";
 
 /* 打包把手的三個門檻（v3.0，DESIGN.md 附錄 E2）——「先觀察，後接管」：
  * pointerdown 只進入「待命」，垂直帶開＝你在捲動就放行，橫向帶開或按住夠久才真的開始拖。
@@ -891,7 +891,13 @@ var GitHubStore = {
       .then(function(j){ self._sha[pathRel]=j.sha; return {sha:j.sha, text:j.content?b64DecodeUtf8(j.content):""}; })
       .catch(function(e){ if(e.status===404){ delete self._sha[pathRel]; return null; } throw e; });
   },
-  _putFile:function(pathRel, contentB64, message, sha){
+  /* safe（v3.12，旅程檔專用）：sha 對不上時先看雲端那份是不是真的被別人改過。
+   * 舊版一律「重取 sha 再寫一次」＝ last-write-wins：手機開著舊畫面一存檔，
+   * 就把電腦（或另一台手機）剛改好的整趟行程蓋回舊版（2026-10-20/21 連發兩次）。
+   * 現在：雲端那份跟我們出發時是同一版（只是撞到別的 commit）或內容剛好一樣 → 照舊重試；
+   *       真的被改過 → 不寫，丟 conflict 讓上層換成雲端最新版。
+   * 範本／類別維持舊行為（單檔、很少兩邊同時改）。 */
+  _putFile:function(pathRel, contentB64, message, sha, safe){
     var self=this;
     var body={ message:message, content:contentB64, branch:GH.branch };
     if(sha) body.sha=sha;
@@ -900,8 +906,13 @@ var GitHubStore = {
       .then(function(j){ if(j&&j.content) self._sha[pathRel]=j.content.sha; return j; })
       .catch(function(e){
         if(e.status===409||e.status===422){
-          /* sha 過期或缺 sha（檔案已存在）：重取 sha 再試一次，last-write-wins */
+          /* sha 過期或缺 sha（檔案已存在）：重取 sha 再試一次（safe 時先確認不會蓋掉別人的修改） */
           return self._getFile(pathRel).then(function(cur){
+            if(safe && cur && cur.sha!==sha && cur.text!==b64DecodeUtf8(contentB64)){
+              var c=uiError("這趟旅程剛在別的裝置改過。");
+              c.conflict=true; c.remoteText=cur.text;
+              throw c;
+            }
             body.sha=cur?cur.sha:undefined;
             return self._ghFetch(self.apiBase+"/contents/"+pathRel, {method:"PUT", body:JSON.stringify(body)}, true)
               .then(function(res){ return res.json(); })
@@ -931,7 +942,7 @@ var GitHubStore = {
     var pathRel="data/trips/"+t.id+".md";
     t.updatedAt=new Date().toISOString();
     if(!t.createdAt) t.createdAt=t.updatedAt;
-    return this._putFile(pathRel, b64EncodeUtf8(serializeTrip(t)), "mobile: save "+t.name, this._sha[pathRel]||null);
+    return this._putFile(pathRel, b64EncodeUtf8(serializeTrip(t)), "mobile: save "+t.name, this._sha[pathRel]||null, true);
   },
   deleteTrip:function(id){
     return this._deleteFile("data/trips/"+id+".md", "mobile: delete trip "+id);
@@ -968,18 +979,39 @@ if(KR){
 
 /* ============ 持久化（樂觀更新：畫面先動，背景寫入，失敗才 toast） ============ */
 var persistChains = {}; /* 同一份檔案的寫入排隊，避免並發互蓋 */
+var pendingWrites = 0;  /* v3.12：還沒寫完的筆數（回到 App 時的背景更新要等它歸零） */
+var writeSeq = 0;       /* v3.12：每排一筆寫入就 +1，背景更新途中有人寫入就丟掉那次結果 */
 function chainPersist(key, job){
+  pendingWrites++; writeSeq++;
   var run=function(){
     return job().catch(function(e){
       toast("儲存失敗："+(e.userMessage||e.message||""), true);
     });
   };
-  persistChains[key]=(persistChains[key]||Promise.resolve()).then(run);
+  var done=function(){ pendingWrites=Math.max(0, pendingWrites-1); };
+  persistChains[key]=(persistChains[key]||Promise.resolve()).then(run).then(done, done);
   return persistChains[key];
 }
 function persistTrip(t){
   if(!t) return Promise.resolve();
-  return chainPersist("trip:"+t.id, function(){ return STORE.saveTrip(t); });
+  return chainPersist("trip:"+t.id, function(){
+    /* 已經被雲端版取代的舊物件：排在後面的寫入一律作廢，否則會拿新 sha 把舊資料寫回去 */
+    if(t.__stale) return Promise.resolve();
+    return STORE.saveTrip(t).catch(function(e){
+      if(e && e.conflict){ adoptRemoteTrip(t, e.remoteText); return; }
+      throw e;
+    });
+  });
+}
+/* v3.12：存檔撞到別台裝置的修改 → 不蓋掉對方，改把這趟換成雲端最新版。
+ * 代價是他剛剛那一下修改沒存到，所以 toast 要講清楚、請他再改一次。 */
+function adoptRemoteTrip(oldT, text){
+  var fresh = normTrip(parseTrip(oldT.id, text));
+  oldT.__stale = true;
+  for(var i=0;i<db.trips.length;i++) if(db.trips[i]===oldT || db.trips[i].id===oldT.id) db.trips[i]=fresh;
+  closeSheet();
+  render();
+  toast("這趟旅程剛在別的裝置改過，已換成最新版本。剛剛那一下沒存到，請再改一次。", true);
 }
 function persistTemplate(tp){
   if(!tp) return Promise.resolve();
@@ -1009,15 +1041,17 @@ function migrate(d){
   /* 類別：來源沒有（舊資料/Pages 上檔案還沒建）就用內建六類；並保證「其他」存在 */
   d.categories = (Array.isArray(d.categories) && d.categories.length)
     ? normalizeCategories(d.categories) : defaultCategories();
-  d.trips.forEach(function(t){
-    if(!t.itinerary) t.itinerary={};
-    if(!Array.isArray(t.expenses)) t.expenses=[];
-    if(!Array.isArray(t.packing)) t.packing=[];
-    if(t.notes==null) t.notes="";
-    /* 舊資料沒分區 -> 歸隨身；v2.9 起順便把包的參照補正（壞掉的 bag 降級成頂層） */
-    t.packing = normalizePacking(t.packing);
-  });
+  d.trips.forEach(normTrip);
   return d;
+}
+function normTrip(t){
+  if(!t.itinerary) t.itinerary={};
+  if(!Array.isArray(t.expenses)) t.expenses=[];
+  if(!Array.isArray(t.packing)) t.packing=[];
+  if(t.notes==null) t.notes="";
+  /* 舊資料沒分區 -> 歸隨身；v2.9 起順便把包的參照補正（壞掉的 bag 降級成頂層） */
+  t.packing = normalizePacking(t.packing);
+  return t;
 }
 
 /* ============ UI 狀態 ============ */
@@ -3346,6 +3380,29 @@ function bootLoad(){
   }).then(splashReady, splashReady);   /* 成功或失敗都要收開場 */
 }
 bootLoad();
+
+/* v3.12：離開 App 超過 1 分鐘再回來 → 背景抓一次最新資料（不出骨架屏）。
+ * 他幾乎只用手機，App 常常在背景放好幾個小時；這段期間電腦或另一台裝置改過的東西，
+ * 手機畫面還是舊的，一改就會撞衝突。回來時先換成新的，大部分衝突根本不會發生。
+ * ⚠️ 他正在編輯（sheet 開著、調整模式、打包就地新增）或還有寫入沒完成時不動，
+ *    寧可這次不更新，也不要把他打到一半的東西洗掉；載入途中有人寫入也丟掉結果。 */
+var hiddenAt = 0;
+function busyEditing(){
+  return !sheetLayer.hidden || ui.edit || (ui.pk && ui.pk.adding) || pendingWrites>0;
+}
+document.addEventListener("visibilitychange", function(){
+  if(document.hidden){ hiddenAt = Date.now(); return; }
+  var away = hiddenAt ? Date.now()-hiddenAt : 0;
+  hiddenAt = 0;
+  if(!booted || STORE.local || away < 60000 || busyEditing()) return;
+  var seq = writeSeq;
+  STORE.loadAll().then(function(d){
+    if(seq!==writeSeq || busyEditing()) return;
+    db = migrate(d);
+    rebuildCats();
+    render();
+  }).catch(function(){ /* 背景更新失敗就算了，畫面維持原狀 */ });
+});
 
 /* ============ 版本與更新 ============
  * PWA 的殼是 cache-first，新的 service worker 裝好、activate 之後，

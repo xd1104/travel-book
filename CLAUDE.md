@@ -11,11 +11,13 @@ UI/UX 以 `demo/index.html`（UX demo v3.1，Benson 拍板）為準，**勿自�
 
 ## 前端 DataStore（依 `location.hostname` 自動切；`?store=github` 可強制測 GitHub 模式）
 - **localhost → LocalStore**：打本機 `/api`，全功能。
-- **非 localhost（Pages）→ GitHubStore**：**有 PAT** 走認證 Contents API 讀寫（即時；PUT/DELETE 帶 sha、base64、409/422 自動重取 sha 重試一次、樂觀更新）；**無 PAT** 唯讀走 raw＋`?t=<sha>` cache-buster（匿名 API 快取嚴重，別拿無金鑰裝置驗「最新」）。
+- **非 localhost（Pages）→ GitHubStore**：**有 PAT** 走認證 Contents API 讀寫（即時；PUT/DELETE 帶 sha、base64、409/422 重取 sha 重試一次（旅程檔 v3.12 起先確認雲端沒被別人改過，見下方同步段）、樂觀更新）；**無 PAT** 唯讀走 raw＋`?t=<sha>` cache-buster（匿名 API 快取嚴重，別拿無金鑰裝置驗「最新」）。
 
 ## 同步（別誤改的決策）
 - 同檔衝突：**固定電腦版本勝（`-X ours`）**——刻意選「電腦是真本」。要改成手機勝需 Benson 拍板。
 - 同步失敗絕不影響本機存檔（只記 log）。`AUTO_SYNC=0` 可關（測試用）。
+- **手機（GitHubStore）存旅程撞到 409（v3.12，Benson 授權修；別退回 last-write-wins）**：舊版一律「重取 sha 再 PUT」，手機開著舊畫面一存檔就整檔蓋掉別台裝置剛改好的行程（2026-10-20、10-21 實際發生兩次）。現在 `_putFile(..., safe=true)`（只有 `saveTrip` 開）先抓雲端那份：**blob sha 跟出發時同一個（只是撞到別的 commit）或內容剛好一樣 → 照舊重試；真的被改過 → 不寫**，`adoptRemoteTrip` 把這趟換成雲端版、舊物件標 `__stale`（排在後面的寫入全部作廢，否則會拿新 sha 把舊資料寫回去）、toast 請他再改一次。範本／類別維持舊行為。
+- **回到 App 自動更新（v3.12）**：`visibilitychange` 離開超過 60 秒再回來 → 背景 `loadAll()` 換資料（不出骨架屏）；sheet 開著／調整模式／打包就地新增／還有寫入沒完成（`pendingWrites`）時不動，載入途中有人寫入（`writeSeq` 變了）就丟掉結果。
 
 ## 金鑰（安全）
 - 手機用 **fine-grained PAT、只授權 `travel-book` 一個 repo 的 Contents 讀寫**，存 localStorage（key **`travel_gh_pat`**）。設定入口只在非 localhost 顯示（首頁 footer「設定」）。**任何真實金鑰不可寫進程式或 commit。**
