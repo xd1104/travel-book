@@ -7,7 +7,7 @@ start: "2026-11-11"
 days: 4
 budget: 0
 createdAt: "2026-10-07T08:27:03.613Z"
-updatedAt: "2026-10-16T15:46:13.714Z"
+updatedAt: "2026-10-20T06:21:48.000Z"
 ---
 
 ## 行程
@@ -61,16 +61,18 @@ updatedAt: "2026-10-16T15:46:13.714Z"
 - {"id":"xhk10160z","title":"赤柱市集・美利樓・卜公碼頭","time":"11:40","cat":"sight","place":"赤柱","note":"平日人少；美利樓內餐廳已結業","stayMinutes":45}
 - {"id":"xhk101610","title":"赤柱廣場 午餐","time":"12:25","cat":"food","place":"赤柱廣場","note":"Beef & Liberty、鍾菜館、必勝客；海盜船遊樂設施可讓小朋友放電","stayMinutes":50}
 - {"id":"xhk101611","type":"transit","note":"① 走回赤柱村巴士總站\n② 搭城巴 260 或 6X（往中環方向）\n③ 坐約 15 分在「淺水灣海灘」站下車","stayMinutes":20}
-- {"id":"xhk101612","title":"淺水灣泳灘","time":"13:35","cat":"sight","place":"淺水灣海灘","note":"11 月可能沒有救生員，以玩沙踩水為主。帶毛巾、換洗衣服，離開前幫小朋友沖好換好（等一下坐開篷巴士風大）。15:00 一定要離開趕落日飛車","stayMinutes":85}
-- {"id":"xhk101613","type":"transit","note":"① 15:00 離開沙灘，走到淺水灣道往中環方向的巴士站\n② 搭城巴 260 或 6X 回中環，坐約 35–40 分到交易廣場\n③ 經天橋往碼頭方向走到中環 6 號碼頭，約 10 分","stayMinutes":50}
-- {"id":"xhk10160o","title":"換優先登車證、排隊","time":"15:50","cat":"other","place":"觀光城巴中環總站（6 號碼頭）","note":"買觀光城巴日遊票（City Sightseeing HK App 兌換 QR）才有優先登車。排隊誇張又沒優先證 → 改搭天星小輪過海看日落","stayMinutes":40}
-- {"id":"xhk10160p","title":"落日飛車 H1","time":"16:30","cat":"sight","place":"中環天星碼頭 → 尖沙咀漢口道","note":"全程約 80 分，17:40 日落正好在車上。上層開篷風大，帶外套","stayMinutes":80,"url":"https://eticket.citybus.com.hk/"}
-- {"id":"xhk101615","type":"transit","note":"① 落日飛車在尖沙咀漢口道下車，走到尖沙咀站\n② 荃灣綫（紅色）往「荃灣」方向坐 1 站到「佐敦」\n③ C2 出口出站，白加士街就在旁邊，澳洲牛奶公司在 47-49 號","stayMinutes":15}
-- {"id":"xhk101616","title":"澳洲牛奶公司","time":"18:05","cat":"food","place":"佐敦白加士街 47-49 號","note":"炒蛋多士、燉奶。節奏很快，坐下就點、吃完就走。出發前確認當天有營業","stayMinutes":40}
-- {"id":"xhk101617","type":"transit","note":"① 沿白加士街往北走\n② 約 3 分到 113-115 號的佳佳甜品","stayMinutes":5}
-- {"id":"xhk101618","title":"佳佳甜品","time":"18:50","cat":"food","place":"佐敦白加士街 113-115 號","note":"石磨芝麻糊、杏仁露","stayMinutes":35,"hoursOpen":"12:00","hoursClose":"01:00"}
-- {"id":"xhk101619","type":"transit","note":"① 走回佐敦站\n② 荃灣綫往「中環」方向坐 2 站到「金鐘」\n③ 在金鐘轉港島綫往「堅尼地城」方向，坐 3 站到「西營盤」\n④ A2 出口出站就是飯店（全程約 30 分）","stayMinutes":30}
-- {"id":"xhk10161a","title":"回到飯店","time":"19:55","cat":"stay","place":"頤庭酒店上環"}
+- {"id":"xhk101612","title":"淺水灣泳灘","time":"13:35","cat":"sight","place":"淺水灣海灘","note":"11 月可能沒有救生員，以玩沙踩水為主。泳灘大樓有更衣室、淋浴（多半是冷水），離開前先幫小朋友沖掉沙子、換乾衣服，回飯店再洗熱水澡。15:00 離開","stayMinutes":85}
+- {"id":"xhk101613","type":"transit","note":"① 15:00 離開沙灘，走到淺水灣道往中環方向的巴士站\n② 搭城巴 260 或 6X 回中環，坐約 35–40 分到交易廣場\n③ 走天橋到中環站，港島綫（藍色）往「堅尼地城」方向坐 2 站到「西營盤」\n④ A2 出口出站就是飯店","stayMinutes":60}
+- {"id":"xhk102001","title":"回飯店洗澡、休息","time":"16:00","cat":"stay","place":"頤庭酒店上環","note":"洗熱水澡、換衣服、休息。出門記得帶薄外套（晚上坐開篷巴士風大）","stayMinutes":75}
+- {"id":"xhk102002","type":"transit","note":"① 走 3 分鐘到西營盤站\n② 港島綫（藍色）往「柴灣」方向坐 2 站到「中環」\n③ A 出口往國際金融中心（IFC），跟著「中環碼頭 Central Piers」指示走天橋到海濱，約 10 分","stayMinutes":20}
+- {"id":"xhk102003","title":"中環海濱看日落","time":"17:35","cat":"sight","place":"中環海濱（中環碼頭至摩天輪一帶）","note":"免費。17:40 日落，往西看維港與西九方向。就在 H2K 上車的 6 號碼頭旁邊","stayMinutes":20}
+- {"id":"xhk102004","type":"transit","note":"① 從海濱走天橋回 IFC 商場，約 5 分","stayMinutes":5}
+- {"id":"xhk102005","title":"中環 IFC 一帶晚餐（待定）","time":"18:00","cat":"food","place":"國際金融中心商場（IFC）","note":"商場裡餐廳多，離 H2K 上車處走路約 5 分。18:40 前吃完離開","stayMinutes":40}
+- {"id":"xhk102006","type":"transit","note":"① 從 IFC 走天橋到中環 6 號碼頭的觀光巴士站，約 5 分","stayMinutes":5}
+- {"id":"xhk10160o","title":"H2K 排隊","time":"18:45","cat":"other","place":"觀光城巴中環總站（6 號碼頭）","note":"持觀光城巴夜遊票或日遊票（City Sightseeing HK App 兌換 QR）在中環可優先上車。只坐 H2K 的話夜遊票比較便宜，出發前確認價格。平日晚上應比假日少人","stayMinutes":30}
+- {"id":"xhk10160p","title":"H2K 夜景巴士","time":"19:15","cat":"sight","place":"中環 6 號碼頭（循環線）","note":"開篷雙層巴士夜景路線：中環 → 灣仔 → 過海 → 佐敦廟街 → 西九文化區 → 尖沙咀 → 過海 → 銅鑼灣 → 回中環。18:30 起發車，全程約 70–90 分（估計）。上層風大帶外套。出發前用城巴 App 確認班次","stayMinutes":80,"url":"https://eticket.citybus.com.hk/"}
+- {"id":"xhk102007","type":"transit","note":"① H2K 回到中環 6 號碼頭下車\n② 走天橋經 IFC 到中環站，約 10 分\n③ 港島綫往「堅尼地城」方向坐 2 站到「西營盤」\n④ A2 出口出站就是飯店","stayMinutes":25}
+- {"id":"xhk10161a","title":"回到飯店","time":"21:00","cat":"stay","place":"頤庭酒店上環"}
 
 ### Day 4
 
@@ -119,7 +121,7 @@ updatedAt: "2026-10-16T15:46:13.714Z"
 
 🎫 出發前要先訂
 □ 山頂纜車＋摩天台 428 套票（網路）
-□ 觀光城巴日遊票（下載 City Sightseeing HK App 兌換）— 落日飛車改 11/13 搭
+□ 觀光城巴夜遊票或日遊票（下載 City Sightseeing HK App 兌換）— 11/13 晚上坐 H2K 夜景巴士，只坐 H2K 買夜遊票較便宜
 □ 永安號 11/12 19:10 船票（不可退改，問小童票價）
 □ 香港快運加購託運行李
 
