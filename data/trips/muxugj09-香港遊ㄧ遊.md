@@ -98,7 +98,7 @@ updatedAt: "2026-10-20T16:55:56.000Z"
 - {"id":"xhkexp06","amount":800,"cat":"transport","desc":"Day 3 交通（八達通）","note":"預估：260 巴士 3 段＋港鐵 4 趟；H2K 另計（3 大 1 小，小童約半價；匯率 1 港幣≈4.1 台幣）。港幣小計約 HK$194","day":3,"plan":true}
 - {"id":"xhkexp07","amount":570,"cat":"transport","desc":"Day 4 交通（八達通）","note":"預估：A11 機場巴士約 HK$40（3 大 1 小，小童約半價；匯率 1 港幣≈4.1 台幣）。港幣小計約 HK$140","day":4,"plan":true}
 - {"id":"xhkexp08","amount":3390,"cat":"food","desc":"Day 1 餐飲","note":"預估每人：新興發 HK$60、Vission 麵包 HK$40、坤記煲仔飯 HK$130（3 大 1 小，小朋友算 0.6 份；匯率 1 港幣≈4.1 台幣）。港幣小計約 HK$828","day":1,"plan":true}
-- {"id":"xhkexp09","amount":3840,"cat":"food","desc":"Day 2 餐飲","note":"預估每人：甘牌 HK$110、聰嫂 HK$50、Bakehouse HK$30、Food Atlas HK$70（3 大 1 小，小朋友算 0.6 份；匯率 1 港幣≈4.1 台幣）。港幣小計約 HK$936","day":2,"plan":true}
+- {"id":"xhkexp09","amount":3990,"cat":"food","desc":"Day 2 餐飲","note":"預估每人：甘牌 HK$110、聰嫂 HK$50、Bakehouse HK$30、中環晚餐（九記／正斗）HK$80（3 大 1 小，小朋友算 0.6 份；匯率 1 港幣≈4.1 台幣）。港幣小計約 HK$972","day":2,"plan":true}
 - {"id":"xhkexp10","amount":3690,"cat":"food","desc":"Day 3 餐飲","note":"預估每人：蘭芳園 HK$60（有最低消費）、赤柱午餐 HK$100、棟記 HK$90（3 大 1 小，小朋友算 0.6 份；匯率 1 港幣≈4.1 台幣）。港幣小計約 HK$900","day":3,"plan":true}
 - {"id":"xhkexp11","amount":1030,"cat":"food","desc":"Day 4 早餐","note":"預估每人：六安居／新五龍 HK$70（3 大 1 小，小朋友算 0.6 份；匯率 1 港幣≈4.1 台幣）。港幣小計約 HK$252","day":4,"plan":true}
 
