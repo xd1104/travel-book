@@ -7,7 +7,7 @@ start: "2026-11-11"
 days: 4
 budget: 70000
 createdAt: "2026-10-07T08:27:03.613Z"
-updatedAt: "2026-10-21T02:10:01.296Z"
+updatedAt: "2026-10-21T03:45:44.000Z"
 ---
 
 ## 行程
@@ -105,23 +105,23 @@ updatedAt: "2026-10-21T02:10:01.296Z"
 ## 打包
 
 - {"id":"xmuxugj09y7iq","text":"護照＋影本","done":false,"zone":"carry"}
-- {"id":"xmuxugj09w8iq","text":"外幣現金＋信用卡","done":false,"zone":"carry"}
 - {"id":"xmuxugj09avgm","text":"eSIM／網卡設定好","done":false,"zone":"carry"}
 - {"id":"xmuxugj09nxr7","text":"行動電源＋充電線","done":false,"zone":"carry"}
-- {"id":"xmuxugj095ril","text":"原子筆（入境表）","done":false,"zone":"carry"}
 - {"id":"xmuxugj09y829","text":"換洗衣物","done":false,"zone":"checked"}
 - {"id":"xmuxugj0986qn","text":"盥洗包","done":false,"zone":"checked"}
 - {"id":"xmuxugj098mmz","text":"常備藥","done":false,"zone":"checked"}
 - {"id":"xmuxugj097c5g","text":"摺疊傘","done":false,"zone":"checked"}
-- {"id":"xmuxugj09nak3","text":"萬用轉接頭","done":false,"zone":"checked"}
+- {"id":"xmuxugj09nak3","text":"轉接頭（香港是英式三孔 G 型插座）","done":false,"zone":"checked"}
 - {"id":"xmuxugj09aabx","text":"裝髒衣的袋子","done":false,"zone":"checked"}
-- {"id":"xhk1016p0","text":"八達通 ×4（小童卡）","done":false,"zone":"carry"}
-- {"id":"xhk1016p1","text":"港幣現金（老店只收現金）","done":false,"zone":"carry"}
-- {"id":"xhk1016p2","text":"暈車藥（260 巴士山路）","done":false,"zone":"carry"}
-- {"id":"xhk1016p3","text":"薄外套 ×4（開篷巴士、遊船風大）","done":false,"zone":"carry"}
+- {"id":"xhk1016p0","text":"八達通（有的帶上；沒有的大人在機場買、小朋友到港鐵站買小童卡）","done":false,"zone":"carry"}
+- {"id":"xhk1016p1","text":"港幣現金＋信用卡（老店只收現金）","done":false,"zone":"carry"}
+- {"id":"xhk1016p2","text":"暈車藥（山頂 15 號、260 巴士都是山路）","done":false,"zone":"carry"}
+- {"id":"xhk1016p3","text":"薄外套 ×4（開篷巴士、遊船、山頂風大）","done":false,"zone":"carry"}
 - {"id":"xhk1016p4","text":"海灘毛巾、小朋友換洗衣服","done":false,"zone":"checked"}
 - {"id":"xhk1016p5","text":"防曬、帽子","done":false,"zone":"checked"}
 - {"id":"xhk1016p6","text":"裝濕衣服的袋子","done":false,"zone":"checked"}
+- {"id":"xhkpk01","text":"港簽（預辦入境登記）截圖或列印 ×4","done":false,"zone":"carry"}
+- {"id":"xhkpk02","text":"海灘拖鞋／涼鞋","done":false,"zone":"checked"}
 
 ## 備註
 
@@ -136,6 +136,8 @@ updatedAt: "2026-10-21T02:10:01.296Z"
 15:00 入住、11:00 退房，沒有早餐
 
 🎫 出發前要先訂
+☑ 港簽（台灣居民預辦入境登記）已辦好
+□ 旅平險（出發前幾天投保）
 □ 山頂纜車上山單程＋摩天台 428（網路）；下山坐 15 號巴士
 □ 觀光城巴夜遊票或日遊票（下載 City Sightseeing HK App 兌換）— 11/13 晚上坐 H2K 夜景巴士，只坐 H2K 買夜遊票較便宜
 □ 永安號 11/12 18:10「黃昏暢飲海上遊」船票（尖沙咀上船、中環下船；不可退改）
