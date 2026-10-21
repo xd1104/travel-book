@@ -7,7 +7,7 @@ start: "2026-11-11"
 days: 4
 budget: 70000
 createdAt: "2026-10-07T08:27:03.613Z"
-updatedAt: "2026-10-21T03:45:44.000Z"
+updatedAt: "2026-10-21T04:05:43.000Z"
 ---
 
 ## 行程
@@ -84,7 +84,7 @@ updatedAt: "2026-10-21T03:45:44.000Z"
 - {"id":"xhk102011","type":"transit","note":"① 出餐廳前用城巴 App 看 A11 幾點到\n② 往海邊走到干諾道西的「皇后街, 干諾道西」站，約 2 分","stayMinutes":10}
 - {"id":"xhk10161d","title":"城巴 A11 往機場","time":"08:40","cat":"transport","place":"皇后街, 干諾道西","note":"約 50–60 分，週六早上車比較少。大人約 HK$40、小朋友約半價，拍八達通。班次約 15–40 分一班。在「機場 (2 號客運大樓)」站下車。A11 等太久：拖行李走到港鐵上環站，坐到中環轉香港站搭機場快綫","stayMinutes":60}
 - {"id":"xhk102008","type":"transit","note":"① 在「機場 (2 號客運大樓)」站下車\n② 跟著指示進 T2 出境大堂，找 U 行段的香港快運櫃檯","stayMinutes":5}
-- {"id":"xhk10161e","title":"T2 U 行段 辦登機・託運","time":"09:45","cat":"transport","place":"機場二號客運大樓","note":"櫃檯 09:45 開、11:45 關。T2 L7 美食廣場可以吃東西","stayMinutes":45}
+- {"id":"xhk10161e","title":"T2 U 行段 辦登機（不託運）","time":"09:45","cat":"transport","place":"機場二號客運大樓","note":"不託運的話，前一晚在香港快運 App 網上登機，有電子登機證可以直接過安檢；需要查證件或換紙本登機證再去櫃檯（09:45 開、11:45 關）。手提行李可能會被抽查秤重（7 公斤）。T2 L7 美食廣場可以吃東西","stayMinutes":45}
 - {"id":"xhk10161f","title":"旅客捷運到 T1 登機閘口","time":"10:30","cat":"transport","place":"T1","note":"登機閘口起飛前 20–30 分鐘關"}
 - {"id":"xhk10161g","title":"香港快運 香港 → 桃園","time":"12:45","cat":"transport","place":"香港國際機場"}
 
@@ -107,20 +107,21 @@ updatedAt: "2026-10-21T03:45:44.000Z"
 - {"id":"xmuxugj09y7iq","text":"護照＋影本","done":false,"zone":"carry"}
 - {"id":"xmuxugj09avgm","text":"eSIM／網卡設定好","done":false,"zone":"carry"}
 - {"id":"xmuxugj09nxr7","text":"行動電源＋充電線","done":false,"zone":"carry"}
-- {"id":"xmuxugj09y829","text":"換洗衣物","done":false,"zone":"checked"}
-- {"id":"xmuxugj0986qn","text":"盥洗包","done":false,"zone":"checked"}
-- {"id":"xmuxugj098mmz","text":"常備藥","done":false,"zone":"checked"}
-- {"id":"xmuxugj097c5g","text":"摺疊傘","done":false,"zone":"checked"}
-- {"id":"xmuxugj09nak3","text":"轉接頭（香港是英式三孔 G 型插座）","done":false,"zone":"checked"}
-- {"id":"xmuxugj09aabx","text":"裝髒衣的袋子","done":false,"zone":"checked"}
+- {"id":"xmuxugj098mmz","text":"常備藥","done":false,"zone":"carry"}
+- {"id":"xmuxugj097c5g","text":"摺疊傘","done":false,"zone":"carry"}
 - {"id":"xhk1016p0","text":"八達通（有的帶上；沒有的大人在機場買、小朋友到港鐵站買小童卡）","done":false,"zone":"carry"}
 - {"id":"xhk1016p1","text":"港幣現金＋信用卡（老店只收現金）","done":false,"zone":"carry"}
 - {"id":"xhk1016p2","text":"暈車藥（山頂 15 號、260 巴士都是山路）","done":false,"zone":"carry"}
 - {"id":"xhk1016p3","text":"薄外套 ×4（開篷巴士、遊船、山頂風大）","done":false,"zone":"carry"}
-- {"id":"xhk1016p4","text":"海灘毛巾、小朋友換洗衣服","done":false,"zone":"checked"}
-- {"id":"xhk1016p5","text":"防曬、帽子","done":false,"zone":"checked"}
-- {"id":"xhk1016p6","text":"裝濕衣服的袋子","done":false,"zone":"checked"}
 - {"id":"xhkpk01","text":"港簽（預辦入境登記）截圖或列印 ×4","done":false,"zone":"carry"}
+- {"id":"xhkpk03","text":"透明夾鏈袋（裝液體，過安檢要拿出來）","done":false,"zone":"carry"}
+- {"id":"xmuxugj09y829","text":"換洗衣物","done":false,"zone":"checked"}
+- {"id":"xmuxugj0986qn","text":"盥洗包（液體每瓶 ≤100ml）","done":false,"zone":"checked"}
+- {"id":"xmuxugj09nak3","text":"轉接頭（香港是英式三孔 G 型插座）","done":false,"zone":"checked"}
+- {"id":"xmuxugj09aabx","text":"裝髒衣的袋子","done":false,"zone":"checked"}
+- {"id":"xhk1016p4","text":"海灘毛巾、小朋友換洗衣服","done":false,"zone":"checked"}
+- {"id":"xhk1016p5","text":"防曬（≤100ml）、帽子","done":false,"zone":"checked"}
+- {"id":"xhk1016p6","text":"裝濕衣服的袋子","done":false,"zone":"checked"}
 - {"id":"xhkpk02","text":"海灘拖鞋／涼鞋","done":false,"zone":"checked"}
 
 ## 備註
@@ -128,7 +129,7 @@ updatedAt: "2026-10-21T03:45:44.000Z"
 ✈️ 航班（香港快運）
 去程 11/11 10:00 起飛 → 約 11:45 抵達 T1
 回程 11/14 12:45 起飛，在 T2 U 行段報到（櫃檯 09:45–11:45）
-託運行李要另外加購，回程伴手禮記得算重量
+這次不託運，全部帶上飛機：每人 1 件隨身物品＋1 件登機箱合計 7 公斤（輕便飛只能帶 1 件隨身物品，要看買的票種）；超重在登機口會被收費，回程伴手禮要算重量。液體每瓶 ≤100ml、裝透明夾鏈袋
 
 🏨 住宿
 頤庭酒店上環　西營盤德輔道西 156-160 號
@@ -141,7 +142,6 @@ updatedAt: "2026-10-21T03:45:44.000Z"
 □ 山頂纜車上山單程＋摩天台 428（網路）；下山坐 15 號巴士
 □ 觀光城巴夜遊票或日遊票（下載 City Sightseeing HK App 兌換）— 11/13 晚上坐 H2K 夜景巴士，只坐 H2K 買夜遊票較便宜
 □ 永安號 11/12 18:10「黃昏暢飲海上遊」船票（尖沙咀上船、中環下船；不可退改）
-□ 香港快運加購託運行李
 
 ⚠️ 出發前要確認
 □ 棟記飯店（11/13 晚餐）晚上有沒有開、幾點開
