@@ -7,7 +7,7 @@ start: "2026-11-11"
 days: 4
 budget: 70000
 createdAt: "2026-10-07T08:27:03.613Z"
-updatedAt: "2026-10-20T16:59:39.000Z"
+updatedAt: "2026-10-21T02:10:01.296Z"
 ---
 
 ## 行程
@@ -16,7 +16,7 @@ updatedAt: "2026-10-20T16:59:39.000Z"
 
 - {"id":"xhk101600","title":"抵達香港機場 T1","time":"11:45","cat":"transport","place":"香港國際機場","note":"香港快運 10:00 起飛。入境＋領行李抓 45–60 分；大人在機場 7-Eleven 買旅客版八達通，小孩先付零錢，之後在上環／西營盤站客務中心買小童八達通","mapUrl":"https://maps.app.goo.gl/qmvx46KQg4BkSdrV9?g_st=ic","addr":"香港新界赤鱲角翔天路1號香港國際機場","stayMinutes":60}
 - {"id":"xhk1016a1","type":"transit","note":"① 出入境大堂後跟著「巴士 Buses」指示走到機場巴士總站\n② 搭城巴 A10（往鴨脷洲）。上車拍八達通（大人約 HK$40）；小朋友沒有八達通就投零錢，車上不找零\n③ 大件行李放下層行李架，人坐上層前排可以看青馬大橋\n④ 坐約 45–60 分，過西區海底隧道後在「高樂花園, 干諾道西」站下車\n⑤ 走約 4 分鐘到飯店（德輔道西 160 號）\n⑥ A10 要等太久就改搭 A11（往北角碼頭）：在「港澳碼頭」站（信德中心）下車，沿德輔道中→德輔道西往西走約 12 分到飯店；行李太重可改搭港鐵上環站→西營盤 1 站","stayMinutes":80}
-- {"id":"xhk101602","title":"頤庭酒店上環 寄放行李","time":"14:05","cat":"stay","place":"西營盤德輔道西 156-160 號","note":"西營盤站 A2 出口旁。15:00 才能入住、11:00 退房；沒有早餐也沒有餐廳","mapUrl":"https://maps.app.goo.gl/SX76Mr8oyeKqBgvR9?g_st=ic","addr":"156-160, Eco Tree Hotel Sheung Wan, Des Voeux Rd W, Sai Ying Pun, Hong Kong Island, 香港","stayMinutes":10,"phone":"+852 2217 1888"}
+- {"id":"xhk101602","title":"頤庭酒店上環 寄放行李","time":"14:05","cat":"stay","place":"西營盤德輔道西 156-160 號","note":"西營盤站 A2 出口旁。15:00 才能入住、11:00 退房","mapUrl":"https://maps.app.goo.gl/SX76Mr8oyeKqBgvR9?g_st=ic","addr":"156-160, Eco Tree Hotel Sheung Wan, Des Voeux Rd W, Sai Ying Pun, Hong Kong Island, 香港","stayMinutes":10,"phone":"+852 2217 1888"}
 - {"id":"xhk101603","type":"transit","note":"① 出飯店沿德輔道西往西（往堅尼地城方向）走\n② 約 4 分到德美大廈地舖的新興發。只收現金","stayMinutes":10}
 - {"id":"xhk101604","title":"新興發點心","time":"14:30","cat":"food","place":"西營盤德輔道西 德美大廈地舖","note":"手工點心，必點鮮蝦腸粉、排骨、燒賣。只收現金；下午部分點心可能賣完，有圖片菜單可以指著點","stayMinutes":50,"phone":"+852 2547 1988","hoursOpen":"07:00","hoursClose":"18:00","hours":"07:00–18:00（週二休）"}
 - {"id":"xhk101605","type":"transit","note":"① 沿德輔道西往東走回來\n② 約 4 分回到飯店","stayMinutes":10}
