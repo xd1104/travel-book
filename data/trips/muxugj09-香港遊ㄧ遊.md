@@ -90,9 +90,9 @@ updatedAt: "2026-10-22T02:18:41.752Z"
 
 ## 花費
 
-- {"id":"xhkexp01","amount":1957,"cat":"food","desc":"山頂纜車單程（上山）＋摩天台 428","note":"成人 NT$535×3＋兒童 NT$352＝NT$1,957。只買上山單程，下山坐 15 號巴士","day":"pre","plan":true}
-- {"id":"xhkexp02","amount":1791,"cat":"food","desc":"永安號 黃昏暢飲海上遊（18:10）","note":"18:10 這班：成人 NT$479×3＋小孩 NT$354＝NT$1,791。尖沙咀上船、中環下船。票不可退改","day":"pre","plan":true}
-- {"id":"xhkexp03","amount":1649,"cat":"food","desc":"觀光城巴夜遊票（H2K）","note":"4 人（3 大 1 小）總共 NT$1,649。城巴官方價是成人 HK$114、小童 HK$57，當天 H2K 無限次搭乘","day":"pre","plan":true}
+- {"id":"xhkexp01","amount":1957,"cat":"sight","desc":"山頂纜車單程（上山）＋摩天台 428","note":"成人 NT$535×3＋兒童 NT$352＝NT$1,957。只買上山單程，下山坐 15 號巴士","day":"pre","plan":true}
+- {"id":"xhkexp02","amount":1791,"cat":"sight","desc":"永安號 黃昏暢飲海上遊（18:10）","note":"18:10 這班：成人 NT$479×3＋小孩 NT$354＝NT$1,791。尖沙咀上船、中環下船。票不可退改","day":"pre","plan":true}
+- {"id":"xhkexp03","amount":1649,"cat":"sight","desc":"觀光城巴夜遊票（H2K）","note":"4 人（3 大 1 小）總共 NT$1,649。城巴官方價是成人 HK$114、小童 HK$57，當天 H2K 無限次搭乘","day":"pre","plan":true}
 - {"id":"xhkexp04","amount":900,"cat":"transport","desc":"Day 1 交通（八達通）","note":"預估：A10 機場巴士約 HK$40＋港鐵 2 趟＋下山 15 號巴士約 HK$11.5（3 大 1 小，小童約半價；匯率 1 港幣≈4.1 台幣）。港幣小計約 HK$219","day":1,"plan":true}
 - {"id":"xhkexp05","amount":370,"cat":"transport","desc":"Day 2 交通（八達通）","note":"預估：港鐵 3 趟＋叮叮車；永安號另計（3 大 1 小，小童約半價；匯率 1 港幣≈4.1 台幣）。港幣小計約 HK$90","day":2,"plan":true}
 - {"id":"xhkexp06","amount":800,"cat":"transport","desc":"Day 3 交通（八達通）","note":"預估：260 巴士 3 段＋港鐵 4 趟；H2K 另計（3 大 1 小，小童約半價；匯率 1 港幣≈4.1 台幣）。港幣小計約 HK$194","day":3,"plan":true}
