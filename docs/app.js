@@ -42,7 +42,16 @@ function splashReady(){
 /* ============ 常數 ============ */
 /* 版本號的唯一來源：首頁 footer 與「版本」sheet 都讀它。
  * 改前端時跟 sw.js 的 cache 版本號一起 +1（見「版本與更新」段）。 */
-var APP_VER="3.12";
+var APP_VER="3.13";
+
+/* v3.13 分享連結：網址帶 ?share=<旅程 id 開頭> ⇒ 只載入那一趟、直接進旅程頁、全部唯讀。
+ * 給家人看行程用：看不到首頁清單和其他旅程，也沒有編輯／解鎖入口。
+ * ⚠️ 這只是「不顯示」不是「上鎖」——資料本來就在公開 repo 上。 */
+var SHARE_ID = (function(){
+  try{ var m=/[?&]share=([^&#]+)/.exec(location.search); return m ? decodeURIComponent(m[1]) : ""; }
+  catch(e){ return ""; }
+})();
+if(SHARE_ID) document.documentElement.classList.add("share-mode");
 
 /* 打包把手的三個門檻（v3.0，DESIGN.md 附錄 E2）——「先觀察，後接管」：
  * pointerdown 只進入「待命」，垂直帶開＝你在捲動就放行，橫向帶開或按住夠久才真的開始拖。
@@ -1025,6 +1034,7 @@ function persistCategories(){
  * v2.0：不再只丟 toast 叫他自己回首頁找「設定」——直接把解鎖 sheet 端到他面前，
  * 並帶上理由條（reason ＝ 他剛剛想做的事，例如「規劃新旅程」）。 */
 function requireWrite(reason){
+  if(SHARE_ID){ toast("這是分享連結，只能看、不能修改"); return false; }
   if(STORE.canWrite()) return true;
   if(KR_ON){ KR.open(reason||""); return false; }
   toast("唯讀模式：到下方「設定」貼上金鑰才能編輯", true);
@@ -1033,6 +1043,12 @@ function requireWrite(reason){
 
 /* ============ 資料 + 舊資料遷移（冪等） ============ */
 var db = { trips:[], templates:[], categories:defaultCategories() };
+/* 分享模式：只留分享的那一趟（其他旅程連記憶體裡都不放） */
+function applyShare(d){
+  if(!SHARE_ID) return d;
+  d.trips = d.trips.filter(function(t){ return String(t.id).indexOf(SHARE_ID)===0; });
+  return d;
+}
 function migrate(d){
   if(!d) d={};
   if(!Array.isArray(d.trips)) d.trips=[];
@@ -1042,7 +1058,7 @@ function migrate(d){
   d.categories = (Array.isArray(d.categories) && d.categories.length)
     ? normalizeCategories(d.categories) : defaultCategories();
   d.trips.forEach(normTrip);
-  return d;
+  return applyShare(d);
 }
 function normTrip(t){
   if(!t.itinerary) t.itinerary={};
@@ -1113,6 +1129,10 @@ function homeFoot(){
     + '</div></footer>';
 }
 function viewHome(){
+  if(SHARE_ID){
+    return '<div class="empty" style="padding-top:120px"><div class="big">🧳</div>'
+      + '<p>找不到這趟旅程，<br>請跟分享給你的人要一次新的連結</p></div>';
+  }
   var today=new Date(); today.setHours(0,0,0,0);
   var act=[], past=[];
   db.trips.forEach(function(t){ (tripEnd(t)<today ? past : act).push(t); });
@@ -2389,7 +2409,7 @@ function viewNotes(t){
 
 /* ============ 動作 ============ */
 function openTrip(id){ ui.screen="trip"; ui.tripId=id; ui.tab="plan"; ui.day=1; ui.edit=false; render(); }
-function goHome(){ ui.screen="home"; render(); }
+function goHome(){ if(SHARE_ID) return; ui.screen="home"; render(); }
 function setTab(tab){ ui.tab=tab; ui.edit=false; render(); }
 function setDay(d){ ui.day=d; render(); }
 function toggleEdit(){
@@ -3372,9 +3392,10 @@ function bootLoad(){
     db = migrate(d);
     rebuildCats();
     booted=true;
+    if(SHARE_ID && db.trips.length){ ui.screen="trip"; ui.tripId=db.trips[0].id; ui.tab="plan"; ui.day=1; }
     render();
-    /* 這台裝置從沒解鎖過、也沒看過解鎖 sheet -> 主動端一次，之後永遠不再自動彈 */
-    if(KR_ON) KR.maybeIntro();
+    /* 這台裝置從沒解鎖過、也沒看過解鎖 sheet -> 主動端一次，之後永遠不再自動彈（分享連結不彈） */
+    if(KR_ON && !SHARE_ID) KR.maybeIntro();
   }).catch(function(e){
     renderBootError(e);
   }).then(splashReady, splashReady);   /* 成功或失敗都要收開場 */

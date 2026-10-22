@@ -830,3 +830,8 @@ html.drag-lock, html.drag-lock body{touch-action:none; overscroll-behavior:none;
 .rp-acts{display:flex; gap:10px; margin-top:16px;}
 .rp-acts .btn-ghost{flex:0 0 36%;}
 .rp-acts .btn-primary{flex:1; margin-top:0;}
+
+/* v3.13 分享連結（?share=）：只能看——把所有編輯／工具入口藏起來 */
+.share-mode .back-btn, .share-mode .head-edit, .share-mode .fab,
+.share-mode .edit-toggle, .share-mode .gap-note, .share-mode .fix-bar,
+.share-mode .d-acts .btn-primary, .share-mode .empty .btn-primary { display:none !important; }
