@@ -118,10 +118,9 @@ updatedAt: "2026-10-25T04:52:43.300Z"
 - {"id":"xmuxugj09y829","text":"換洗衣物","done":false,"zone":"checked"}
 - {"id":"xmuxugj0986qn","text":"盥洗包（液體每瓶 ≤100ml）","done":false,"zone":"checked"}
 - {"id":"xmuxugj09nak3","text":"轉接頭（香港是英式三孔 G 型插座）","done":false,"zone":"checked"}
-- {"id":"xmuxugj09aabx","text":"裝髒衣的袋子","done":false,"zone":"checked"}
 - {"id":"xhk1016p4","text":"海灘毛巾、小朋友換洗衣服","done":false,"zone":"checked"}
 - {"id":"xhk1016p5","text":"防曬（≤100ml）、帽子","done":false,"zone":"checked"}
-- {"id":"xhk1016p6","text":"裝濕衣服的袋子","done":false,"zone":"checked"}
+- {"id":"xhk1016p6","text":"裝髒衣、濕衣服的袋子","done":false,"zone":"checked"}
 - {"id":"xhkpk02","text":"海灘拖鞋／涼鞋","done":false,"zone":"checked"}
 
 ## 備註
