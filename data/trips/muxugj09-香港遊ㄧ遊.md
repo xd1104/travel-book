@@ -7,7 +7,7 @@ start: "2026-11-11"
 days: 4
 budget: 70000
 createdAt: "2026-10-07T08:27:03.613Z"
-updatedAt: "2026-10-25T04:52:43.300Z"
+updatedAt: "2026-10-28T02:27:43.740Z"
 ---
 
 ## 行程
@@ -101,6 +101,7 @@ updatedAt: "2026-10-25T04:52:43.300Z"
 - {"id":"xhkexp09","amount":3990,"cat":"food","desc":"Day 2 餐飲","note":"預估每人：甘牌 HK$110、聰嫂 HK$50、Bakehouse HK$30、中環晚餐（威靈頓街一帶）HK$80（3 大 1 小，小朋友算 0.6 份；匯率 1 港幣≈4.1 台幣）。港幣小計約 HK$972","day":2,"plan":true}
 - {"id":"xhkexp10","amount":3690,"cat":"food","desc":"Day 3 餐飲","note":"預估每人：蘭芳園 HK$60（有最低消費）、赤柱午餐 HK$100、棟記 HK$90（3 大 1 小，小朋友算 0.6 份；匯率 1 港幣≈4.1 台幣）。港幣小計約 HK$900","day":3,"plan":true}
 - {"id":"xhkexp11","amount":1030,"cat":"food","desc":"Day 4 早餐","note":"預估每人：六安居／新五龍 HK$70（3 大 1 小，小朋友算 0.6 份；匯率 1 港幣≈4.1 台幣）。港幣小計約 HK$252","day":4,"plan":true}
+- {"id":"xmvrhvbah45s6","amount":25114,"cat":"transport","desc":"機票","day":"pre"}
 
 ## 打包
 
