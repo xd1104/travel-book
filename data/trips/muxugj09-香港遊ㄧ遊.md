@@ -5,9 +5,9 @@ emoji: "🇭🇰"
 theme: "sand"
 start: "2026-11-11"
 days: 4
-budget: 123759
+budget: 74156
 createdAt: "2026-10-07T08:27:03.613Z"
-updatedAt: "2026-10-28T02:34:48.695Z"
+updatedAt: "2026-10-28T02:43:38.740Z"
 ---
 
 ## 行程
