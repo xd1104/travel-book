@@ -6,8 +6,8 @@
  * 鐵律：skipWaiting + activate 清舊快取 + clients.claim，已安裝 PWA 才吃得到新版
  * 改前端記得把 cache 版本號 +1（SHELL 與 DATA 兩個一起跳，別只跳一個），並同步 app.js 最上面的 APP_VER
  */
-const SHELL_CACHE = 'travel-shell-v35';
-const DATA_CACHE = 'travel-data-v35';
+const SHELL_CACHE = 'travel-shell-v36';
+const DATA_CACHE = 'travel-data-v36';
 const KEEP = [SHELL_CACHE, DATA_CACHE];
 
 // 相對於 SW scope 解析（localhost 根目錄或 Pages 子路徑 /travel-book/ 都對）
@@ -34,7 +34,12 @@ const SHELL = [
 ];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(SHELL_CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  // ⚠️ v3.16：預先快取一定要 cache:'reload'（繞過瀏覽器 HTTP 快取）。GitHub Pages 每支檔案 max-age=600，
+  // 不加的話，十分鐘內才剛開過舊版的手機，新 SW 會把「HTTP 快取裡的舊 app.js」裝進新的快取 ⇒
+  // 換了新 SW 畫面卻還是舊版（2026-11-09 Benson 手機一直停在 3.14 就是這個）。
+  e.waitUntil(caches.open(SHELL_CACHE)
+    .then((c) => c.addAll(SHELL.map((u) => new Request(u, { cache: 'reload' }))))
+    .then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (e) => {
