@@ -10,7 +10,7 @@ fxCur: "HKD"
 fxRate: 4.18
 fxBudget: 3500
 createdAt: "2026-10-07T08:27:03.613Z"
-updatedAt: "2026-11-09T17:03:04.670Z"
+updatedAt: "2026-11-09T17:03:08.725Z"
 ---
 
 ## 行程
@@ -123,7 +123,7 @@ updatedAt: "2026-11-09T17:03:04.670Z"
 - {"id":"xmuxugj09y829","text":"換洗衣物（每人 3 套）","done":true,"zone":"checked"}
 - {"id":"xmuxugj0986qn","text":"盥洗包（液體每瓶 ≤100ml）","done":false,"zone":"checked"}
 - {"id":"xmuxugj098mmz","text":"常備藥","done":true,"zone":"checked"}
-- {"id":"xmuxugj09nak3","text":"轉接頭（香港是英式三孔 G 型插座）","done":false,"zone":"checked"}
+- {"id":"xmuxugj09nak3","text":"轉接頭（香港是英式三孔 G 型插座）","done":true,"zone":"checked"}
 - {"id":"xhk1016p5","text":"防曬（≤100ml）、帽子","done":false,"zone":"checked"}
 - {"id":"xhk1016p4","text":"海灘毛巾、小朋友換洗衣服（第三天淺水灣）","done":false,"zone":"checked"}
 - {"id":"xhkpk02","text":"海灘拖鞋／涼鞋","done":false,"zone":"checked"}
