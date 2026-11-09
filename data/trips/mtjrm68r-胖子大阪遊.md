@@ -21,8 +21,7 @@ updatedAt: "2026-11-09T10:00:00.000Z"
 - {"id":"xos110106","title":"梅田飯店入住","time":"15:30","cat":"stay","place":"大阪梅田","note":"飯店待訂","stayMinutes":30}
 - {"id":"xos110110","title":"LUCUA・LUCUA 1100","time":"16:00","cat":"shop","place":"LUCUA osaka","note":"・JR 大阪站旁，兩棟連在一起\n・商店 10:00–21:00\n・逛不完可以逛到 21:00 關門，後面往後挪","stayMinutes":150}
 - {"id":"xos110107","title":"梅田 晚餐","time":"18:30","cat":"food","place":"大阪梅田","note":"・店家待選\n・LUCUA 餐廳營業到 23:00，可以直接在裡面吃","stayMinutes":60}
-- {"id":"xos110108","title":"梅田空中庭園 看夜景","time":"19:45","cat":"sight","place":"梅田藍天大廈","stayMinutes":75}
-- {"id":"xos110109","title":"HEP FIVE 摩天輪","time":"21:15","cat":"sight","place":"HEP FIVE","note":"・商場頂樓的紅色摩天輪\n・營業時間待查，太晚就改天","stayMinutes":30}
+- {"id":"xos110108","title":"梅田空中庭園 看夜景","time":"19:45","cat":"sight","place":"梅田藍天大廈","note":"・22:00 最後入場\n・大人 ¥2,000","stayMinutes":75}
 
 ### Day 2
 
@@ -31,11 +30,9 @@ updatedAt: "2026-11-09T10:00:00.000Z"
 - {"id":"xos110203","title":"黑門市場 邊走邊吃","time":"12:00","cat":"food","place":"黑門市場","note":"海鮮、和牛、水果","stayMinutes":90}
 - {"id":"xos110204","type":"transit","note":"地鐵到惠美須町站","stayMinutes":20}
 - {"id":"xos110205","title":"新世界・通天閣","time":"13:50","cat":"sight","place":"新世界","note":"吃串炸","stayMinutes":120}
-- {"id":"xos110206","type":"transit","note":"地鐵回難波","stayMinutes":20}
-- {"id":"xos110207","title":"心齋橋 逛街","time":"16:10","cat":"shop","place":"心齋橋筋商店街","note":"藥妝、伴手禮","stayMinutes":120}
-- {"id":"xos110208","title":"道頓堀 晚餐","time":"18:10","cat":"food","place":"道頓堀","note":"章魚燒、大阪燒","stayMinutes":90}
-- {"id":"xos110209","title":"法善寺橫丁","time":"19:40","cat":"sight","place":"法善寺橫丁","note":"晚上的石板小巷","stayMinutes":30}
-- {"id":"xos110210","type":"transit","note":"地鐵御堂筋線回梅田（約 10 分）","stayMinutes":20}
+- {"id":"xos110206","type":"transit","note":"地鐵御堂筋線回梅田","stayMinutes":30}
+- {"id":"xos110211","title":"HEP FIVE 逛街＋摩天輪","time":"16:20","cat":"shop","place":"HEP FIVE","note":"・商店 11:00–21:00\n・摩天輪最後搭乘 22:45\n・天黑後搭摩天輪看夜景","stayMinutes":150}
+- {"id":"xos110212","title":"梅田 晚餐","time":"18:50","cat":"food","place":"大阪梅田","note":"店家待選","stayMinutes":60}
 
 ### Day 3
 
@@ -84,7 +81,9 @@ updatedAt: "2026-11-09T10:00:00.000Z"
 - {"id":"xos110606","title":"春日大社","time":"13:30","cat":"sight","place":"春日大社","stayMinutes":60}
 - {"id":"xos110607","type":"transit","note":"① 回奈良站拿行李\n② 搭近鐵直達大阪難波","stayMinutes":75}
 - {"id":"xos110608","title":"難波飯店入住","time":"16:00","cat":"stay","place":"大阪難波","note":"飯店待訂","stayMinutes":60}
-- {"id":"xos110609","title":"難波 晚餐","time":"18:00","cat":"food","place":"大阪難波","note":"店家待選","stayMinutes":60}
+- {"id":"xos110609","title":"道頓堀 晚餐","time":"17:15","cat":"food","place":"道頓堀","note":"章魚燒、大阪燒","stayMinutes":90}
+- {"id":"xos110610","title":"法善寺橫丁","time":"18:45","cat":"sight","place":"法善寺橫丁","note":"晚上的石板小巷","stayMinutes":30}
+- {"id":"xos110611","title":"心齋橋 逛街","time":"19:15","cat":"shop","place":"心齋橋筋商店街","note":"藥妝、伴手禮","stayMinutes":90}
 
 ### Day 7
 
