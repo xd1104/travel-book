@@ -7,7 +7,7 @@ start: "2026-11-11"
 days: 4
 budget: 74156
 createdAt: "2026-10-07T08:27:03.613Z"
-updatedAt: "2026-11-09T02:42:13.053Z"
+updatedAt: "2026-11-09T05:53:21.000Z"
 ---
 
 ## 行程
@@ -106,24 +106,29 @@ updatedAt: "2026-11-09T02:42:13.053Z"
 
 ## 打包
 
-- {"id":"xmuxugj09y7iq","text":"護照＋影本","done":false,"zone":"carry"}
-- {"id":"xmuxugj09avgm","text":"eSIM 已裝好（港澳每日型，每天 1GB 後降速；每人一張）","done":true,"zone":"carry"}
-- {"id":"xmuxugj09nxr7","text":"行動電源＋充電線","done":false,"zone":"carry"}
-- {"id":"xmuxugj098mmz","text":"常備藥","done":false,"zone":"carry"}
-- {"id":"xmuxugj097c5g","text":"摺疊傘","done":false,"zone":"carry"}
+- {"id":"xmuxugj09y7iq","text":"護照（每人一本）＋影本","done":false,"zone":"carry"}
+- {"id":"xhkpk01","text":"港簽通知書：A4 白紙列印 ×4＋每人簽名（小朋友由爸媽簽），多印一份備用；要帶紙本","done":false,"zone":"carry"}
+- {"id":"xhk1016p1","text":"港幣現金＋信用卡（現金分兩、三個人放）","done":false,"zone":"carry"}
 - {"id":"xhk1016p0","text":"八達通（有的帶上；沒有的大人、小朋友都在機場 7-Eleven 買）","done":false,"zone":"carry"}
-- {"id":"xhk1016p1","text":"港幣現金＋信用卡（老店只收現金）","done":false,"zone":"carry"}
+- {"id":"xmuxugj09avgm","text":"eSIM 已裝好（港澳每日型，每天 1GB 後降速；每人一張）","done":true,"zone":"carry"}
+- {"id":"xhkpk04","text":"手機＋充電頭","done":false,"zone":"carry"}
+- {"id":"xmuxugj09nxr7","text":"行動電源＋充電線","done":false,"zone":"carry"}
 - {"id":"xhk1016p2","text":"暈車藥（山頂 15 號、260 巴士都是山路）","done":false,"zone":"carry"}
 - {"id":"xhk1016p3","text":"薄外套 ×4（開篷巴士、遊船、山頂風大）","done":false,"zone":"carry"}
-- {"id":"xhkpk01","text":"港簽通知書：A4 白紙列印 ×4＋每人簽名（小朋友由爸媽簽），多印一份備用；要帶紙本","done":false,"zone":"carry"}
+- {"id":"xmuxugj097c5g","text":"摺疊傘","done":false,"zone":"carry"}
 - {"id":"xhkpk03","text":"透明夾鏈袋（裝液體，過安檢要拿出來）","done":false,"zone":"carry"}
-- {"id":"xmuxugj09y829","text":"換洗衣物","done":false,"zone":"checked"}
+- {"id":"xhkpk05","text":"面紙、濕紙巾","done":false,"zone":"carry"}
+- {"id":"xhkpk06","text":"環保購物袋（香港拿塑膠袋要另外付錢）","done":false,"zone":"carry"}
+- {"id":"xmuxugj09y829","text":"換洗衣物（每人 3 套）","done":false,"zone":"checked"}
 - {"id":"xmuxugj0986qn","text":"盥洗包（液體每瓶 ≤100ml）","done":false,"zone":"checked"}
+- {"id":"xmuxugj098mmz","text":"常備藥","done":false,"zone":"checked"}
 - {"id":"xmuxugj09nak3","text":"轉接頭（香港是英式三孔 G 型插座）","done":false,"zone":"checked"}
-- {"id":"xhk1016p4","text":"海灘毛巾、小朋友換洗衣服","done":false,"zone":"checked"}
 - {"id":"xhk1016p5","text":"防曬（≤100ml）、帽子","done":false,"zone":"checked"}
-- {"id":"xhk1016p6","text":"裝髒衣、濕衣服的袋子","done":false,"zone":"checked"}
+- {"id":"xhk1016p4","text":"海灘毛巾、小朋友換洗衣服（第三天淺水灣）","done":false,"zone":"checked"}
 - {"id":"xhkpk02","text":"海灘拖鞋／涼鞋","done":false,"zone":"checked"}
+- {"id":"xhkpk07","text":"泳衣（要下水的才帶）","done":false,"zone":"checked"}
+- {"id":"xhk1016p6","text":"裝髒衣、濕衣服的袋子","done":false,"zone":"checked"}
+- {"id":"xhkpk08","text":"行李秤（選帶；兩件合計 7 公斤，回程秤伴手禮）","done":false,"zone":"checked"}
 
 ## 備註
 
@@ -140,6 +145,7 @@ updatedAt: "2026-11-09T02:42:13.053Z"
 🎫 出發前要先訂
 ☑ 港簽（台灣居民預辦入境登記）已辦好
 ☑ 旅平險已保好（11/9）
+□ 香港快運去程網上登機（登機證存手機）
 □ 山頂纜車上山單程＋摩天台 428（網路）；下山坐 15 號巴士 — 11/4 看完預報、確定不起霧再買
 □ 觀光城巴夜遊票或日遊票（下載 City Sightseeing HK App 兌換）— 11/13 晚上坐 H2K 夜景巴士，只坐 H2K 買夜遊票較便宜 — 11/13 當天看天氣再買
 ☑ 永安號 11/12 18:10「黃昏暢飲海上遊」船票已在 Klook 訂好（11/6，NT$1,817；不可退改）
