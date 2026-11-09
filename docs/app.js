@@ -42,7 +42,7 @@ function splashReady(){
 /* ============ 常數 ============ */
 /* 版本號的唯一來源：首頁 footer 與「版本」sheet 都讀它。
  * 改前端時跟 sw.js 的 cache 版本號一起 +1（見「版本與更新」段）。 */
-var APP_VER="3.13";
+var APP_VER="3.14";
 
 /* v3.13 分享連結：網址帶 ?share=<旅程 id 開頭> ⇒ 只載入那一趟、直接進旅程頁、全部唯讀。
  * 給家人看行程用：看不到首頁清單和其他旅程，也沒有編輯／解鎖入口。
@@ -152,6 +152,29 @@ function parseDate(s){ return new Date(s+"T00:00:00"); }
 function addDays(d,n){ var x=new Date(d); x.setDate(x.getDate()+n); return x; }
 function fmtMD(d){ return (d.getMonth()+1)+"/"+d.getDate(); }
 function money(n){ return "NT$ "+Number(n||0).toLocaleString("zh-TW"); }
+/* ---- 外幣（v3.14）----
+   一趟旅程可以設一種外幣＋匯率（1 外幣＝幾台幣）＋帶了多少外幣現金。
+   ⚠️ 真值設計：花費的 `amount` **永遠是台幣**（換算後），外幣原額另存 `fx` ——
+      所有既有加總（預算、已付、每天小計、首頁旅程卡）一行都不用改、口徑不會分岔。
+      改匯率時 `fxSync` 用 `fx` 重算全部 `amount`（`fx` 才是他真的付的數字）。
+   `card:true` ＝這筆外幣是刷卡 ⇒ 不扣外幣現金（現金卡只算現金／八達通）。 */
+var FX_CURS = [
+  ["HKD","港幣","HK$"],["JPY","日圓","¥"],["KRW","韓元","₩"],["USD","美金","US$"],
+  ["EUR","歐元","€"],["THB","泰銖","฿"],["CNY","人民幣","CN¥"],["SGD","新幣","S$"],["MOP","澳門幣","MOP$"]
+];
+function fxInfo(c){
+  for(var i=0;i<FX_CURS.length;i++) if(FX_CURS[i][0]===c) return {code:c, name:FX_CURS[i][1], sym:FX_CURS[i][2]};
+  return {code:c, name:c, sym:c};
+}
+function fxOn(t){ return !!(t && t.fxCur && Number(t.fxRate)>0); }
+function fxMoney(t, n){
+  return fxInfo(t.fxCur).sym+" "+Number(n||0).toLocaleString("zh-TW",{maximumFractionDigits:2});
+}
+function fxToNt(t, n){ return Math.round(Number(n||0)*Number(t.fxRate||0)); }
+function fxSync(t){
+  if(!fxOn(t)) return;
+  t.expenses.forEach(function(e){ if(Number(e.fx)>0) e.amount = fxToNt(t, e.fx); });
+}
 function extUrl(u){ return /^https?:\/\//i.test(u) ? u : "https://"+u; }
 function mapLink(sp){
   if(sp.mapUrl) return extUrl(sp.mapUrl);
@@ -519,6 +542,12 @@ function cleanExpense(e){
      ⚠️ 真值刻意是 plan 不是 paid：既有資料全都是「已經花掉的」，
         用「缺值＝已付」才做得到零遷移（跟 kind/bag/day 同一招）。 */
   if(e.plan) o.plan = true;
+  /* v3.14 外幣：fx＝原始外幣金額、card＝刷卡（不扣外幣現金）。空值不寫 ⇒ 舊資料零遷移。
+     server.js 的 cleanExpense 是 mirror，改要一起改。 */
+  if(Number(e.fx)>0){
+    o.fx = Number(e.fx);
+    if(e.card) o.card = true;
+  }
   return o;
 }
 /* 打包項目（v2.9 起多了 kind／bag 兩個選填欄位＝「包」）
@@ -567,6 +596,12 @@ function serializeTrip(t){
   L.push("start: "+fmString(t.start));
   L.push("days: "+fmNumber(t.days||1));
   L.push("budget: "+fmNumber(t.budget));
+  /* v3.14 外幣：沒設就不寫 ⇒ 其他旅程逐字不變（server.js mirror） */
+  if(t.fxCur){
+    L.push("fxCur: "+fmString(t.fxCur));
+    L.push("fxRate: "+fmNumber(t.fxRate));
+    L.push("fxBudget: "+fmNumber(t.fxBudget));
+  }
   L.push("createdAt: "+fmString(t.createdAt||new Date().toISOString()));
   L.push("updatedAt: "+fmString(t.updatedAt||new Date().toISOString()));
   L.push("---","","## 行程","");
@@ -600,6 +635,7 @@ function parseFmLine(line){
 }
 function parseTrip(id, text){
   var t={ id:id, name:"", dest:"", emoji:"🧳", theme:"sunset", start:"", days:1, budget:0,
+    fxCur:"", fxRate:0, fxBudget:0,
     createdAt:"", updatedAt:"", itinerary:{}, expenses:[], packing:[], notes:"" };
   text=String(text).replace(/\r\n/g,"\n");
   var body=text;
@@ -609,6 +645,7 @@ function parseTrip(id, text){
       var p=parseFmLine(line); if(!p) return;
       var k=p[0], v=p[1];
       if(k==="days"||k==="budget") t[k]=Number(v)||(k==="days"?1:0);
+      else if(k==="fxRate"||k==="fxBudget") t[k]=Number(v)||0;
       else if(k in t) t[k]=v;
     });
     body=text.slice(fm[0].length);
@@ -1764,9 +1801,9 @@ function expGroups(t){
     bucket(d ? String(d) : "none").push(e);
   });
   return order.filter(function(k){ return map[k].length; }).map(function(k){
-    var sum = 0;
-    map[k].forEach(function(e){ sum += Number(e.amount)||0; });
-    return { key:k, items:map[k], sum:sum };
+    var sum = 0, fx = 0;
+    map[k].forEach(function(e){ sum += Number(e.amount)||0; fx += Number(e.fx)||0; });
+    return { key:k, items:map[k], sum:sum, fx:fx };
   });
 }
 function expGroupHead(t, k){
@@ -1793,14 +1830,21 @@ function spentOfDay(t, day){
       不可以被「點一下開編輯」吃掉）。 */
 function expRowHtml(e){
   var c = ECATS[e.cat]||ECATS.other;
+  var t = curTrip();
+  /* v3.14：外幣那筆顯示「他真的付的那個數字」，台幣換算小字放下面 */
+  var isFx = !!(t && t.fxCur && Number(e.fx)>0);
+  var amtHtml = isFx
+    ? fxMoney(t, e.fx)+'<small class="exp-nt">≈ '+money(e.amount)+'</small>'
+    : money(e.amount);
   return '<div class="exp-item">'
     + '<button class="exp-open" onclick="openExpenseSheet(\''+e.id+'\')">'
     +   '<span class="exp-top">'
     +     '<span class="exp-emo">'+c.emoji+'</span>'
     +     '<span class="exp-mid"><span class="d">'+esc(e.desc||c.label)+'</span>'
     +       '<span class="c">'+c.label
+    +         (isFx && e.card ? '・刷卡' : "")
     +         (e.plan ? '<span class="plan-pill">預計</span>' : "") + '</span></span>'
-    +     '<span class="exp-amt'+(e.plan?" is-plan":"")+'">'+money(e.amount)+'</span>'
+    +     '<span class="exp-amt'+(e.plan?" is-plan":"")+'">'+amtHtml+'</span>'
     +   '</span>'
     /* 說明（v3.7）自己獨立一行、跨整列 —— ⚠️ 不可以塞進 .exp-mid：
        那一欄被 emoji／金額／✕ 夾住只剩約 130px，一句話會被截掉大半，
@@ -1843,7 +1887,8 @@ function viewBudget(t){
          不另外發明第三種群組標頭。 */
       return '<div class="pack-head exp-head'+(gi===0?" first":"")+'"><span class="t">'+h.t
         + (h.sub ? '<span class="sub">（'+h.sub+'）</span>' : "") + '</span>'
-        + '<span class="n">'+money(g.sum)+'</span></div>'
+        + '<span class="n">'+(t.fxCur && g.fx ? '<small class="exp-fxsum">'+fxMoney(t, g.fx)+'・</small>' : "")
+        + money(g.sum)+'</span></div>'
         + g.items.slice().reverse().map(expRowHtml).join("");
     }).join("");
   }
@@ -1871,8 +1916,44 @@ function viewBudget(t){
     +   (need ? '<div class="budget-split"><span>已付 <b>'+money(spent)+'</b></span>'
     +     '<span class="sp-plan">還沒付 <b>'+money(plan)+'</b></span></div>' : "")
     + '</section>'
+    + fxWalletHtml(t)
     + (sumChips ? '<div class="cat-sums">'+sumChips+'</div>' : "")
     + '<div class="sec-title">花費紀錄</div>' + rows;
+}
+
+/* 外幣現金卡（v3.14，Benson 要的：「帶了 HK$3,500，花到剩多少」）。
+   口徑：外幣、不是刷卡的那幾筆。已付＝已經花掉；預計＝還沒付的估算。
+   主數字＝**現在手上還剩多少**（帶的 − 已付）；下面一行講「照預計走完還剩／不夠多少」。
+   ⚠️ 沒設外幣就整張不出現；有外幣但沒填帶多少 ⇒ 給一顆「設一個」入口（同預算卡的做法），不拿 0 去減。 */
+function fxWalletHtml(t){
+  if(!fxOn(t)) return "";
+  var info = fxInfo(t.fxCur), paid = 0, plan = 0;
+  t.expenses.forEach(function(e){
+    var n = Number(e.fx)||0;
+    if(!n || e.card) return;
+    if(e.plan) plan += n; else paid += n;
+  });
+  var bud = Number(t.fxBudget)||0;
+  var h = '<section class="budget-card fx-card">'
+    + '<div class="lbl">💵 '+info.name+'現金'+(bud>0?'還剩':'')+'</div>';
+  if(bud>0){
+    var left = bud - paid, after = left - plan;
+    var pPaid = Math.min(100, paid/bud*100), pPlan = Math.min(100-pPaid, plan/bud*100);
+    h += '<div class="big'+(left<0?' over':'')+'">'+fxMoney(t, left)+'</div>'
+      + '<div class="prog"><i class="'+(left<0?"over":"")+'" style="width:'+pPaid.toFixed(2)+'%"></i>'
+      + (plan ? '<i class="plan" style="width:'+pPlan.toFixed(2)+'%"></i>' : "") + '</div>'
+      + '<div class="budget-row"><span>帶了 '+fxMoney(t, bud)+'</span>'
+      + (plan ? '<span>'+(after<0 ? '照預計會不夠 <b class="over">'+fxMoney(t, -after)+'</b>' : '照預計還會剩 <b>'+fxMoney(t, after)+'</b>')+'</span>' : '')
+      + '</div>';
+  }else{
+    h += '<div class="big">'+fxMoney(t, paid)+'<span class="fx-big-sub"> 已花</span></div>'
+      + '<button type="button" class="budget-row set-budget" onclick="openTripSheet(\''+t.id+'\')">'
+      + '<span>還沒填帶了多少'+info.name+'</span><span class="go">設一個 ›</span></button>';
+  }
+  if(paid || plan) h += '<div class="budget-split"><span>已花 <b>'+fxMoney(t, paid)+'</b></span>'
+    + '<span class="sp-plan">預計 <b>'+fxMoney(t, plan)+'</b></span></div>';
+  h += '<div class="fx-foot">只算付現金、八達通的'+info.name+'；刷卡的不算。<span class="nw">匯率 1 '+info.name+'＝NT$ '+Number(t.fxRate)+'</span></div>';
+  return h + '</section>';
 }
 
 /* ============================================================================
@@ -3120,6 +3201,12 @@ function openExpenseSheet(editId){
   /* 預設：**還沒出發＝預計、已經出發＝已付**。規劃期在排錢、旅程中在記帳，
      兩邊最常按的那一個先選好，多數情況不用動它。 */
   var curPlan = ex ? !!ex.plan : (todayExpDay(t)==="pre");
+  /* v3.14 外幣：有設外幣的旅程才出現幣別切換。
+     預設：改舊的＝它原本的幣別；新增＝旅程中（Day N）用外幣、其他時候用台幣。 */
+  var fx = fxOn(t), fxI = fx ? fxInfo(t.fxCur) : null, tdy = todayExpDay(t);
+  var curFx = fx && (ex ? Number(ex.fx)>0 : (typeof tdy==="number" && tdy>0));
+  var curCard = !!(ex && ex.card);
+  var amtVal = ex ? (curFx ? ex.fx : ex.amount) : "";
   var opts = Object.keys(ECATS).map(function(k){
     return '<option value="'+k+'"'+(k===curCat?" selected":"")+'>'+ECATS[k].emoji+' '+ECATS[k].label+'</option>';
   }).join("");
@@ -3136,10 +3223,23 @@ function openExpenseSheet(editId){
     +   '<label class="'+(curPlan?"on":"")+'"><input type="radio" name="plan" value="1" onchange="paySegSync(this)"'+(curPlan?" checked":"")+'>預計要花</label>'
     +   '<label class="'+(curPlan?"":"on")+'"><input type="radio" name="plan" value="" onchange="paySegSync(this)"'+(curPlan?"":" checked")+'>已經付了</label>'
     + '</div>'
+    + (fx
+      ? '<div class="pay-seg fx-seg">'
+        + '<label class="'+(curFx?"":"on")+'"><input type="radio" name="cur" value="" onchange="paySegSync(this);fxSheetSync(this.form)"'+(curFx?"":" checked")+'>台幣 NT$</label>'
+        + '<label class="'+(curFx?"on":"")+'"><input type="radio" name="cur" value="1" onchange="paySegSync(this);fxSheetSync(this.form)"'+(curFx?" checked":"")+'>'+fxI.name+' '+fxI.sym+'</label>'
+        + '</div>'
+      : '')
     + '<div class="f-row2">'
-    +   '<label class="field"><span class="fl">金額（NT$）*</span><input type="number" name="amount" required min="0" step="1" inputmode="numeric" placeholder="0" value="'+(ex?ex.amount:"")+'"></label>'
+    +   '<label class="field"><span class="fl fx-amt-l">金額（'+(curFx?fxI.sym:"NT$")+'）*</span><input type="number" name="amount" required min="0" step="'+(curFx?"any":"1")+'" inputmode="decimal" placeholder="0" value="'+amtVal+'"'+(fx?' oninput="fxSheetSync(this.form)"':'')+'></label>'
     +   '<label class="field"><span class="fl">類別</span><select name="cat">'+opts+'</select></label>'
     + '</div>'
+    + (fx
+      ? '<div class="hint fx-conv"'+(curFx?"":" hidden")+'></div>'
+        + '<div class="pay-seg fx-pay"'+(curFx?"":" hidden")+'>'
+        + '<label class="'+(curCard?"":"on")+'"><input type="radio" name="card" value="" onchange="paySegSync(this)"'+(curCard?"":" checked")+'>付現金／八達通</label>'
+        + '<label class="'+(curCard?"on":"")+'"><input type="radio" name="card" value="1" onchange="paySegSync(this)"'+(curCard?" checked":"")+'>刷卡</label>'
+        + '</div>'
+      : '')
     /* 欄位順序＝「這是什麼」先講完，再講 metadata：
        金額／類別 → 標題 → 說明 →（幫他預設好的）哪一天。 */
     + '<label class="field"><span class="fl">標題</span><input name="desc" placeholder="例：鹿野春旅店" autocomplete="off" value="'+(ex?esc(ex.desc):"")+'"></label>'
@@ -3150,6 +3250,21 @@ function openExpenseSheet(editId){
     + '<label class="field"><span class="fl">哪一天</span><select name="day">'+expDayOpts(t,curDay)+'</select></label>'
     + '<button class="btn-primary" type="submit">'+(ex?"存起來":"記下來")+'</button>'
     + '</form>');
+  if(fx){ var fms = document.querySelectorAll('form[onsubmit^="submitExpense"]'); if(fms.length) fxSheetSync(fms[fms.length-1]); }
+}
+/* 切幣別／打金額時即時更新：標籤、≈台幣換算、付款方式那排要不要出現 */
+function fxSheetSync(f){
+  var t = curTrip(); if(!f || !t || !fxOn(t) || !f.cur) return;
+  var isFx = !!f.cur.value, I = fxInfo(t.fxCur);
+  var l = f.querySelector(".fx-amt-l"); if(l) l.textContent = "金額（"+(isFx?I.sym:"NT$")+"）*";
+  f.amount.step = isFx ? "any" : "1";
+  var conv = f.querySelector(".fx-conv"), pay = f.querySelector(".fx-pay");
+  if(pay) pay.hidden = !isFx;
+  if(conv){
+    conv.hidden = !isFx;
+    var n = Number(f.amount.value)||0;
+    conv.textContent = "≈ "+money(fxToNt(t, n))+"（1 "+I.name+"＝NT$ "+Number(t.fxRate)+"，可在「編輯旅程」改）";
+  }
 }
 function paySegSync(el){
   var seg = el.closest(".pay-seg"); if(!seg) return;
@@ -3167,13 +3282,17 @@ function submitExpense(ev){
   /* radio 群組讀 f.plan.value（RadioNodeList 會給選中的那顆的 value）；
      value="" ＝已付 ⇒ 直接轉 boolean 就對了。 */
   var isPlan = !!(f.plan && f.plan.value);
+  /* v3.14：外幣 ⇒ fx 存他打的數字、amount 存換算後台幣；台幣 ⇒ 清掉 fx／card */
+  var isFx = fxOn(t) && !!(f.cur && f.cur.value);
+  var fxAmt = isFx ? amt : 0, isCard = isFx && !!(f.card && f.card.value);
+  var nt = isFx ? fxToNt(t, amt) : Math.round(amt);
   if(id) t.expenses.forEach(function(e){ if(e.id===id) ex=e; });
   if(ex){
-    ex.amount=amt; ex.cat=f.cat.value; ex.desc=f.desc.value.trim();
-    ex.note=f.note.value.trim(); ex.day=day; ex.plan=isPlan;
+    ex.amount=nt; ex.cat=f.cat.value; ex.desc=f.desc.value.trim();
+    ex.note=f.note.value.trim(); ex.day=day; ex.plan=isPlan; ex.fx=fxAmt; ex.card=isCard;
   }else{
-    t.expenses.push({ id:uid(), amount:amt, cat:f.cat.value, desc:f.desc.value.trim(),
-      note:f.note.value.trim(), day:day, plan:isPlan });
+    t.expenses.push({ id:uid(), amount:nt, cat:f.cat.value, desc:f.desc.value.trim(),
+      note:f.note.value.trim(), day:day, plan:isPlan, fx:fxAmt, card:isCard });
   }
   persistTrip(t); closeSheet(); render();
 }
@@ -3219,6 +3338,15 @@ function openTripSheet(editId){
     + '</div>'
     + (trip ? '<div class="hint">縮短天數不會刪掉行程點，把天數改回來就會再出現。</div>' : "")
     + '<label class="field"><span class="fl">預算（NT$）</span><input type="number" name="budget" min="0" step="1" inputmode="numeric" value="'+(trip?(trip.budget||""):"")+'" placeholder="0"></label>'
+    /* v3.14 外幣：選了外幣才有意義填匯率／現金；改匯率會把外幣花費全部重新換算 */
+    + '<div class="f-row2">'
+    +   '<label class="field"><span class="fl">外幣<span class="fl-opt">選填</span></span><select name="fxCur"><option value="">不用</option>'
+    +     FX_CURS.map(function(c){ return '<option value="'+c[0]+'"'+(trip&&trip.fxCur===c[0]?" selected":"")+'>'+c[1]+' '+c[2]+'</option>'; }).join("")
+    +   '</select></label>'
+    +   '<label class="field"><span class="fl">匯率（1 外幣＝NT$）</span><input type="number" name="fxRate" min="0" step="any" inputmode="decimal" value="'+(trip&&trip.fxRate?trip.fxRate:"")+'" placeholder="例：4.18"></label>'
+    + '</div>'
+    + '<label class="field"><span class="fl">帶了多少外幣現金<span class="fl-opt">選填</span></span><input type="number" name="fxBudget" min="0" step="any" inputmode="decimal" value="'+(trip&&trip.fxBudget?trip.fxBudget:"")+'" placeholder="例：3500"></label>'
+    + '<div class="hint">設了外幣，記帳時就能直接打外幣金額，App 用這個匯率換成台幣。改匯率會把這趟的外幣花費全部重新換算。</div>'
     + tplField
     + '<div class="field"><span class="fl">封面 emoji</span><div class="pick-row">'+emojiPicks+'</div>'
     +   '<input name="emojiCustom" class="emoji-custom" value="" placeholder="或自己打一個 emoji（會取代上面選的）" autocomplete="off" autocapitalize="off"></div>'
@@ -3243,6 +3371,8 @@ function submitTrip(ev){
     t.start = f.start.value;
     t.days = Math.min(30, Math.max(1, Number(f.days.value)||1));
     t.budget = Number(f.budget.value)||0;
+    t.fxCur = f.fxCur.value; t.fxRate = Number(f.fxRate.value)||0; t.fxBudget = Number(f.fxBudget.value)||0;
+    fxSync(t);
     if(ui.day > t.days) ui.day = t.days;
     persistTrip(t); closeSheet(); render();
     return;
@@ -3268,6 +3398,7 @@ function submitTrip(ev){
     emoji:firstGrapheme(f.emojiCustom.value) || f.emoji.value || "🧳", theme:f.theme.value,
     start:f.start.value, days:Math.min(30, Math.max(1, Number(f.days.value)||1)),
     budget:Number(f.budget.value)||0,
+    fxCur:f.fxCur.value, fxRate:Number(f.fxRate.value)||0, fxBudget:Number(f.fxBudget.value)||0,
     createdAt:new Date().toISOString(),
     itinerary:{}, expenses:[], packing:packing, notes:""
   };

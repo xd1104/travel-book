@@ -6,8 +6,11 @@ theme: "sand"
 start: "2026-11-11"
 days: 4
 budget: 74156
+fxCur: "HKD"
+fxRate: 4.18
+fxBudget: 3500
 createdAt: "2026-10-07T08:27:03.613Z"
-updatedAt: "2026-11-09T05:53:21.000Z"
+updatedAt: "2026-11-09T06:08:31.000Z"
 ---
 
 ## 行程
@@ -93,14 +96,14 @@ updatedAt: "2026-11-09T05:53:21.000Z"
 - {"id":"xhkexp01","amount":1957,"cat":"ticket","desc":"山頂纜車單程（上山）＋摩天台 428","note":"成人 NT$535×3＋兒童 NT$352＝NT$1,957。只買上山單程，下山坐 15 號巴士","day":"pre","plan":true}
 - {"id":"xhkexp02","amount":1817,"cat":"ticket","desc":"永安號 黃昏暢飲海上遊（18:10）","note":"11/6 已在 Klook 訂好（實付 NT$1,817）。18:10 尖沙咀 3 號碼頭上船、中環 9 號碼頭下船。票不可退改","day":"pre"}
 - {"id":"xhkexp03","amount":1649,"cat":"ticket","desc":"觀光城巴夜遊票（H2K）","note":"4 人（3 大 1 小）總共 NT$1,649。城巴官方價是成人 HK$114、小童 HK$57，當天 H2K 無限次搭乘","day":"pre","plan":true}
-- {"id":"xhkexp04","amount":900,"cat":"transport","desc":"Day 1 交通（八達通）","note":"預估：A10 機場巴士約 HK$40＋港鐵 2 趟＋下山 15 號巴士約 HK$11.5（3 大 1 小，小童約半價；匯率 1 港幣≈4.1 台幣）。港幣小計約 HK$219","day":1,"plan":true}
-- {"id":"xhkexp05","amount":370,"cat":"transport","desc":"Day 2 交通（八達通）","note":"預估：港鐵 3 趟＋叮叮車；永安號另計（3 大 1 小，小童約半價；匯率 1 港幣≈4.1 台幣）。港幣小計約 HK$90","day":2,"plan":true}
-- {"id":"xhkexp06","amount":800,"cat":"transport","desc":"Day 3 交通（八達通）","note":"預估：260 巴士 3 段＋港鐵 4 趟；H2K 另計（3 大 1 小，小童約半價；匯率 1 港幣≈4.1 台幣）。港幣小計約 HK$194","day":3,"plan":true}
-- {"id":"xhkexp07","amount":570,"cat":"transport","desc":"Day 4 交通（八達通）","note":"預估：A11 機場巴士約 HK$40（3 大 1 小，小童約半價；匯率 1 港幣≈4.1 台幣）。港幣小計約 HK$140","day":4,"plan":true}
-- {"id":"xhkexp08","amount":3390,"cat":"food","desc":"Day 1 餐飲","note":"預估每人：新興發 HK$60、Vission 麵包 HK$40、坤記煲仔飯 HK$130（3 大 1 小，小朋友算 0.6 份；匯率 1 港幣≈4.1 台幣）。港幣小計約 HK$828","day":1,"plan":true}
-- {"id":"xhkexp09","amount":3990,"cat":"food","desc":"Day 2 餐飲","note":"預估每人：甘牌 HK$110、聰嫂 HK$50、Bakehouse HK$30、中環晚餐（威靈頓街一帶）HK$80（3 大 1 小，小朋友算 0.6 份；匯率 1 港幣≈4.1 台幣）。港幣小計約 HK$972","day":2,"plan":true}
-- {"id":"xhkexp10","amount":3690,"cat":"food","desc":"Day 3 餐飲","note":"預估每人：蘭芳園 HK$60（有最低消費）、赤柱午餐 HK$100、棟記 HK$90（3 大 1 小，小朋友算 0.6 份；匯率 1 港幣≈4.1 台幣）。港幣小計約 HK$900","day":3,"plan":true}
-- {"id":"xhkexp11","amount":1030,"cat":"food","desc":"Day 4 早餐","note":"預估每人：六安居／新五龍 HK$70（3 大 1 小，小朋友算 0.6 份；匯率 1 港幣≈4.1 台幣）。港幣小計約 HK$252","day":4,"plan":true}
+- {"id":"xhkexp04","amount":915,"cat":"transport","desc":"Day 1 交通（八達通）","note":"預估：A10 機場巴士約 HK$40＋港鐵 2 趟＋下山 15 號巴士約 HK$11.5（3 大 1 小，小童約半價）","day":1,"plan":true,"fx":219}
+- {"id":"xhkexp05","amount":376,"cat":"transport","desc":"Day 2 交通（八達通）","note":"預估：港鐵 3 趟＋叮叮車；永安號另計（3 大 1 小，小童約半價）","day":2,"plan":true,"fx":90}
+- {"id":"xhkexp06","amount":811,"cat":"transport","desc":"Day 3 交通（八達通）","note":"預估：260 巴士 3 段＋港鐵 4 趟；H2K 另計（3 大 1 小，小童約半價）","day":3,"plan":true,"fx":194}
+- {"id":"xhkexp07","amount":585,"cat":"transport","desc":"Day 4 交通（八達通）","note":"預估：A11 機場巴士約 HK$40（3 大 1 小，小童約半價）","day":4,"plan":true,"fx":140}
+- {"id":"xhkexp08","amount":3461,"cat":"food","desc":"Day 1 餐飲","note":"預估每人：新興發 HK$60、Vission 麵包 HK$40、坤記煲仔飯 HK$130（3 大 1 小，小朋友算 0.6 份）","day":1,"plan":true,"fx":828}
+- {"id":"xhkexp09","amount":4063,"cat":"food","desc":"Day 2 餐飲","note":"預估每人：甘牌 HK$110、聰嫂 HK$50、Bakehouse HK$30、中環晚餐（威靈頓街一帶）HK$80（3 大 1 小，小朋友算 0.6 份）","day":2,"plan":true,"fx":972}
+- {"id":"xhkexp10","amount":3762,"cat":"food","desc":"Day 3 餐飲","note":"預估每人：蘭芳園 HK$60（有最低消費）、赤柱午餐 HK$100、棟記 HK$90（3 大 1 小，小朋友算 0.6 份）","day":3,"plan":true,"fx":900}
+- {"id":"xhkexp11","amount":1053,"cat":"food","desc":"Day 4 早餐","note":"預估每人：六安居／新五龍 HK$70（3 大 1 小，小朋友算 0.6 份）","day":4,"plan":true,"fx":252}
 - {"id":"xmvrhvbah45s6","amount":25114,"cat":"transport","desc":"機票","day":"pre"}
 - {"id":"xmvrhx3pgi8nh","amount":28645,"cat":"stay","desc":"Eco Tree Hotel Sheung Wan","day":"pre"}
 

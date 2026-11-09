@@ -239,6 +239,12 @@ function cleanExpense(e) {
   // v3.5：plan:true ＝「預計要花、還沒付」。真值刻意是 plan 不是 paid：
   // 既有資料全是已經花掉的，用「缺值＝已付」才做得到零遷移。
   if (e.plan) o.plan = true;
+  // v3.14 外幣：fx ＝原始外幣金額（amount 仍是換算後的台幣，所有加總照舊）；
+  // card:true ＝這筆外幣是刷卡、不算進外幣現金。都是空值不寫 ⇒ 舊資料零遷移。
+  if (Number(e.fx) > 0) {
+    o.fx = Number(e.fx);
+    if (e.card) o.card = true;
+  }
   return o;
 }
 /* 打包項目（v2.9 起多了 kind／bag 兩個選填欄位＝「包」）
@@ -313,6 +319,12 @@ function serializeTrip(t) {
   L.push('start: ' + fmString(t.start));
   L.push('days: ' + fmNumber(t.days || 1));
   L.push('budget: ' + fmNumber(t.budget));
+  // v3.14 外幣（沒設就不寫 ⇒ 其他旅程逐字不變；public/app.js mirror）
+  if (t.fxCur) {
+    L.push('fxCur: ' + fmString(t.fxCur));
+    L.push('fxRate: ' + fmNumber(t.fxRate));
+    L.push('fxBudget: ' + fmNumber(t.fxBudget));
+  }
   L.push('createdAt: ' + fmString(t.createdAt || new Date().toISOString()));
   L.push('updatedAt: ' + fmString(t.updatedAt || new Date().toISOString()));
   L.push('---');
@@ -359,6 +371,7 @@ function parseFrontmatterLine(line) {
 function parseTrip(id, text) {
   const t = {
     id, name: '', dest: '', emoji: '🧳', theme: 'sunset', start: '', days: 1, budget: 0,
+    fxCur: '', fxRate: 0, fxBudget: 0,
     createdAt: '', updatedAt: '', itinerary: {}, expenses: [], packing: [], notes: '',
   };
   text = String(text).replace(/\r\n/g, '\n'); // 容忍 CRLF（Windows checkout/pull 後）
@@ -370,6 +383,7 @@ function parseTrip(id, text) {
       if (!parsed) continue;
       const [k, v] = parsed;
       if (k === 'days' || k === 'budget') t[k] = Number(v) || (k === 'days' ? 1 : 0);
+      else if (k === 'fxRate' || k === 'fxBudget') t[k] = Number(v) || 0;
       else if (k in t) t[k] = v;
     }
     body = text.slice(fm[0].length);
