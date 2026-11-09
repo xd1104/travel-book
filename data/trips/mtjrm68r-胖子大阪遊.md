@@ -17,12 +17,12 @@ updatedAt: "2026-11-09T10:00:00.000Z"
 - {"id":"xos110101","title":"抵達神戶機場","time":"12:15","cat":"transport","place":"神戶機場","note":"星宇 JX360 高雄 08:25 起飛（2027/1 班表，訂票時再確認）","stayMinutes":30}
 - {"id":"xos110102","type":"transit","note":"① 搭 Port Liner 到三宮（約 18 分）\n② 大行李寄三宮站投幣置物櫃","stayMinutes":30}
 - {"id":"xos110103","title":"三宮 午餐吃神戶牛","time":"13:15","cat":"food","place":"神戶三宮","note":"店家待選","stayMinutes":75}
-- {"id":"xos110104","title":"北野異人館 或 神戶港區散步","time":"14:30","cat":"sight","place":"神戶","note":"二選一，待定","stayMinutes":120}
 - {"id":"xos110105","type":"transit","note":"① 回三宮拿行李\n② 搭阪急或阪神電車到梅田（約 30 分）","stayMinutes":60}
-- {"id":"xos110106","title":"梅田飯店入住","time":"17:30","cat":"stay","place":"大阪梅田","note":"飯店待訂","stayMinutes":30}
-- {"id":"xos110107","title":"梅田 晚餐","time":"18:00","cat":"food","place":"大阪梅田","note":"店家待選","stayMinutes":60}
-- {"id":"xos110108","title":"梅田空中庭園 看夜景","time":"19:15","cat":"sight","place":"梅田藍天大廈","stayMinutes":75}
-- {"id":"xos110109","title":"HEP FIVE 摩天輪","time":"20:45","cat":"sight","place":"HEP FIVE","note":"商場頂樓的紅色摩天輪","stayMinutes":30}
+- {"id":"xos110106","title":"梅田飯店入住","time":"15:30","cat":"stay","place":"大阪梅田","note":"飯店待訂","stayMinutes":30}
+- {"id":"xos110110","title":"LUCUA・LUCUA 1100","time":"16:00","cat":"shop","place":"LUCUA osaka","note":"・JR 大阪站旁，兩棟連在一起\n・商店 10:00–21:00\n・逛不完可以逛到 21:00 關門，後面往後挪","stayMinutes":150}
+- {"id":"xos110107","title":"梅田 晚餐","time":"18:30","cat":"food","place":"大阪梅田","note":"・店家待選\n・LUCUA 餐廳營業到 23:00，可以直接在裡面吃","stayMinutes":60}
+- {"id":"xos110108","title":"梅田空中庭園 看夜景","time":"19:45","cat":"sight","place":"梅田藍天大廈","stayMinutes":75}
+- {"id":"xos110109","title":"HEP FIVE 摩天輪","time":"21:15","cat":"sight","place":"HEP FIVE","note":"・商場頂樓的紅色摩天輪\n・營業時間待查，太晚就改天","stayMinutes":30}
 
 ### Day 2
 
