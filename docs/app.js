@@ -42,7 +42,7 @@ function splashReady(){
 /* ============ 常數 ============ */
 /* 版本號的唯一來源：首頁 footer 與「版本」sheet 都讀它。
  * 改前端時跟 sw.js 的 cache 版本號一起 +1（見「版本與更新」段）。 */
-var APP_VER="3.16";
+var APP_VER="3.17";
 
 /* v3.13 分享連結：網址帶 ?share=<旅程 id 開頭> ⇒ 只載入那一趟、直接進旅程頁、全部唯讀。
  * 給家人看行程用：看不到首頁清單和其他旅程，也沒有編輯／解鎖入口。
@@ -3552,9 +3552,31 @@ document.addEventListener("visibilitychange", function(){
     if(seq!==writeSeq || busyEditing()) return;
     db = migrate(d);
     rebuildCats();
-    render();
+    render(true);   /* v3.17：留在原本捲到的位置（原本 render() 會跳回最上面） */
+    fixFixedBars();
   }).catch(function(){ /* 背景更新失敗就算了，畫面維持原狀 */ });
 });
+
+/* v3.17 iOS 底部分頁列跑到畫面中間（2026-11-10 Benson 截圖）：
+ * iPhone 主畫面 PWA 從背景回來、鍵盤收起、或畫面高度改變後，iOS 有時沒重算
+ * position:fixed 的位置，分頁列和＋鈕會卡在舊的「畫面底部」（約鍵盤收起前的高度），
+ * 下面還看得到行程。本機複現不出來，成因未確認；這裡在這幾個時機逼 iOS 重排一次：
+ * 原地捲動 0px＋讓分頁列和＋鈕重新排版。對正常情況沒有任何可見變化。 */
+function fixFixedBars(){
+  requestAnimationFrame(function(){
+    window.scrollTo(window.scrollX, window.scrollY);
+    var els = document.querySelectorAll(".tabbar, .fab");
+    for(var i=0;i<els.length;i++){ var el=els[i]; el.style.display="none"; void el.offsetHeight; el.style.display=""; }
+  });
+}
+document.addEventListener("visibilitychange", function(){ if(!document.hidden) fixFixedBars(); });
+window.addEventListener("pageshow", fixFixedBars);
+window.addEventListener("orientationchange", function(){ setTimeout(fixFixedBars, 300); });
+document.addEventListener("focusout", function(){ setTimeout(fixFixedBars, 100); });
+if(window.visualViewport){
+  var vvTimer=null;
+  window.visualViewport.addEventListener("resize", function(){ clearTimeout(vvTimer); vvTimer=setTimeout(fixFixedBars, 150); });
+}
 
 /* ============ 版本與更新 ============
  * PWA 的殼是 cache-first，新的 service worker 裝好、activate 之後，
