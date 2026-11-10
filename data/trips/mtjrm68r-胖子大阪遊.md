@@ -7,19 +7,18 @@ start: "2027-11-27"
 days: 8
 budget: 0
 createdAt: "2026-09-02T07:18:59.356Z"
-updatedAt: "2026-11-09T10:00:00.000Z"
+updatedAt: "2026-11-10T10:00:00.000Z"
 ---
 
 ## 行程
 
 ### Day 1
 
-- {"id":"xos110101","title":"抵達神戶機場","time":"12:15","cat":"transport","place":"神戶機場","note":"星宇 JX360 高雄 08:25 起飛（2027/1 班表，訂票時再確認）","stayMinutes":30}
-- {"id":"xos110102","type":"transit","note":"① 搭 Port Liner 到三宮（約 18 分）\n② 大行李寄三宮站投幣置物櫃","stayMinutes":30}
-- {"id":"xos110103","title":"三宮 午餐吃神戶牛","time":"13:15","cat":"food","place":"神戶三宮","note":"店家待選","stayMinutes":75}
-- {"id":"xos110105","type":"transit","note":"① 回三宮拿行李\n② 搭阪急或阪神電車到梅田（約 30 分）","stayMinutes":60}
-- {"id":"xos110106","title":"梅田飯店入住","time":"15:30","cat":"stay","place":"大阪梅田","note":"飯店待訂","stayMinutes":30}
-- {"id":"xos110110","title":"LUCUA・LUCUA 1100","time":"16:00","cat":"shop","place":"LUCUA osaka","note":"・JR 大阪站旁，兩棟連在一起\n・商店 10:00–21:00\n・逛不完可以逛到 21:00 關門，後面往後挪","stayMinutes":150}
+- {"id":"xos110101","title":"抵達關西機場","time":"10:40","cat":"transport","place":"關西國際機場","note":"・暫定廉航小港 ↔ 關西來回（還沒訂）\n・用今年虎航 06:55 → 10:40 估，明年班表會變\n・行李要訂票時在網路先買，機場買貴一倍","stayMinutes":45}
+- {"id":"xos110102","type":"transit","note":"JR 關空快速到大阪站（梅田）\n・車資 ¥1,210\n・時間約 1 小時多（估計，出發前查班次）","stayMinutes":75}
+- {"id":"xos110106","title":"梅田飯店 寄放行李","time":"12:45","cat":"stay","place":"大阪梅田","note":"・飯店待訂\n・還不能入住就先寄放行李，逛完再回來辦","stayMinutes":15}
+- {"id":"xos110103","title":"梅田 午餐","time":"13:00","cat":"food","place":"大阪梅田","note":"店家待選（候選：燒肉力丸 梅田東通り店，週六 11:30 開）","stayMinutes":75}
+- {"id":"xos110110","title":"LUCUA・LUCUA 1100","time":"14:30","cat":"shop","place":"LUCUA osaka","note":"・JR 大阪站旁，兩棟連在一起\n・商店 10:00–21:00\n・中間可以回飯店辦入住、放戰利品","stayMinutes":240}
 - {"id":"xos110107","title":"梅田 晚餐","time":"18:30","cat":"food","place":"大阪梅田","note":"・店家待選\n・LUCUA 餐廳營業到 23:00，可以直接在裡面吃","stayMinutes":60}
 - {"id":"xos110108","title":"梅田空中庭園 看夜景","time":"19:45","cat":"sight","place":"梅田藍天大廈","note":"・22:00 最後入場\n・大人 ¥2,000","stayMinutes":75}
 
@@ -96,7 +95,7 @@ updatedAt: "2026-11-09T10:00:00.000Z"
 - {"id":"xos110801","title":"難波飯店退房","time":"09:00","cat":"stay","place":"大阪難波","stayMinutes":15}
 - {"id":"xos110802","title":"心齋橋 補買東西","time":"09:15","cat":"shop","place":"心齋橋筋商店街","stayMinutes":75}
 - {"id":"xos110803","type":"transit","note":"南海電車 難波 → 關西機場（約 40 分）","stayMinutes":60}
-- {"id":"xos110804","title":"關西機場 → 回高雄","time":"11:30","cat":"transport","place":"關西國際機場","note":"回程航班未訂\n今年查到：樂桃 10:35、虎航 11:30、亞航 14:10（班表會變）","stayMinutes":30}
+- {"id":"xos110804","title":"關西機場 → 回高雄","time":"11:30","cat":"transport","place":"關西國際機場","note":"回程航班未訂（廉航，跟去程買同一張來回）\n今年查到：樂桃 10:35、虎航 11:30、亞航 14:10（班表會變）\n回程行李最重，托運要買夠","stayMinutes":30}
 
 ## 花費
 
@@ -107,9 +106,11 @@ updatedAt: "2026-11-09T10:00:00.000Z"
 ## 備註
 
 ✈️ 航班（都還沒訂）
-去程：星宇 高雄 → 神戶（JX360 08:25 → 12:15）
-回程：關西 → 高雄，廉航（樂桃／虎航／亞航）
-兩張單程開賣後要跟來回票比價
+暫定：廉航 小港 ↔ 關西 來回（虎航／樂桃／亞航）
+・每人約 NT$9,900（2027/3 查價），不含托運行李
+・行李訂票時網路先買，單程每件約 NT$750～1,000（估計），機場買貴一倍
+・含行李兩人約 NT$23,000
+備案：星宇 神戶來回，每人約 NT$15,300，含 23 公斤行李，兩人約多 NT$7,000
 
 🏨 住宿（都還沒訂）
 Day 1～2：大阪梅田
