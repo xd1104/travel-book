@@ -17,7 +17,7 @@ updatedAt: "2026-11-10T10:00:00.000Z"
 - {"id":"xos110101","title":"抵達關西機場","time":"10:40","cat":"transport","place":"關西國際機場","note":"・暫定廉航小港 ↔ 關西來回（還沒訂）\n・用今年虎航 06:55 → 10:40 估，明年班表會變\n・行李要訂票時在網路先買，機場買貴一倍","stayMinutes":45}
 - {"id":"xos110102","type":"transit","note":"JR 關空快速到大阪站（梅田）\n・車資 ¥1,210\n・時間約 1 小時多（估計，出發前查班次）","stayMinutes":75}
 - {"id":"xos110106","title":"梅田飯店 寄放行李","time":"12:45","cat":"stay","place":"大阪梅田","note":"・飯店待訂\n・還不能入住就先寄放行李，逛完再回來辦","stayMinutes":15}
-- {"id":"xos110103","title":"梅田 午餐","time":"13:00","cat":"food","place":"大阪梅田","note":"店家待選（候選：燒肉力丸 梅田東通り店，週六 11:30 開）","stayMinutes":75}
+- {"id":"xos110103","title":"萬野 壽喜燒（午餐）","time":"13:00","cat":"food","place":"すき焼きしゃぶしゃぶ萬野 ルクア大阪店","note":"・LUCUA 10 樓，吃完直接逛\n・一人一鍋，選壽喜燒湯底\n・推薦「和牛綜合」120g ¥3,300（瘦肉＋五花）\n・要菜、飯、甜點要加價改套餐\n・午餐 11:00–16:00\n・Google 地圖：https://www.google.com/maps/search/?api=1&query=%E3%81%99%E3%81%8D%E7%84%BC%E3%81%8D%E3%81%97%E3%82%83%E3%81%B6%E3%81%97%E3%82%83%E3%81%B6%E8%90%AC%E9%87%8E%20%E3%83%AB%E3%82%AF%E3%82%A2%E5%A4%A7%E9%98%AA%E5%BA%97","stayMinutes":75}
 - {"id":"xos110110","title":"LUCUA・LUCUA 1100","time":"14:30","cat":"shop","place":"LUCUA osaka","note":"・JR 大阪站旁，兩棟連在一起\n・商店 10:00–21:00\n・中間可以回飯店辦入住、放戰利品","stayMinutes":240}
 - {"id":"xos110107","title":"梅田 晚餐","time":"18:30","cat":"food","place":"大阪梅田","note":"・店家待選\n・LUCUA 餐廳營業到 23:00，可以直接在裡面吃","stayMinutes":60}
 - {"id":"xos110108","title":"梅田空中庭園 看夜景","time":"19:45","cat":"sight","place":"梅田藍天大廈","note":"・22:00 最後入場\n・大人 ¥2,000","stayMinutes":75}
