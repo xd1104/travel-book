@@ -24,7 +24,7 @@ updatedAt: "2026-11-10T10:00:00.000Z"
 ### Day 2
 
 - {"id":"xos110220","title":"梅田 全天 待定","time":"08:30","cat":"other","place":"大阪梅田","note":"・逛街：EST、HEP FIVE（同一區，走路 3～5 分）→ Grand Front（大阪站北邊）\n・小吃：Hanadako 章魚燒、阪神 B1 魷魚燒、ねぎ焼山本（EST 1F）、梅田綜合果汁\n・甜點：grenier 千層酥（10:00 開，要排隊）、RIKURO 起司蛋糕（大丸 B1，20:00 關）\n・早餐候選：山本珈琲館（07:00 開，EST 旁）\n・怎麼排還沒定","stayMinutes":630}
-- {"id":"xos110221","title":"鴨與蔥 拉麵（晚餐）","time":"19:00","cat":"food","place":"らぁ麺 鴨to葱 大阪梅田店","note":"・大阪站 INNOGATE 大阪 3 樓\n・鴨湯拉麵\n・開到 23:00","stayMinutes":60}
+- {"id":"xos110221","title":"鴨與蔥 拉麵（晚餐）","time":"19:00","cat":"food","place":"Ramen Kamo to Negi Osaka Umeda Branch","note":"・大阪站 INNOGATE 大阪 3 樓\n・鴨湯拉麵\n・開到 23:00","stayMinutes":60}
 
 ### Day 3
 
