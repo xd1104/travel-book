@@ -24,7 +24,15 @@ updatedAt: "2026-11-10T10:00:00.000Z"
 ### Day 2
 
 - {"id":"xos110222","title":"喫茶サンシャイン 早餐","time":"08:00","cat":"food","place":"喫茶サンシャイン 大阪駅前第3ビル","note":"・日式老派咖啡館早餐套餐（モーニング）\n・大阪站前第 3 大樓 B2\n・週日 08:00 開","stayMinutes":60}
-- {"id":"xos110220","title":"梅田 全天 待定","time":"09:00","cat":"other","place":"大阪梅田","note":"・逛街：EST、HEP FIVE（同一區，走路 3～5 分）→ Grand Front（大阪站北邊）\n・小吃：Hanadako 章魚燒、阪神 B1 魷魚燒、ねぎ焼山本（EST 1F）、梅田綜合果汁\n・甜點：grenier 千層酥（10:00 開，要排隊）、RIKURO 起司蛋糕（大丸 B1，20:00 關）\n・怎麼排還沒定","stayMinutes":600}
+- {"id":"xos110223","title":"梅田綜合果汁","time":"09:00","cat":"food","place":"梅田ミックスジュース","note":"・阪神梅田站地下街，站著喝\n・週日 07:00 開","stayMinutes":15}
+- {"id":"xos110224","type":"transit","note":"走到阪急 Grand Building（約 10 分，估計）","stayMinutes":15}
+- {"id":"xos110225","title":"grenier 烤布蕾千層酥","time":"09:40","cat":"food","place":"grenier 梅田店","note":"・Dcard 最多人推的梅田甜點\n・10:00 開門，先去排（排隊＋等餐約 20–30 分）\n・阪急 Grand Building 1F","stayMinutes":65}
+- {"id":"xos110226","title":"逛 EST","time":"11:00","cat":"shop","place":"梅田 EST","note":"・10～20 幾歲年輕女生服飾，100 多間\n・商店 11:00–21:00（2025/7 資料）","stayMinutes":75}
+- {"id":"xos110227","title":"ねぎ焼 山本（午餐）","time":"12:15","cat":"food","place":"ねぎ焼やまもと 梅田エスト店","note":"・EST 1F\n・蔥燒（用蔥取代高麗菜的大阪燒）\n・週日 11:30–21:00","stayMinutes":60}
+- {"id":"xos110231","title":"逛 HEP FIVE＋摩天輪","time":"13:15","cat":"shop","place":"HEP FIVE","note":"・跟 EST 同一區，走路 3～5 分\n・學生、年輕人服飾\n・摩天輪約 ¥1,000、轉一圈 15 分","stayMinutes":150}
+- {"id":"xos110228","title":"Hanadako 章魚燒","time":"15:45","cat":"food","place":"はなだこ 新梅田食道街","note":"・新梅田食道街 1F\n・份量大，兩人分一份\n・週日 10:00–21:45","stayMinutes":30}
+- {"id":"xos110229","type":"transit","note":"走到大阪站北邊 Grand Front（約 10 分，估計）","stayMinutes":15}
+- {"id":"xos110230","title":"逛 Grand Front","time":"16:30","cat":"shop","place":"グランフロント大阪","note":"・生活雜貨、選貨店、關西最大無印良品（三層樓）\n・商店 11:00–21:00","stayMinutes":150}
 - {"id":"xos110221","title":"鴨與蔥 拉麵（晚餐）","time":"19:00","cat":"food","place":"Ramen Kamo to Negi Osaka Umeda Branch","note":"・大阪站 INNOGATE 大阪 3 樓\n・鴨湯拉麵\n・開到 23:00","stayMinutes":60}
 
 ### Day 3
@@ -105,7 +113,6 @@ Day 3（一）：京都，只住一晚（建議京都車站附近）
 Day 4～7（二～五）：大阪難波
 
 📌 待定（還沒排進行程）
-・HEP FIVE＋EST → 先放 Day 2 梅田（摩天輪約 ¥1,000、轉一圈 15 分、最後搭乘 22:45）
 ・木津市場（週日、國定假日、部分週三公休；6:00–11:00，10:00 前到；木津魚市食堂海鮮丼常 11 點前賣完）
   → Day 6（週四）或 Day 7（週五）早上：難波搭御堂筋線一站到大國町
 ・奈良要不要去還沒定（奈良公園餵鹿、東大寺、春日大社；難波搭近鐵直達約 40 分）
