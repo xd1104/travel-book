@@ -18,8 +18,9 @@ updatedAt: "2026-11-10T10:00:00.000Z"
 - {"id":"xos110102","type":"transit","note":"JR 關空快速到大阪站（梅田）\n・車資 ¥1,210\n・時間約 1 小時多（估計，出發前查班次）","stayMinutes":75}
 - {"id":"xos110106","title":"梅田飯店 寄放行李","time":"12:45","cat":"stay","place":"大阪梅田","note":"・飯店待訂\n・還不能入住就先寄放行李，逛完再回來辦","stayMinutes":15}
 - {"id":"xos110103","title":"萬野 壽喜燒（午餐）","time":"13:00","cat":"food","place":"すき焼きしゃぶしゃぶ萬野 ルクア大阪店","note":"・LUCUA 10 樓，吃完直接逛\n・一人一鍋，選壽喜燒湯底\n・推薦「和牛綜合」120g ¥3,300（瘦肉＋五花）\n・要菜、飯、甜點要加價改套餐\n・午餐 11:00–16:00","stayMinutes":75}
-- {"id":"xos110110","title":"LUCUA・LUCUA 1100","time":"14:30","cat":"shop","place":"LUCUA osaka","note":"・JR 大阪站旁，兩棟連在一起\n・商店 10:30–20:30（B2 美食街到 23:00）\n・中間可以回飯店辦入住、放戰利品","stayMinutes":240}
-- {"id":"xos110107","title":"梅田 晚餐","time":"18:30","cat":"food","place":"大阪梅田","note":"・店家待選\n・LUCUA 餐廳營業到 23:00，可以直接在裡面吃","stayMinutes":60}
+- {"id":"xos110110","title":"LUCUA・LUCUA 1100","time":"14:30","cat":"shop","place":"LUCUA osaka","note":"・JR 大阪站旁，兩棟連在一起\n・商店 10:30–20:30（B2 美食街到 23:00）\n・中間可以回飯店辦入住、放戰利品","stayMinutes":270}
+- {"id":"xos110107","title":"百貨地下街 買熟食","time":"19:00","cat":"food","place":"阪神梅田本店","note":"・B1 熟食區很大，招牌烤魷魚（いか焼き）\n・對面阪急 B1 甜點、伴手禮多\n・兩家都 20:00 關門，19:00 前到\n・買回飯店吃，路上便利商店補飲料宵夜","stayMinutes":60}
+- {"id":"xos110109","title":"回 LUCUA 逛到關門","time":"20:00","cat":"shop","place":"LUCUA osaka","note":"・商店 20:30 關門\n・逛完回飯店吃熟食","stayMinutes":30}
 
 ### Day 2
 
@@ -28,8 +29,8 @@ updatedAt: "2026-11-10T10:00:00.000Z"
 - {"id":"xos110203","title":"黑門市場 邊走邊吃","time":"12:00","cat":"food","place":"黑門市場","note":"海鮮、和牛、水果","stayMinutes":90}
 - {"id":"xos110204","type":"transit","note":"地鐵到惠美須町站","stayMinutes":20}
 - {"id":"xos110205","title":"新世界・通天閣","time":"13:50","cat":"sight","place":"新世界","note":"吃串炸","stayMinutes":120}
-- {"id":"xos110206","type":"transit","note":"地鐵御堂筋線回梅田","stayMinutes":30}
-- {"id":"xos110211","title":"HEP FIVE 逛街＋摩天輪","time":"16:20","cat":"shop","place":"HEP FIVE","note":"・商店 11:00–21:00\n・摩天輪最後搭乘 22:45\n・天黑後搭摩天輪看夜景","stayMinutes":150}
+- {"id":"xos110206","type":"transit","note":"傍晚去哪還沒定（見下一筆）","stayMinutes":30}
+- {"id":"xos110211","title":"傍晚 待定","time":"16:20","cat":"other","place":"","note":"候選：\n・阿倍野 HARUKAS 看夕陽＋夜景（新世界旁，走路約 15 分；日落約 16:49）\n・HEP FIVE＋EST 逛街（回梅田）","stayMinutes":150}
 - {"id":"xos110212","title":"梅田 晚餐","time":"18:50","cat":"food","place":"大阪梅田","note":"店家待選","stayMinutes":60}
 
 ### Day 3
@@ -115,6 +116,11 @@ updatedAt: "2026-11-10T10:00:00.000Z"
 Day 1～2：大阪梅田
 Day 3～5：京都（京都車站或四條河原町一帶）
 Day 6～7：大阪難波
+
+📌 待定（還沒排進行程）
+・HEP FIVE 逛街＋摩天輪（梅田，泡芙想逛；摩天輪約 ¥1,000、轉一圈 15 分、最後搭乘 22:45）
+・EST（梅田，阪急梅田站旁）
+・阿倍野 HARUKAS 夜景（WEB 預售 ¥1,980，16:15 到看夕陽＋夜景；樓下近鐵百貨到 20:00）
 
 🍁 紅葉
 2027 年 10 月看紅葉預測再對一次
