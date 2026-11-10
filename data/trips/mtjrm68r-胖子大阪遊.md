@@ -23,13 +23,12 @@ updatedAt: "2026-11-10T10:00:00.000Z"
 
 ### Day 2
 
-- {"id":"xos110201","title":"大阪城公園","time":"09:00","cat":"sight","place":"大阪城公園","note":"・公園東側銀杏大道\n・天守閣可以上去看","stayMinutes":150}
-- {"id":"xos110202","type":"transit","note":"地鐵到日本橋站，走到黑門市場","stayMinutes":30}
-- {"id":"xos110203","title":"黑門市場 邊走邊吃","time":"12:00","cat":"food","place":"黑門市場","note":"海鮮、和牛、水果","stayMinutes":90}
-- {"id":"xos110204","type":"transit","note":"地鐵到惠美須町站","stayMinutes":20}
-- {"id":"xos110205","title":"新世界・通天閣","time":"13:50","cat":"sight","place":"新世界","note":"吃串炸","stayMinutes":120}
+- {"id":"xos110200","type":"transit","note":"JR 環狀線 大阪站 → 大阪城公園站（約 15 分，估計）","stayMinutes":30}
+- {"id":"xos110201","title":"大阪城公園","time":"09:00","cat":"sight","place":"大阪城公園","note":"・公園東側銀杏大道（11 月底正黃）\n・天守閣 9:00–18:00，大人 ¥1,200\n・車站走到天守閣約 20 分，穿好走的鞋\n・週日人多，早點到","stayMinutes":150}
+- {"id":"xos110202","type":"transit","note":"JR 環狀線 大阪城公園站 → 新今宮站，走到新世界（約 25 分，估計）","stayMinutes":40}
+- {"id":"xos110205","title":"新世界・通天閣＋串炸午餐","time":"12:10","cat":"sight","place":"新世界","note":"・串炸當午餐（醬汁不能沾第二次）\n・老街招牌很好拍\n・通天閣可以上去","stayMinutes":180}
 - {"id":"xos110206","type":"transit","note":"傍晚去哪還沒定（見下一筆）","stayMinutes":30}
-- {"id":"xos110211","title":"傍晚 待定","time":"16:20","cat":"other","place":"","note":"候選：\n・阿倍野 HARUKAS 看夕陽＋夜景（新世界旁，走路約 15 分；日落約 16:49）\n・HEP FIVE＋EST 逛街（回梅田）","stayMinutes":150}
+- {"id":"xos110211","title":"傍晚 待定","time":"15:40","cat":"other","place":"","note":"候選：\n・阿倍野 HARUKAS 看夕陽＋夜景（新世界旁，走路約 15 分；日落約 16:49）\n・HEP FIVE＋EST 逛街（回梅田）","stayMinutes":150}
 - {"id":"xos110212","title":"梅田 晚餐","time":"18:50","cat":"food","place":"大阪梅田","note":"店家待選","stayMinutes":60}
 
 ### Day 3
@@ -119,6 +118,8 @@ Day 6～7：大阪難波
 📌 待定（還沒排進行程）
 ・HEP FIVE 逛街＋摩天輪（梅田，泡芙想逛；摩天輪約 ¥1,000、轉一圈 15 分、最後搭乘 22:45）
 ・EST（梅田，阪急梅田站旁）
+・木津市場（週日、國定假日、部分週三公休；6:00–11:00，10:00 前到；木津魚市食堂海鮮丼常 11 點前賣完）
+  → 只有 Day 8（12/4 週六）排得進：住難波搭御堂筋線一站到大國町；要搭下午的回程班機才來得及
 ・阿倍野 HARUKAS 夜景（WEB 預售 ¥1,980，16:15 到看夕陽＋夜景；樓下近鐵百貨到 20:00）
 
 🍁 紅葉
