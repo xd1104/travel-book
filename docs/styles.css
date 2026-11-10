@@ -96,6 +96,12 @@ ul{padding:0; list-style:none;}
   padding:10px 0 12px; display:flex; align-items:center; gap:8px;}
 .day-chips{display:flex; gap:8px; overflow-x:auto; -webkit-overflow-scrolling:touch; flex:1; padding:2px;}
 .day-chips::-webkit-scrollbar{display:none;}
+/* v3.18：電腦用滑鼠時顯示細捲軸，看得出後面還有天數 */
+@media (hover:hover) and (pointer:fine){
+  .day-chips{scrollbar-width:thin; padding-bottom:6px;}
+  .day-chips::-webkit-scrollbar{display:block; height:6px;}
+  .day-chips::-webkit-scrollbar-thumb{background:#d8cfc1; border-radius:3px;}
+}
 .day-chip{flex:0 0 auto; min-width:60px; min-height:52px; border-radius:14px; background:var(--card);
   box-shadow:var(--shadow); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;}
 .day-chip b{font-size:14px;}

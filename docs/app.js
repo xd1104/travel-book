@@ -42,7 +42,7 @@ function splashReady(){
 /* ============ 常數 ============ */
 /* 版本號的唯一來源：首頁 footer 與「版本」sheet 都讀它。
  * 改前端時跟 sw.js 的 cache 版本號一起 +1（見「版本與更新」段）。 */
-var APP_VER="3.17";
+var APP_VER="3.18";
 
 /* v3.13 分享連結：網址帶 ?share=<旅程 id 開頭> ⇒ 只載入那一趟、直接進旅程頁、全部唯讀。
  * 給家人看行程用：看不到首頁清單和其他旅程，也沒有編輯／解鎖入口。
@@ -1124,10 +1124,36 @@ function curList(){
 var appEl = document.getElementById("app");
 function render(keepScroll){
   var y = keepScroll ? window.scrollY : 0;
+  var dcOld = document.querySelector(".day-chips");
+  var dcX = dcOld ? dcOld.scrollLeft : 0;   /* v3.18：天數列重畫後留在原本橫向捲到的位置 */
   appEl.innerHTML = (ui.screen==="home") ? viewHome() : viewTrip();
   window.scrollTo(0, y);
+  fixDayChips(dcX);
   pkAfterRender();   /* 打包的就地新增：render 之後把輸入框的內容與 focus 接回來 */
 }
+
+/* v3.18 電腦版看不到後面的天數（2026-11-10 Benson）：
+ * 天數列是橫向捲動、捲軸又藏起來，手機用手指滑沒問題，電腦用滑鼠滾輪只會上下捲 ⇒ 後面幾天點不到。
+ * ① 滑鼠滾輪在天數列上 → 改成左右捲（只在列真的放不下時才攔，不影響整頁上下捲）
+ * ② 電腦（滑鼠）顯示細捲軸（styles.css）
+ * ③ 重畫後保留橫向位置，並確保選中的那天看得到（原本點 Day 6 之後會跳回最左邊） */
+function fixDayChips(x){
+  var dc = document.querySelector(".day-chips");
+  if(!dc) return;
+  dc.scrollLeft = x || 0;
+  var on = dc.querySelector(".day-chip.on");
+  if(!on) return;
+  var l = on.offsetLeft - dc.offsetLeft, r = l + on.offsetWidth;
+  if(l < dc.scrollLeft) dc.scrollLeft = l - 8;
+  else if(r > dc.scrollLeft + dc.clientWidth) dc.scrollLeft = r - dc.clientWidth + 8;
+}
+document.addEventListener("wheel", function(e){
+  var dc = e.target && e.target.closest ? e.target.closest(".day-chips") : null;
+  if(!dc || dc.scrollWidth <= dc.clientWidth) return;
+  if(Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+  dc.scrollLeft += e.deltaY;
+  e.preventDefault();
+}, { passive:false });
 
 /* ---- 首頁（進行中/未出發 主區 + 旅行回憶歸檔卡） ---- */
 function tripCard(t){
