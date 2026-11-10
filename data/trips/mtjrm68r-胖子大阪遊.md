@@ -25,68 +25,55 @@ updatedAt: "2026-11-10T10:00:00.000Z"
 
 - {"id":"xos110200","type":"transit","note":"JR 環狀線 大阪站 → 大阪城公園站（約 15 分，估計）","stayMinutes":30}
 - {"id":"xos110201","title":"大阪城公園","time":"09:00","cat":"sight","place":"大阪城公園","note":"・公園東側銀杏大道（11 月底正黃）\n・天守閣 9:00–18:00，大人 ¥1,200\n・車站走到天守閣約 20 分，穿好走的鞋\n・週日人多，早點到","stayMinutes":150}
-- {"id":"xos110202","type":"transit","note":"JR 環狀線 大阪城公園站 → 新今宮站，走到新世界（約 25 分，估計）","stayMinutes":40}
-- {"id":"xos110205","title":"新世界・通天閣＋串炸午餐","time":"12:10","cat":"sight","place":"新世界","note":"・串炸當午餐（醬汁不能沾第二次）\n・老街招牌很好拍\n・通天閣可以上去","stayMinutes":180}
-- {"id":"xos110206","type":"transit","note":"傍晚去哪還沒定（見下一筆）","stayMinutes":30}
-- {"id":"xos110211","title":"傍晚 待定","time":"15:40","cat":"other","place":"","note":"候選：\n・阿倍野 HARUKAS 看夕陽＋夜景（新世界旁，走路約 15 分；日落約 16:49）\n・HEP FIVE＋EST 逛街（回梅田）","stayMinutes":150}
-- {"id":"xos110212","title":"梅田 晚餐","time":"18:50","cat":"food","place":"大阪梅田","note":"店家待選","stayMinutes":60}
+- {"id":"xos110202","type":"transit","note":"JR 環狀線 大阪城公園站 → 天王寺站（同一條線，約 15 分，估計）","stayMinutes":30}
+- {"id":"xos110205","title":"天王寺 下午 待定","time":"12:00","cat":"other","place":"天王寺","note":"候選：\n・天王寺吃午餐\n・慶澤園賞楓（9:30–17:00，16:30 前入園，¥300，例年 11 月下旬～12 月上旬最美）\n・近鐵百貨、Q's Mall 逛街","stayMinutes":240}
+- {"id":"xos110211","title":"阿倍野 HARUKAS 夕陽＋夜景","time":"16:00","cat":"sight","place":"ハルカス300","note":"・日落約 16:49，先看白天再看夕陽、夜景\n・WEB 預售 ¥1,980（現場 ¥2,200）\n・9:00–22:00，21:30 前入場\n・週日人多，先在網路買票","stayMinutes":120}
+- {"id":"xos110212","title":"阿倍野 晚餐","time":"18:00","cat":"food","place":"あべのハルカスダイニング","note":"・HARUKAS 12～14 樓餐廳街，開到 23:00\n・店家待選（候選：利久牛舌、KYK 炸豬排、京都勝牛、Gosakutei 壽司天婦羅）","stayMinutes":75}
+- {"id":"xos110213","type":"transit","note":"地鐵御堂筋線 天王寺 → 梅田（直達，約 15 分，估計）","stayMinutes":20}
 
 ### Day 3
 
 - {"id":"xos110301","title":"梅田飯店退房","time":"08:30","cat":"stay","place":"大阪梅田","stayMinutes":15}
-- {"id":"xos110302","type":"transit","note":"搭 JR 或阪急到京都","stayMinutes":60}
-- {"id":"xos110303","title":"京都飯店 寄放行李","time":"09:45","cat":"stay","place":"京都","note":"飯店待訂（京都車站或四條河原町一帶）","stayMinutes":15}
+- {"id":"xos110302","type":"transit","note":"JR 新快速 大阪站 → 京都站（約 30 分，¥580）","stayMinutes":45}
+- {"id":"xos110303","title":"京都飯店 寄放行李","time":"09:30","cat":"stay","place":"京都","note":"・飯店待訂（建議京都車站附近：只住一晚，隔天行李寄車站）","stayMinutes":15}
 - {"id":"xos110304","type":"transit","note":"JR 奈良線到稻荷站","stayMinutes":25}
-- {"id":"xos110305","title":"伏見稻荷大社","time":"10:25","cat":"sight","place":"伏見稻荷大社","note":"千本鳥居，往上爬人會變少","stayMinutes":120}
-- {"id":"xos110306","title":"午餐","time":"12:25","cat":"food","place":"伏見稻荷附近","note":"店家待選","stayMinutes":60}
+- {"id":"xos110305","title":"伏見稻荷大社","time":"10:10","cat":"sight","place":"伏見稻荷大社","note":"千本鳥居，往上爬人會變少","stayMinutes":120}
+- {"id":"xos110306","title":"午餐","time":"12:10","cat":"food","place":"伏見稻荷附近","note":"店家待選","stayMinutes":60}
 - {"id":"xos110307","type":"transit","note":"到東福寺","stayMinutes":20}
-- {"id":"xos110308","title":"東福寺 賞楓","time":"13:45","cat":"sight","place":"東福寺","note":"通天橋看楓葉","stayMinutes":90}
+- {"id":"xos110308","title":"東福寺 賞楓","time":"13:30","cat":"sight","place":"東福寺","note":"通天橋看楓葉","stayMinutes":90}
 - {"id":"xos110309","title":"京都飯店入住","time":"16:00","cat":"stay","place":"京都","stayMinutes":60}
 - {"id":"xos110310","title":"晚餐","time":"18:00","cat":"food","place":"京都","note":"店家待選","stayMinutes":60}
 
 ### Day 4
 
-- {"id":"xos110401","type":"transit","note":"一早出發：JR 嵯峨野線到嵯峨嵐山站","stayMinutes":45}
+- {"id":"xos110400","title":"京都飯店退房","time":"07:00","cat":"stay","place":"京都","note":"・大行李寄京都車站投幣置物櫃\n・晚上回車站拿","stayMinutes":20}
+- {"id":"xos110401","type":"transit","note":"JR 嵯峨野線 京都站 → 嵯峨嵐山站","stayMinutes":45}
 - {"id":"xos110402","title":"嵐山竹林小徑","time":"07:45","cat":"sight","place":"嵐山竹林小徑","note":"早上 8 點前人最少","stayMinutes":60}
 - {"id":"xos110403","title":"天龍寺","time":"08:45","cat":"sight","place":"天龍寺","stayMinutes":75}
 - {"id":"xos110404","title":"渡月橋","time":"10:00","cat":"sight","place":"渡月橋","stayMinutes":45}
 - {"id":"xos110405","title":"嵐山 午餐","time":"11:00","cat":"food","place":"嵐山","note":"店家待選","stayMinutes":60}
 - {"id":"xos110406","type":"transit","note":"到金閣寺","stayMinutes":45}
 - {"id":"xos110407","title":"金閣寺","time":"12:45","cat":"sight","place":"金閣寺","stayMinutes":75}
-- {"id":"xos110408","title":"晚餐","time":"18:00","cat":"food","place":"京都","note":"店家待選","stayMinutes":60}
+- {"id":"xos110409","title":"京都 下午 待定","time":"14:00","cat":"other","place":"京都","note":"京都景點還要再談（要放哪些、拿掉哪些）","stayMinutes":120}
+- {"id":"xos110410","type":"transit","note":"① 回京都車站拿行李\n② JR 新快速到大阪站，換地鐵御堂筋線到難波（約 1 小時，估計）","stayMinutes":75}
+- {"id":"xos110608","title":"難波飯店入住","time":"17:15","cat":"stay","place":"大阪難波","note":"飯店待訂","stayMinutes":60}
+- {"id":"xos110609","title":"道頓堀 晚餐","time":"18:15","cat":"food","place":"道頓堀","note":"章魚燒、大阪燒","stayMinutes":90}
+- {"id":"xos110610","title":"法善寺橫丁","time":"19:45","cat":"sight","place":"法善寺橫丁","note":"晚上的石板小巷","stayMinutes":30}
+- {"id":"xos110611","title":"心齋橋 逛街","time":"20:15","cat":"shop","place":"心齋橋筋商店街","note":"藥妝、伴手禮","stayMinutes":90}
 
 ### Day 5
 
-- {"id":"xos110501","title":"清水寺","time":"07:30","cat":"sight","place":"清水寺","note":"早上 6 點開門，早去人少","stayMinutes":90}
-- {"id":"xos110502","title":"二年坂・三年坂","time":"09:00","cat":"sight","place":"二年坂","stayMinutes":60}
-- {"id":"xos110503","type":"transit","note":"到南禪寺","stayMinutes":30}
-- {"id":"xos110504","title":"南禪寺","time":"10:30","cat":"sight","place":"南禪寺","stayMinutes":75}
-- {"id":"xos110505","title":"午餐","time":"11:45","cat":"food","place":"南禪寺附近","note":"店家待選","stayMinutes":60}
-- {"id":"xos110506","title":"哲學之道 → 銀閣寺","time":"13:00","cat":"sight","place":"哲學之道","stayMinutes":120}
-- {"id":"xos110507","type":"transit","note":"到祇園","stayMinutes":30}
-- {"id":"xos110508","title":"祇園・花見小路・錦市場","time":"15:30","cat":"sight","place":"祇園","stayMinutes":120}
-- {"id":"xos110509","title":"永觀堂 夜楓","time":"17:45","cat":"sight","place":"永觀堂","note":"夜間點燈時間每年不同，出發前查","stayMinutes":90}
-- {"id":"xos110510","title":"晚餐","time":"19:30","cat":"food","place":"京都","note":"店家待選","stayMinutes":60}
+- {"id":"xos110701","type":"transit","note":"難波 → 環球影城站（約 30 分，估計，出發前查）","stayMinutes":40}
+- {"id":"xos110702","title":"日本環球影城","time":"08:30","cat":"sight","place":"日本環球影城","note":"・快速通關要提早買\n・任天堂世界整理券開園就拿","stayMinutes":600}
+- {"id":"xos110703","title":"晚餐","time":"19:00","cat":"food","place":"大阪","note":"店家待選","stayMinutes":60}
 
 ### Day 6
 
-- {"id":"xos110601","title":"京都飯店退房","time":"08:00","cat":"stay","place":"京都","stayMinutes":15}
-- {"id":"xos110602","type":"transit","note":"① 近鐵京都站 → 近鐵奈良站\n② 大行李寄奈良站置物櫃","stayMinutes":60}
-- {"id":"xos110603","title":"奈良公園 餵鹿","time":"09:15","cat":"sight","place":"奈良公園","stayMinutes":90}
-- {"id":"xos110604","title":"東大寺","time":"10:45","cat":"sight","place":"東大寺","stayMinutes":90}
-- {"id":"xos110605","title":"午餐","time":"12:15","cat":"food","place":"奈良","note":"店家待選","stayMinutes":60}
-- {"id":"xos110606","title":"春日大社","time":"13:30","cat":"sight","place":"春日大社","stayMinutes":60}
-- {"id":"xos110607","type":"transit","note":"① 回奈良站拿行李\n② 搭近鐵直達大阪難波","stayMinutes":75}
-- {"id":"xos110608","title":"難波飯店入住","time":"16:00","cat":"stay","place":"大阪難波","note":"飯店待訂","stayMinutes":60}
-- {"id":"xos110609","title":"道頓堀 晚餐","time":"17:15","cat":"food","place":"道頓堀","note":"章魚燒、大阪燒","stayMinutes":90}
-- {"id":"xos110610","title":"法善寺橫丁","time":"18:45","cat":"sight","place":"法善寺橫丁","note":"晚上的石板小巷","stayMinutes":30}
-- {"id":"xos110611","title":"心齋橋 逛街","time":"19:15","cat":"shop","place":"心齋橋筋商店街","note":"藥妝、伴手禮","stayMinutes":90}
+- {"id":"xos110612","title":"全天 待定","time":"09:00","cat":"other","place":"大阪","note":"候選：\n・早上木津市場（週四有開）\n・奈良一日（難波搭近鐵直達約 40 分）\n・HEP FIVE＋EST\n・心齋橋、道頓堀","stayMinutes":600}
 
 ### Day 7
 
-- {"id":"xos110701","type":"transit","note":"搭 JR 到環球影城站","stayMinutes":40}
-- {"id":"xos110702","title":"日本環球影城","time":"08:30","cat":"sight","place":"日本環球影城","note":"・快速通關要提早買\n・任天堂世界整理券開園就拿","stayMinutes":600}
-- {"id":"xos110703","title":"晚餐","time":"19:00","cat":"food","place":"大阪","note":"店家待選","stayMinutes":60}
+- {"id":"xos110704","title":"全天 待定","time":"09:00","cat":"other","place":"大阪","note":"候選同 Day 6\n・早上木津市場（週五有開）","stayMinutes":600}
 
 ### Day 8
 
@@ -111,16 +98,17 @@ updatedAt: "2026-11-10T10:00:00.000Z"
 備案：星宇 神戶來回，每人約 NT$15,300，含 23 公斤行李，兩人約多 NT$7,000
 
 🏨 住宿（都還沒訂）
-Day 1～2：大阪梅田
-Day 3～5：京都（京都車站或四條河原町一帶）
-Day 6～7：大阪難波
+Day 1～2（六、日）：大阪梅田
+Day 3（一）：京都，只住一晚（建議京都車站附近）
+Day 4～7（二～五）：大阪難波
 
 📌 待定（還沒排進行程）
 ・HEP FIVE 逛街＋摩天輪（梅田，泡芙想逛；摩天輪約 ¥1,000、轉一圈 15 分、最後搭乘 22:45）
 ・EST（梅田，阪急梅田站旁）
 ・木津市場（週日、國定假日、部分週三公休；6:00–11:00，10:00 前到；木津魚市食堂海鮮丼常 11 點前賣完）
-  → 只有 Day 8（12/4 週六）排得進：住難波搭御堂筋線一站到大國町；要搭下午的回程班機才來得及
-・阿倍野 HARUKAS 夜景（WEB 預售 ¥1,980，16:15 到看夕陽＋夜景；樓下近鐵百貨到 20:00）
+  → Day 6（週四）或 Day 7（週五）早上：難波搭御堂筋線一站到大國町
+・奈良要不要去還沒定（奈良公園餵鹿、東大寺、春日大社；難波搭近鐵直達約 40 分）
+・京都還沒排的：清水寺、二年坂三年坂、南禪寺、哲學之道→銀閣寺、祇園・花見小路・錦市場、永觀堂夜楓（要拿掉哪些之後再談）
 
 🍁 紅葉
 2027 年 10 月看紅葉預測再對一次
