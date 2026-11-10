@@ -18,7 +18,7 @@ updatedAt: "2026-11-10T10:00:00.000Z"
 - {"id":"xos110102","type":"transit","note":"JR 關空快速到大阪站（梅田）\n・車資 ¥1,210\n・時間約 1 小時多（估計，出發前查班次）","stayMinutes":75}
 - {"id":"xos110106","title":"梅田飯店 寄放行李","time":"12:45","cat":"stay","place":"大阪梅田","note":"・飯店待訂\n・還不能入住就先寄放行李，逛完再回來辦","stayMinutes":15}
 - {"id":"xos110103","title":"萬野 壽喜燒（午餐）","time":"13:00","cat":"food","place":"すき焼きしゃぶしゃぶ萬野 ルクア大阪店","note":"・LUCUA 10 樓，吃完直接逛\n・一人一鍋，選壽喜燒湯底\n・推薦「和牛綜合」120g ¥3,300（瘦肉＋五花）\n・要菜、飯、甜點要加價改套餐\n・午餐 11:00–16:00","stayMinutes":75}
-- {"id":"xos110110","title":"LUCUA・LUCUA 1100","time":"14:30","cat":"shop","place":"LUCUA osaka","note":"・JR 大阪站旁，兩棟連在一起\n・商店 10:00–21:00\n・中間可以回飯店辦入住、放戰利品","stayMinutes":240}
+- {"id":"xos110110","title":"LUCUA・LUCUA 1100","time":"14:30","cat":"shop","place":"LUCUA osaka","note":"・JR 大阪站旁，兩棟連在一起\n・商店 10:30–20:30（B2 美食街到 23:00）\n・中間可以回飯店辦入住、放戰利品","stayMinutes":240}
 - {"id":"xos110107","title":"梅田 晚餐","time":"18:30","cat":"food","place":"大阪梅田","note":"・店家待選\n・LUCUA 餐廳營業到 23:00，可以直接在裡面吃","stayMinutes":60}
 
 ### Day 2
