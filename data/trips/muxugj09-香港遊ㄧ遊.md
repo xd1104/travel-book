@@ -10,7 +10,7 @@ fxCur: "HKD"
 fxRate: 4.18
 fxBudget: 3500
 createdAt: "2026-10-07T08:27:03.613Z"
-updatedAt: "2026-11-11T05:33:37.011Z"
+updatedAt: "2026-11-11T05:33:38.609Z"
 ---
 
 ## 行程
