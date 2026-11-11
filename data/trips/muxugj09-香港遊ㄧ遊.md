@@ -10,7 +10,7 @@ fxCur: "HKD"
 fxRate: 4.18
 fxBudget: 3500
 createdAt: "2026-10-07T08:27:03.613Z"
-updatedAt: "2026-11-11T05:33:41.812Z"
+updatedAt: "2026-11-11T08:33:57.802Z"
 ---
 
 ## 行程
@@ -106,6 +106,7 @@ updatedAt: "2026-11-11T05:33:41.812Z"
 - {"id":"xhkexp11","amount":1053,"cat":"food","desc":"Day 4 早餐","note":"預估每人：六安居／新五龍 HK$70（3 大 1 小，小朋友算 0.6 份）","day":4,"plan":true,"fx":252}
 - {"id":"xmvrhvbah45s6","amount":25114,"cat":"transport","desc":"機票","day":"pre"}
 - {"id":"xmvrhx3pgi8nh","amount":28645,"cat":"stay","desc":"Eco Tree Hotel Sheung Wan","day":"pre"}
+- {"id":"xmwbv47x7dobg","amount":1183,"cat":"food","desc":"新興發點心","day":1,"fx":283}
 
 ## 打包
 
