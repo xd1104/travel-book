@@ -10,7 +10,7 @@ fxCur: "HKD"
 fxRate: 4.18
 fxBudget: 3500
 createdAt: "2026-10-07T08:27:03.613Z"
-updatedAt: "2026-11-11T05:19:21.000Z"
+updatedAt: "2026-11-11T05:33:16.090Z"
 ---
 
 ## 行程
@@ -109,7 +109,7 @@ updatedAt: "2026-11-11T05:19:21.000Z"
 
 ## 打包
 
-- {"id":"xmuxugj09y7iq","text":"護照（每人一本）＋影本","done":false,"zone":"carry"}
+- {"id":"xmuxugj09y7iq","text":"護照（每人一本）＋影本","done":true,"zone":"carry"}
 - {"id":"xhkpk01","text":"港簽通知書：A4 白紙列印 ×4＋每人簽名（小朋友由爸媽簽），多印一份備用；要帶紙本","done":false,"zone":"carry"}
 - {"id":"xhk1016p1","text":"港幣現金＋信用卡（現金分兩、三個人放）","done":false,"zone":"carry"}
 - {"id":"xhk1016p0","text":"八達通（有的帶上；沒有的大人、小朋友都在機場 7-Eleven 買）","done":false,"zone":"carry"}
