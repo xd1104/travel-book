@@ -10,7 +10,7 @@ fxCur: "HKD"
 fxRate: 4.18
 fxBudget: 3500
 createdAt: "2026-10-07T08:27:03.613Z"
-updatedAt: "2026-11-11T05:33:30.933Z"
+updatedAt: "2026-11-11T05:33:32.532Z"
 ---
 
 ## 行程
@@ -121,7 +121,7 @@ updatedAt: "2026-11-11T05:33:30.933Z"
 - {"id":"xmuxugj097c5g","text":"摺疊傘","done":true,"zone":"carry"}
 - {"id":"xhkpk03","text":"透明夾鏈袋（裝液體，過安檢要拿出來）","done":true,"zone":"carry"}
 - {"id":"xhkpk05","text":"面紙、濕紙巾","done":true,"zone":"carry"}
-- {"id":"xhkpk06","text":"環保購物袋（香港拿塑膠袋要另外付錢）","done":false,"zone":"carry"}
+- {"id":"xhkpk06","text":"環保購物袋（香港拿塑膠袋要另外付錢）","done":true,"zone":"carry"}
 - {"id":"xmuxugj09y829","text":"換洗衣物（每人 3 套）","done":true,"zone":"checked"}
 - {"id":"xmuxugj0986qn","text":"盥洗包（液體每瓶 ≤100ml）","done":false,"zone":"checked"}
 - {"id":"xmuxugj098mmz","text":"常備藥","done":true,"zone":"checked"}
