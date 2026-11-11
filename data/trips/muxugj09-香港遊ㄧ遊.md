@@ -10,7 +10,7 @@ fxCur: "HKD"
 fxRate: 4.18
 fxBudget: 3500
 createdAt: "2026-10-07T08:27:03.613Z"
-updatedAt: "2026-11-11T05:33:33.918Z"
+updatedAt: "2026-11-11T05:33:35.444Z"
 ---
 
 ## 行程
@@ -129,7 +129,7 @@ updatedAt: "2026-11-11T05:33:33.918Z"
 - {"id":"xhk1016p5","text":"防曬（≤100ml）、帽子","done":false,"zone":"checked"}
 - {"id":"xhk1016p4","text":"海灘毛巾、小朋友換洗衣服（第三天淺水灣）","done":false,"zone":"checked"}
 - {"id":"xhkpk02","text":"海灘拖鞋／涼鞋","done":false,"zone":"checked"}
-- {"id":"xhkpk07","text":"泳衣（要下水的才帶）","done":false,"zone":"checked"}
+- {"id":"xhkpk07","text":"泳衣（要下水的才帶）","done":true,"zone":"checked"}
 - {"id":"xhk1016p6","text":"裝髒衣、濕衣服的袋子","done":true,"zone":"checked"}
 - {"id":"xhkpk08","text":"行李秤（選帶；兩件合計 7 公斤，回程秤伴手禮）","done":true,"zone":"checked"}
 
