@@ -10,7 +10,7 @@ fxCur: "HKD"
 fxRate: 4.18
 fxBudget: 3500
 createdAt: "2026-10-07T08:27:03.613Z"
-updatedAt: "2026-11-11T05:33:27.276Z"
+updatedAt: "2026-11-11T05:33:29.074Z"
 ---
 
 ## 行程
@@ -118,8 +118,8 @@ updatedAt: "2026-11-11T05:33:27.276Z"
 - {"id":"xmuxugj09nxr7","text":"行動電源＋充電線","done":true,"zone":"carry"}
 - {"id":"xhk1016p2","text":"暈車藥（山頂 15 號、260 巴士都是山路）","done":true,"zone":"carry"}
 - {"id":"xhk1016p3","text":"薄外套 ×4（開篷巴士、遊船、山頂風大）","done":true,"zone":"carry"}
-- {"id":"xmuxugj097c5g","text":"摺疊傘","done":false,"zone":"carry"}
-- {"id":"xhkpk03","text":"透明夾鏈袋（裝液體，過安檢要拿出來）","done":false,"zone":"carry"}
+- {"id":"xmuxugj097c5g","text":"摺疊傘","done":true,"zone":"carry"}
+- {"id":"xhkpk03","text":"透明夾鏈袋（裝液體，過安檢要拿出來）","done":true,"zone":"carry"}
 - {"id":"xhkpk05","text":"面紙、濕紙巾","done":true,"zone":"carry"}
 - {"id":"xhkpk06","text":"環保購物袋（香港拿塑膠袋要另外付錢）","done":false,"zone":"carry"}
 - {"id":"xmuxugj09y829","text":"換洗衣物（每人 3 套）","done":true,"zone":"checked"}
