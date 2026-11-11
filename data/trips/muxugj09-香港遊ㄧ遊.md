@@ -10,7 +10,7 @@ fxCur: "HKD"
 fxRate: 4.18
 fxBudget: 3500
 createdAt: "2026-10-07T08:27:03.613Z"
-updatedAt: "2026-11-11T08:41:49.256Z"
+updatedAt: "2026-11-11T12:23:46.490Z"
 ---
 
 ## 行程
@@ -110,6 +110,7 @@ updatedAt: "2026-11-11T08:41:49.256Z"
 - {"id":"xmwbv47x7dobg","amount":1183,"cat":"food","desc":"新興發點心","day":1,"fx":283}
 - {"id":"xmwbv4jezmo30","amount":46,"cat":"food","desc":"棉花糖","day":1,"fx":11}
 - {"id":"xmwbvdzqufdo0","amount":514,"cat":"food","desc":"Vission Bakery","note":"約台幣495","day":1,"fx":123,"card":true}
+- {"id":"xmwc3brcakyar","amount":293,"cat":"food","desc":"水果","day":1,"fx":70}
 
 ## 打包
 
