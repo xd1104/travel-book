@@ -10,7 +10,7 @@ fxCur: "HKD"
 fxRate: 4.18
 fxBudget: 3500
 createdAt: "2026-10-07T08:27:03.613Z"
-updatedAt: "2026-11-11T08:41:33.766Z"
+updatedAt: "2026-11-11T08:41:49.256Z"
 ---
 
 ## 行程
@@ -100,7 +100,6 @@ updatedAt: "2026-11-11T08:41:33.766Z"
 - {"id":"xhkexp04","amount":702,"cat":"transport","desc":"八達通卡費（4 張×HK$42）","note":"✅ 11/11 在港鐵機場站客務中心買：旅客八達通－全國通卡，大人 3 張、小童 1 張，卡費每張 HK$42，共 HK$168（含儲值共付 HK$620，現金）","day":1,"fx":168}
 - {"id":"xhkexp05","amount":1889,"cat":"transport","desc":"八達通附的儲值（大人 HK$128×3＋小童 HK$68）","note":"✅ 11/11 買卡時附的（八達通官網：機場站客務中心大人版附 128、小童版附 68）","day":1,"fx":452}
 - {"id":"xhkexp06","amount":1463,"cat":"transport","desc":"八達通加值（大人 HK$100×3＋小童 HK$50）","note":"附的儲值不夠：4 天車資大人約 HK$193～203、小童約 HK$103～108。餘額快用完前在 7-Eleven 或港鐵站加值（付現金）","day":2,"plan":true,"fx":350}
-- {"id":"xhkexp08","amount":3461,"cat":"food","desc":"Day 1 餐飲","note":"預估每人：新興發 HK$60、Vission 麵包 HK$40、坤記煲仔飯 HK$130（3 大 1 小，小朋友算 0.6 份）","day":1,"plan":true,"fx":828}
 - {"id":"xhkexp09","amount":4063,"cat":"food","desc":"Day 2 餐飲","note":"預估每人：甘牌 HK$110、聰嫂 HK$50、Bakehouse HK$30、中環晚餐（威靈頓街一帶）HK$80（3 大 1 小，小朋友算 0.6 份）","day":2,"plan":true,"fx":972}
 - {"id":"xhkexp10","amount":3762,"cat":"food","desc":"Day 3 餐飲","note":"預估每人：蘭芳園 HK$60（有最低消費）、赤柱午餐 HK$100、棟記 HK$90（3 大 1 小，小朋友算 0.6 份）","day":3,"plan":true,"fx":900}
 - {"id":"xhkexp11","amount":1053,"cat":"food","desc":"Day 4 早餐","note":"預估每人：六安居／新五龍 HK$70（3 大 1 小，小朋友算 0.6 份）","day":4,"plan":true,"fx":252}
