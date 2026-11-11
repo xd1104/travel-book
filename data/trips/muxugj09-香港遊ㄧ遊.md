@@ -10,7 +10,7 @@ fxCur: "HKD"
 fxRate: 4.18
 fxBudget: 3500
 createdAt: "2026-10-07T08:27:03.613Z"
-updatedAt: "2026-11-11T05:33:23.505Z"
+updatedAt: "2026-11-11T05:33:25.242Z"
 ---
 
 ## 行程
@@ -115,7 +115,7 @@ updatedAt: "2026-11-11T05:33:23.505Z"
 - {"id":"xhk1016p0","text":"八達通（有的帶上；沒有的大人、小朋友都在機場 7-Eleven 買）","done":true,"zone":"carry"}
 - {"id":"xmuxugj09avgm","text":"eSIM 已裝好（港澳每日型，每天 1GB 後降速；每人一張）","done":true,"zone":"carry"}
 - {"id":"xhkpk04","text":"手機＋充電頭","done":true,"zone":"carry"}
-- {"id":"xmuxugj09nxr7","text":"行動電源＋充電線","done":false,"zone":"carry"}
+- {"id":"xmuxugj09nxr7","text":"行動電源＋充電線","done":true,"zone":"carry"}
 - {"id":"xhk1016p2","text":"暈車藥（山頂 15 號、260 巴士都是山路）","done":true,"zone":"carry"}
 - {"id":"xhk1016p3","text":"薄外套 ×4（開篷巴士、遊船、山頂風大）","done":false,"zone":"carry"}
 - {"id":"xmuxugj097c5g","text":"摺疊傘","done":false,"zone":"carry"}
