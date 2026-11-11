@@ -10,7 +10,7 @@ fxCur: "HKD"
 fxRate: 4.18
 fxBudget: 3500
 createdAt: "2026-10-07T08:27:03.613Z"
-updatedAt: "2026-11-11T05:33:38.609Z"
+updatedAt: "2026-11-11T05:33:40.218Z"
 ---
 
 ## 行程
@@ -123,7 +123,7 @@ updatedAt: "2026-11-11T05:33:38.609Z"
 - {"id":"xhkpk05","text":"面紙、濕紙巾","done":true,"zone":"carry"}
 - {"id":"xhkpk06","text":"環保購物袋（香港拿塑膠袋要另外付錢）","done":true,"zone":"carry"}
 - {"id":"xmuxugj09y829","text":"換洗衣物（每人 3 套）","done":true,"zone":"checked"}
-- {"id":"xmuxugj0986qn","text":"盥洗包（液體每瓶 ≤100ml）","done":false,"zone":"checked"}
+- {"id":"xmuxugj0986qn","text":"盥洗包（液體每瓶 ≤100ml）","done":true,"zone":"checked"}
 - {"id":"xmuxugj098mmz","text":"常備藥","done":true,"zone":"checked"}
 - {"id":"xmuxugj09nak3","text":"轉接頭（香港是英式三孔 G 型插座）","done":true,"zone":"checked"}
 - {"id":"xhk1016p5","text":"防曬（≤100ml）、帽子","done":true,"zone":"checked"}
