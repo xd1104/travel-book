@@ -10,7 +10,7 @@ fxCur: "HKD"
 fxRate: 4.18
 fxBudget: 3500
 createdAt: "2026-10-07T08:27:03.613Z"
-updatedAt: "2026-11-10T09:26:23.000Z"
+updatedAt: "2026-11-11T05:16:36.000Z"
 ---
 
 ## 行程
@@ -97,7 +97,7 @@ updatedAt: "2026-11-10T09:26:23.000Z"
 - {"id":"xhkexp01","amount":1601,"cat":"ticket","desc":"山頂纜車單程（上山）＋摩天台 428","note":"✅ 已在 Booking.com 買好（Klook 出票）：成人 3＋孩童 1，原價 NT$1,968，用折價券後刷卡 NT$1,601。只買上山單程，下山坐 15 號巴士","day":"pre"}
 - {"id":"xhkexp02","amount":1817,"cat":"ticket","desc":"永安號 黃昏暢飲海上遊（18:10）","note":"11/6 已在 Klook 訂好（實付 NT$1,817）。九龍公眾碼頭 3 號 18:10 開船、遊船 55 分。票不可退改","day":"pre"}
 - {"id":"xhkexp03","amount":1668,"cat":"ticket","desc":"觀光城巴夜遊票（H2K）","note":"11/13 當天看天氣再買。成人 HK$114×3＋小童 HK$57＝HK$399（城巴官方價），H2K 營運時間內無限次上下車","day":3,"plan":true,"fx":399}
-- {"id":"xhkexp04","amount":702,"cat":"transport","desc":"八達通卡費（4 張×HK$42）","note":"機場 5 樓 7-Eleven（5T058）買「旅客八達通－全國通卡」，大人版 3 張、小童版 1 張，每張 HK$42，不含儲值、不用按金（八達通官網）","day":1,"plan":true,"fx":168}
+- {"id":"xhkexp04","amount":702,"cat":"transport","desc":"八達通卡費（4 張×HK$42）","note":"✅ 11/11 已買：旅客八達通－全國通卡，大人 3 張、小童 1 張，每張 HK$42，共 HK$168","day":1,"fx":168}
 - {"id":"xhkexp05","amount":3135,"cat":"transport","desc":"八達通儲值（大人 HK$200×3＋小朋友 HK$150）","note":"照官方票價算（港鐵開放資料、運輸署資料，11/10 依最新行程重算）\n・大人 4 天 HK$192.6～203.2；小童 HK$102.8～108.1\n・Day 3 赤柱→淺水灣坐 6X（HK$6.4）就夠；兩段都坐 260 大人會超出 HK$200 約 3 塊\n・大人 Day1 72.5／Day2 29.6／Day3 48.6～59.2／Day4 41.9\n・小童 Day1 37.8／Day2 16.6／Day3 27.4～32.7／Day4 21\n・不夠就在 7-Eleven 或港鐵站加值（付現金）","day":1,"plan":true,"fx":750}
 - {"id":"xhkexp08","amount":3461,"cat":"food","desc":"Day 1 餐飲","note":"預估每人：新興發 HK$60、Vission 麵包 HK$40、坤記煲仔飯 HK$130（3 大 1 小，小朋友算 0.6 份）","day":1,"plan":true,"fx":828}
 - {"id":"xhkexp09","amount":4063,"cat":"food","desc":"Day 2 餐飲","note":"預估每人：甘牌 HK$110、聰嫂 HK$50、Bakehouse HK$30、中環晚餐（威靈頓街一帶）HK$80（3 大 1 小，小朋友算 0.6 份）","day":2,"plan":true,"fx":972}
