@@ -37,10 +37,8 @@ updatedAt: "2026-11-11T14:45:44.852Z"
 
 ### Day 2
 
-- {"id":"xhk10170a","title":"從飯店出發","time":"08:15","cat":"stay","place":"頤庭酒店上環"}
-- {"id":"xhk1112b0","type":"transit","note":"① 西營盤站坐港島綫往「柴灣」1 站到「上環」\n② 走到畢街 7 號（出門前用 Google 地圖看路線）","stayMinutes":15}
-- {"id":"xhk1112b1","title":"生記粥品專家 早餐","time":"08:30","cat":"food","place":"上環畢街 7 號","note":"🍴 生滾粥、豬潤粥、魚片粥\n・Google 4.2 分（1,419 則評論）\n💵 收不收卡沒查到，帶港幣現金\n・地圖：https://www.google.com/maps/search/?api=1&query=生記粥品專家&query_place_id=ChIJF0TuNEEBBDQRBSlHNPoMgmo","stayMinutes":50,"hoursOpen":"06:30","hoursClose":"20:30","hours":"週一至六 06:30–20:30，週日休（Google 地圖）"}
-- {"id":"xhk1110z1","type":"transit","note":"走路到蘇杭街 130 號華熙樓，同在上環（出發前用 Google 地圖看路線）","stayMinutes":10}
+- {"id":"xhk10170a","title":"從飯店出發","time":"09:15","cat":"stay","place":"頤庭酒店上環"}
+- {"id":"xhk1110z1","type":"transit","note":"① 西營盤站坐港島綫往「柴灣」1 站到「上環」\n② A1 或 A2 出口，走約 5 分到蘇杭街 130 號","stayMinutes":15}
 - {"id":"xhk1110z2","title":"兆成行（香薰油老店）","time":"09:30","cat":"other","place":"上環蘇杭街 130 號華熙樓","note":"🛒 香薰油、按摩油；人氣「香港的味道」系列\n💵 只收現金；17:30 關門、週日休\n・一開門就去：部落格寫 16:00 後不給試聞、店內一次最多 8 人\n⚠ 液體不託運：每瓶 100ml 以下、裝進每人一個 1 公升夾鏈袋，買前先算容量\n・玻璃瓶用衣服包好","stayMinutes":60,"hoursOpen":"09:30","hoursClose":"17:30","hours":"週一至六 09:30–17:30，週日及勞工假期休（兆成行官網）"}
 - {"id":"xhk1110z3","type":"transit","note":"① 走回上環站，港島綫往「柴灣」3 站到「灣仔」\n② A4 出口，沿軒尼詩道走約 5 分（寶華商業中心地下）","stayMinutes":30}
 - {"id":"xhk10160k","title":"甘牌燒鵝","time":"11:00","cat":"food","place":"灣仔軒尼詩道 226 號","note":"🍴 燒鵝、燒鵝脾瀨粉（限量）\n💳 可刷卡（Visa／Master）\n・米其林一星很排：11:00 到門口排，11:30 開門\n・座位擠可能併桌；小朋友怕餓先買麵包牛奶墊肚子","stayMinutes":80,"hoursOpen":"11:30","hoursClose":"21:30"}
