@@ -10,7 +10,7 @@ fxCur: "HKD"
 fxRate: 4.18
 fxBudget: 3500
 createdAt: "2026-10-07T08:27:03.613Z"
-updatedAt: "2026-11-12T16:35:51.283Z"
+updatedAt: "2026-11-13T03:45:11.934Z"
 ---
 
 ## 行程
@@ -120,6 +120,7 @@ updatedAt: "2026-11-12T16:35:51.283Z"
 - {"id":"xmwd7xwpon5e4","amount":188,"cat":"food","desc":"可愛包","day":2,"fx":45}
 - {"id":"xmwd8bux87txy","amount":54,"cat":"food","desc":"富豪雪糕","day":2,"fx":13}
 - {"id":"xmwdjvnn972dy","amount":744,"cat":"food","desc":"忠記粥品","day":2,"fx":178}
+- {"id":"xmwefokiz3n62","amount":84,"cat":"food","desc":"橘子","day":3,"fx":20}
 
 ## 打包
 
