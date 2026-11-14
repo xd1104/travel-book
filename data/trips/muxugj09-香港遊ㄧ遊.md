@@ -10,7 +10,7 @@ fxCur: "HKD"
 fxRate: 4.18
 fxBudget: 3500
 createdAt: "2026-10-07T08:27:03.613Z"
-updatedAt: "2026-11-14T02:17:19.070Z"
+updatedAt: "2026-11-14T04:50:47.230Z"
 ---
 
 ## 行程
@@ -95,7 +95,6 @@ updatedAt: "2026-11-14T02:17:19.070Z"
 - {"id":"xhkexp02","amount":1817,"cat":"ticket","desc":"永安號 黃昏暢飲海上遊（18:10）","note":"11/6 已在 Klook 訂好（實付 NT$1,817）。九龍公眾碼頭 3 號 18:10 開船、遊船 55 分。票不可退改","day":"pre"}
 - {"id":"xhkexp04","amount":702,"cat":"transport","desc":"八達通卡費（4 張×HK$42）","note":"✅ 11/11 在港鐵機場站客務中心買：旅客八達通－全國通卡，大人 3 張、小童 1 張，卡費每張 HK$42，共 HK$168（含儲值共付 HK$620，現金）","day":1,"fx":168}
 - {"id":"xhkexp05","amount":1889,"cat":"transport","desc":"八達通附的儲值（大人 HK$128×3＋小童 HK$68）","note":"✅ 11/11 買卡時附的（八達通官網：機場站客務中心大人版附 128、小童版附 68）","day":1,"fx":452}
-- {"id":"xhkexp11","amount":1053,"cat":"food","desc":"Day 4 早餐","note":"預估每人：六安居／新五龍 HK$70（3 大 1 小，小朋友算 0.6 份）","day":4,"plan":true,"fx":252}
 - {"id":"xmvrhvbah45s6","amount":25114,"cat":"transport","desc":"機票","day":"pre"}
 - {"id":"xmvrhx3pgi8nh","amount":28645,"cat":"stay","desc":"Eco Tree Hotel Sheung Wan","day":"pre"}
 - {"id":"xmwbv47x7dobg","amount":1183,"cat":"food","desc":"新興發點心","day":1,"fx":283}
