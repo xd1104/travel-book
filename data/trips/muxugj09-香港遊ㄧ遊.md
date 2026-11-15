@@ -10,7 +10,7 @@ fxCur: "HKD"
 fxRate: 4.18
 fxBudget: 3500
 createdAt: "2026-10-07T08:27:03.613Z"
-updatedAt: "2026-11-14T04:50:47.230Z"
+updatedAt: "2026-11-15T13:57:25.334Z"
 ---
 
 ## 行程
@@ -119,6 +119,7 @@ updatedAt: "2026-11-14T04:50:47.230Z"
 - {"id":"xmwf05wzai2od","amount":836,"cat":"food","desc":"儲八達通","day":3,"fx":200}
 - {"id":"xmwf06uflna3h","amount":84,"cat":"food","desc":"橘子","day":3,"fx":20}
 - {"id":"xmwfrzemkc4xc","amount":706,"cat":"food","desc":"機場麥當勞","day":4,"fx":169}
+- {"id":"xmwhwflj7zd34","amount":205,"cat":"food","desc":"優品（可可脆片","day":3,"fx":49}
 
 ## 打包
 
