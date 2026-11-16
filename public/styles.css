@@ -96,6 +96,12 @@ ul{padding:0; list-style:none;}
   padding:10px 0 12px; display:flex; align-items:center; gap:8px;}
 .day-chips{display:flex; gap:8px; overflow-x:auto; -webkit-overflow-scrolling:touch; flex:1; padding:2px;}
 .day-chips::-webkit-scrollbar{display:none;}
+/* v3.18：電腦用滑鼠時顯示細捲軸，看得出後面還有天數 */
+@media (hover:hover) and (pointer:fine){
+  .day-chips{scrollbar-width:thin; padding-bottom:6px;}
+  .day-chips::-webkit-scrollbar{display:block; height:6px;}
+  .day-chips::-webkit-scrollbar-thumb{background:#d8cfc1; border-radius:3px;}
+}
 .day-chip{flex:0 0 auto; min-width:60px; min-height:52px; border-radius:14px; background:var(--card);
   box-shadow:var(--shadow); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;}
 .day-chip b{font-size:14px;}
@@ -846,3 +852,151 @@ html.drag-lock, html.drag-lock body{touch-action:none; overscroll-behavior:none;
 .share-mode .back-btn, .share-mode .head-edit, .share-mode .fab,
 .share-mode .edit-toggle, .share-mode .gap-note, .share-mode .fix-bar,
 .share-mode .d-acts .btn-primary, .share-mode .empty .btn-primary { display:none !important; }
+
+/* ============================================================================
+   v3.19 旅伴分帳（規格＝DESIGN.md 附錄 G，視覺＝demo/split.html「這次新增（分帳）」那段，Benson 拍板）
+   規則：一個新顏色變數都沒有，全部引用既有色票／既有灰階。
+   前綴 sx-／mt-／mchip／kid-to／cus-／bx-／split-。⚠️ 不可以用 tr-（移動灰條在用）、sp-（.sp-plan 已存在）。
+   ⚠️ 這段刻意不用 :first-of-type（這個專案已經害過三次）：分隔線的「第一列」一律用 :first-child，
+      而且那幾個容器裡的子元素全是同一種列（.sx-xlist／.mem-card／#mt-list）。
+   ============================================================================ */
+/* 花費頁頂端「花費紀錄｜分帳結算」——沿用 .seg */
+.seg.bx-seg{margin-bottom:14px;}
+.bx-gap{height:12px;}
+.bx-gap16{height:16px;}
+/* 沒設旅伴的旅程：唯一的入口＝一行淡字（不是卡片、不是珊瑚鈕，不打擾單人旅行） */
+.split-entry{width:100%; min-height:44px; display:flex; align-items:center; justify-content:space-between; gap:8px;
+  margin:12px 0 0; padding:0 6px; font-size:13.5px; color:var(--muted); text-align:left;}
+.split-entry .go{font-weight:700; color:var(--acc-deep); flex:0 0 auto;}
+.split-entry:active{opacity:.6;}
+/* 花費列：誰付的（接在類別後面，一樣是 .c 那行的灰字） */
+/* 太長時整段一起換行，不會斷在「沒填誰｜付」中間；名字 8 個字那種極端情況，整段超過一行寬就省略號（不撐破版面） */
+.exp-mid .c .bx-c{display:inline-block; max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; vertical-align:top;}
+.exp-mid .c .who{color:#6b6154; font-weight:700;}
+.exp-mid .c .nowho{color:var(--warn-ink); font-weight:700;}
+/* 人＝圓形（頭像一律圓形、旅程卡一律圓角矩形，用形狀分語意）。中性底，不給每人一個顏色。 */
+.bx-av{width:34px; height:34px; border-radius:50%; background:#f3eee4; color:#6b6154; flex:0 0 auto;
+  display:inline-flex; align-items:center; justify-content:center; font-size:14.5px; font-weight:800;}
+.bx-av.kid{background:#faf6ee; color:#a89d8d; font-size:13px;}
+/* 人的選擇鈕：沿用 .pick 的選中語言（珊瑚框＋#fff1ef 底），但是圓的（人＝圓） */
+.mchips{display:flex; flex-wrap:wrap; gap:8px;}
+.mchip{position:relative;}
+.mchip input{position:absolute; opacity:0; width:1px; height:1px; margin:0; pointer-events:none;}
+.mchip span{min-height:44px; min-width:56px; padding:0 15px; border-radius:99px; border:2px solid var(--line); background:#fbfaf6;
+  display:flex; align-items:center; justify-content:center; gap:5px; font-size:15px; font-weight:700; color:#6b6154; cursor:pointer;}
+.mchip span small{font-size:11px; font-weight:700; color:#b3a996;}
+.mchip input:checked + span{border-color:var(--acc); background:#fff1ef; color:var(--acc-deep);}
+.mchip input:checked + span small{color:var(--acc-deep); opacity:.75;}
+.mchip input:focus-visible + span{outline:2px solid var(--acc); outline-offset:1px;}
+/* 記帳 sheet 裡的分帳區 */
+.bx-payer-hint{margin:8px 2px 0;}
+.bx-sheet-hint{margin:0 2px 10px;}
+.bx-box{margin-bottom:13px;}
+.bx-box .pay-seg{margin-bottom:10px;}
+.split-sum{font-size:13.5px; color:#6b6154; line-height:1.55; margin:2px 2px 0;}
+.split-sum b{font-variant-numeric:tabular-nums; color:var(--ink);}
+.split-sum .sub{color:var(--muted);}
+.split-err{font-size:13px; color:var(--bad); font-weight:700; margin:8px 2px 0;}
+.split-err[hidden]{display:none;}
+/* 小孩這筆算給誰：淡底小卡（＝stop-note 的 #faf6ee「這一筆的附註」層級，不是警告） */
+.kid-to{background:#faf6ee; border-radius:14px; padding:11px 12px 12px; margin-top:10px;}
+.kid-to[hidden]{display:none;}
+.kid-to .kt-hd{display:flex; align-items:center; gap:6px; font-size:13.5px; font-weight:800; color:#6b6154; margin-bottom:8px;}
+.kid-to .kt-hd .kt-amt{font-weight:700; color:var(--muted); font-variant-numeric:tabular-nums;}
+.kid-to .kt-reset{margin-left:auto; min-height:44px; margin-top:-12px; margin-bottom:-12px; padding:0 4px;
+  font-size:12.5px; font-weight:700; color:var(--acc-deep); text-decoration:underline;}
+.kid-to .kt-reset[hidden]{display:none;}
+.kid-to .kt-def{font-size:12px; color:#a89d8d; margin-top:7px;}
+.kid-to .mchip span{background:#fff;}
+.kid-to .mchip input:checked + span{background:#fff1ef;}
+/* 自己填各人金額 */
+.cus-row{display:flex; align-items:center; gap:10px; padding:6px 0;}
+.cus-row .nm{flex:1; min-width:0; font-size:15px; font-weight:700; display:flex; align-items:center; gap:8px;}
+.cus-row .nm small{font-size:11.5px; color:#b3a996; font-weight:700;}
+.cus-row input{width:132px; flex:0 0 auto; text-align:right; font-variant-numeric:tabular-nums;
+  font-size:16px; font-family:inherit; color:var(--ink); padding:11px 12px; border:1.5px solid var(--line); border-radius:13px; background:#fbfaf6;
+  appearance:none; -webkit-appearance:none;}
+.cus-row input:focus{outline:none; border-color:var(--acc);}
+.cus-bar{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:8px;
+  padding:10px 12px; border-radius:12px; background:#faf6ee; font-size:13.5px; color:#6b6154; font-variant-numeric:tabular-nums;}
+.cus-bar b.ok{color:var(--ok);}
+.cus-bar b.warn{color:var(--warn-ink-deep);}
+.cus-bar.warn{background:var(--warn-bg); border:1px solid var(--warn-line);}
+.cus-fix{display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;}
+.cus-fix:empty{display:none;}
+.cus-fix button{min-height:44px; padding:0 14px; border-radius:99px; border:1.5px solid var(--line); background:#fff;
+  font-size:13.5px; font-weight:700; color:var(--acc-deep);}
+.btn-primary:disabled{background:#e9e2d6; color:#a89d8d;}
+/* ---------- 分帳結算 ---------- */
+.sx-card .lbl{display:flex; align-items:center; justify-content:space-between;}
+.sx-xfer{display:flex; align-items:center; gap:10px; padding:12px 0; border-top:1px solid #f2ecdf;}
+.sx-xfer:first-child{border-top:none;}
+.sx-xfer .who{flex:1; min-width:0; display:flex; align-items:center; flex-wrap:wrap; gap:4px 6px; font-size:15.5px; font-weight:800; white-space:nowrap;}
+.sx-xfer .who .arr{color:#c9beac; font-weight:600; font-size:13px;}
+.sx-xfer .who .me, .sx-row .nm .me{font-size:11px; font-weight:800; color:var(--acc-deep); background:#fff1ef; border-radius:99px; padding:2px 7px;}
+.sx-xfer .amt{text-align:right; flex:0 0 auto; font-variant-numeric:tabular-nums;}
+.sx-xfer .amt b{display:block; font-size:18px; font-weight:800;}
+.sx-xfer .amt small{display:block; font-size:12px; font-weight:600; color:var(--muted);}
+.sx-done{flex:0 0 auto; min-height:44px; min-width:52px; padding:0 10px; border-radius:12px; background:#f3eee4;
+  font-size:13px; font-weight:800; color:#6b6154;}
+.sx-xlist{margin-top:8px;}
+.sx-zero{font-size:24px; font-weight:800; margin-top:4px;}
+.sx-zero-sub{font-size:13.5px; color:var(--muted); margin-top:4px;}
+.sx-mode{margin-top:14px;}
+.sx-mode .pay-seg{margin-bottom:6px;}
+.sx-mode .pay-seg label{font-size:13.5px;}
+.sx-note{font-size:12px; color:#a89d8d; line-height:1.55; margin:0 4px;}
+.sx-plan-tag{font-size:11.5px; font-weight:800; color:var(--acc-deep); background:#fff1ef; border-radius:99px; padding:2px 8px;}
+/* 每個人：一張白卡＋hairline 分列（首頁「旅行回憶」.mem-card 那套長清單語言） */
+.sx-row{display:flex; align-items:flex-start; gap:12px; padding:13px 16px; border-top:1px solid #f2ecdf;}
+.sx-row:first-child{border-top:none;}
+.sx-row .mid{flex:1; min-width:0;}
+.sx-row .nm{font-size:15.5px; font-weight:800; display:flex; align-items:center; gap:6px; min-height:22px;}
+.sx-row .ln{font-size:12.5px; color:var(--muted); margin-top:4px; font-variant-numeric:tabular-nums; line-height:1.5;}
+.sx-row .ln b{color:#6b6154; font-weight:700;}
+.sx-row .bal{text-align:right; flex:0 0 auto; font-variant-numeric:tabular-nums;}
+.sx-row .bal b{display:block; font-size:16px; font-weight:800;}
+.sx-row .bal b.get{color:var(--ok);}
+.sx-row .bal b.give{color:var(--acc-deep);}
+.sx-row .bal span{display:block; font-size:11.5px; color:var(--muted); font-weight:600; margin-top:1px;}
+.sx-row.kid .nm{color:#a89d8d; font-size:14.5px;}
+.sx-row.kid .ln{margin-top:2px;}
+/* 已經轉過的 */
+.sx-paid{display:flex; align-items:center; gap:10px; padding:4px 4px 4px 16px; border-top:1px solid #f2ecdf; min-height:52px;}
+.sx-paid:first-child{border-top:none;}
+.sx-paid .tx{flex:1; min-width:0; font-size:14px; color:#6b6154;}
+.sx-paid .tx small{color:var(--muted); margin-left:4px;}
+.sx-paid .am{font-size:14px; font-weight:800; font-variant-numeric:tabular-nums;}
+/* 「可能重複」清單（sheet）：一組＝兩筆並排＋「不是重複」；提示條本身沿用 .fix-bar（琥珀＝提醒不是錯誤） */
+.bx-dup{margin-bottom:18px;}
+.bx-dup .exp-item{margin-bottom:8px;}
+.bx-dup-ok{width:100%; min-height:44px; border-radius:13px; border:1.5px solid var(--line); background:#fbfaf6;
+  font-size:14px; font-weight:700; color:#6b6154;}
+/* ---------- 旅伴設定 sheet ---------- */
+.mt-lead{font-size:13.5px; color:#6b6154; line-height:1.6; background:#faf6ee; border-radius:12px; padding:11px 13px; margin-bottom:14px;}
+.mt-row{border-top:1px solid #f2ecdf; padding:10px 0;}
+.mt-row:first-child{border-top:none;}
+.mt-main{display:flex; align-items:center; gap:8px;}
+.mt-main input{flex:1; min-width:0; font-size:16px; font-family:inherit; color:var(--ink);
+  padding:11px 12px; border:1.5px solid var(--line); border-radius:13px; background:#fbfaf6; appearance:none; -webkit-appearance:none;}
+.mt-main input:focus{outline:none; border-color:var(--acc);}
+.mt-main .pay-seg{margin:0; flex:0 0 auto; width:116px;}
+.mt-main .pay-seg label{font-size:13.5px;}
+.mt-kid{margin:8px 0 0 0; padding:10px 12px 12px; background:#faf6ee; border-radius:14px;}
+.mt-kid .kt-hd{font-size:13px; font-weight:800; color:#6b6154; margin-bottom:8px;}
+.mt-kid .mchip span{background:#fff;}
+.mt-kid .mchip input:checked + span{background:#fff1ef;}
+.mt-none{margin:0;}
+.mt-warn{font-size:12.5px; line-height:1.5; color:var(--warn-ink-deep); background:var(--warn-bg); border:1px solid var(--warn-line);
+  border-radius:12px; padding:9px 12px; margin-top:8px;}
+.mt-add{width:100%; min-height:48px; display:flex; align-items:center; gap:7px; border-top:1px solid #f2ecdf;
+  font-size:15px; font-weight:700; color:#a09585; padding:0 4px; margin-bottom:12px;}
+.mt-add .plus{color:var(--acc-deep); font-weight:800; font-size:17px;}
+.mt-err{font-size:13px; color:var(--bad); font-weight:700; margin:0 2px 10px;}
+.bx-choice{display:flex; flex-direction:column; gap:10px; margin-top:6px;}
+.bx-choice button{text-align:left; padding:13px 15px; min-height:60px; border-radius:15px; border:1.5px solid var(--line); background:#fbfaf6;}
+.bx-choice button b{display:block; font-size:15.5px;}
+.bx-choice button span{display:block; font-size:12.5px; color:var(--muted); margin-top:3px; line-height:1.45;}
+.bx-choice button.rec{border-color:var(--acc); background:#fff1ef;}
+/* 分享連結（只能看）：分帳的寫入入口一起藏 */
+.share-mode .split-entry, .share-mode .sx-done, .share-mode .sx-paid .x-btn { display:none !important; }

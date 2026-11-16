@@ -3,6 +3,7 @@
 手機優先的旅遊行程 PWA。Benson 自用：一趟旅程 = 逐日行程 + 花費 + 打包清單 + 自由備註。
 UI/UX 以 `demo/index.html`（UX demo v3.1，Benson 拍板）為準，**勿自行改設計**；設計規格見 `DESIGN.md`。
 **打包分頁**另有一版拍板的 demo：`demo/packing.html`（v2.9 改版，規格＝`DESIGN.md` 附錄 D）。
+**旅伴分帳**（v3.19）的 demo：`demo/split.html`，規格＝`DESIGN.md` 附錄 G（G10 是 Benson 的拍板、G11 可能重複、G12 實作備忘）。
 
 ## 架構（三層，比照 recipe-book — 別打破）
 - **電腦本機 Node App＝真本**：`server.js`（零執行期依賴，**port 3618**），服務 `public/` 前端＋`/api` CRUD，資料存本機 md 檔。
@@ -64,6 +65,20 @@ UI/UX 以 `demo/index.html`（UX demo v3.1，Benson 拍板）為準，**勿自�
     - 表單順序＝「這是什麼」先講完再講 metadata：金額／類別 → 標題 → 說明 →（已經幫他預設好的）哪一天。說明用 `textarea rows=2` 不用 `input`（他真的會寫一整句）。
     - ⚠️ **`budget` 是 0（還沒設預算）時不可以拿 0 去減**：會顯示「還可以再排 NT$ -1,200」，看起來像超支、其實只是他還沒填。這種時候**進度條整條不出現**，那一列改成一顆「還沒設預算・設一個 ›」的入口（`.budget-row.set-budget`，是 `<button>` 要自己補 `width:100%`／`text-align`／≥44px）。
     - **外幣（v3.14，Benson 要的）**：旅程 frontmatter 選填 `fxCur`（"HKD" 等）／`fxRate`（1 外幣＝幾台幣）／`fxBudget`（帶了多少外幣現金），**沒設 `fxCur` 就三行都不寫**（其他旅程逐字不變）。花費選填 `fx`（原始外幣金額）＋`card:true`（刷卡、不扣外幣現金），key 接在 `plan` 後面。⚠️ **`amount` 永遠是台幣**（`fx×匯率` 四捨五入），所以既有加總全部不用動；改匯率時 `fxSync` 用 `fx` 重算 `amount`。花費頁多一張「💵 外幣現金還剩」卡：帶的 − 已付（外幣、非刷卡），下一行「照預計還會剩／不夠」。記帳 sheet 有設外幣才出現「台幣／外幣」切換，選外幣才出現「付現金／八達通｜刷卡」。前後端 `cleanExpense`／frontmatter 各一套，改要一起改。
+    - **旅伴分帳（v3.19，Benson 拍板；規格＝`DESIGN.md` 附錄 G；別誤改）**：
+      - **frontmatter 兩個新 key（單行 JSON，在 fx 三行（沒外幣就是 `budget`）之後、`createdAt` 之前；空陣列不寫 ⇒ 沒設旅伴的旅程逐字不變）**：`mates: [{"id","name","kid"?,"to"?}]`（key 順序 id,name,kid,to；`kid` 只在 true 寫、`to`＝小孩平常算給哪些大人，只有小孩寫、空就不寫＝全部大人；陣列順序＝畫面順序＝所有平手規則的順序）、`settle: [{"from","to","amount","at"}]`（「已轉」紀錄，amount 台幣整數、at＝`YYYY-MM-DD`）。`parseTrip` 的預設物件有 `mates:[]`、`settle:[]`（白名單 `k in t`，少了會被丟掉）。
+      - **花費四個新 key 接在 `card` 後面，順序 `payer,split,shares,kidTo`，空值不寫**：`payer`＝誰付的（大人 id，缺＝不算進結算）；`split`＝「選幾個人」平分的 id 陣列（缺＝大家平分）；`shares`＝「各填金額」`{id:金額}`，**金額是這筆輸入的幣別**（有 `fx` 就是外幣）、只寫 >0、收到 0.01、**當比例用**（改匯率 `fxSync` 重算 `amount` 時 shares 不用動）；`kidTo`＝這筆小孩的份算給誰，只寫跟預設不同的小孩。**花費一律存 id 不存名字**（改名零成本）。`split` 與 `shares` 並存時**留 shares**。
+      - **壞參照 normalize（`normalizeMates`／`normalizeSettle`／`normalizeExpenseRefs`，前後端各一套、冪等、parse 與 serialize 都跑）**：payer 不是現在的大人＝當沒填；split／shares 對不到的 id 丟掉、空了＝大家平分；kidTo 鍵要是小孩、值只留大人；輸出順序一律照旅伴順序。⚠️ **旅伴是空的時候一個參照都不刪**（frontmatter 那行壞掉／舊版 App 存過時，寧可留著也不要無聲丟掉誰付的）——別「順手」改成一律清掉。
+      - **結算即時算、不落資料**（只有「已轉」寫 `settle`）。計算是 `app.js` 的「分帳核心 BEGIN…END」那段純函式（照抄 demo：`lr` 最大餘數法分台幣整數、尾數先給付錢的人再照旅伴順序、小孩份額 → `kidTo` → 預設 `to` → 全部大人、`minTransfers` 位元 DP 精確解 n≤12、平手照旅伴順序 ⇒ 兩支手機逐字相同）。**那兩個標記別刪**：`tools/split-test.js` 靠它們把這段原樣切出來測。
+      - **只算已付；有預計時給「含預計（試算）」**（試算不能按「已轉」；沒填付款人的預計不算、說明句會講，也**不進**「沒填誰付」琥珀條）。已轉紀錄兩種模式都扣。
+      - **「誰付的」預設**：鑰匙圈名字（`KR.current().name`，trim 後完全相同）對得上某位大人 ⇒ 他；對不上 ⇒ **這支手機上次在這趟選的人**（localStorage `travel.lastPayer`＝`{旅程id:旅伴id}`，**刻意 per trip**——旅伴 id 是每趟各自的 uid；try/catch、不進資料）；都沒有才不預選＋hint。本機版沒鑰匙圈，直接走「上次選的」。
+      - **「可能重複」**（附錄 G11）：同一天（都要有填）＋台幣金額相同 >0＋兩筆付款人都有且不同 ⇒ 琥珀 `.fix-bar`（清單頁、結算頁各一條），不擋存檔；「不是重複」存 localStorage `travel.dupOk`，**刻意不進資料**（另一支手機會再看到一次）。
+      - **擋存檔**：各填金額≠總額（0.01 精度）／選幾個人全沒選／小孩這筆沒算給任何大人（`splitDraftError`，送出鈕灰）；旅伴 sheet：名字重複／沒有大人／只有一個人／小孩沒勾大人。**被引用的旅伴不准刪**（付過錢、被指名、在已轉紀錄裡），名字清空存檔也照同一條擋；**被引用的大人（付過錢、被指名分攤、被當 kidTo 對象、在已轉紀錄裡）不准改成小孩**（否則付款人被 normalize 清掉、已轉那筆真實轉帳無聲不計；QA Y1）。**小孩沒設 `to` ＝全部大人**，記帳 sheet 預帶、「改回預設」、結算頁文字一律讀 `kidDefault`（QA Y2）。中途加人且已有「大家平分」⇒ 問一次（也算他一份／只從現在開始算＝把舊的固定成原本名單）。
+      - **沒設旅伴的旅程**：花費頁只多 `.split-entry` 一行（A/B 實測四趟真實旅程四個分頁，DOM 只多這一顆＋兩個 span）；記帳 sheet 一欄都沒多，**`submitExpense` 也不碰這四個 key**（舊資料裡如果有，原樣留著）。
+      - **清單「・黏付・2人分」那段是 `.bx-c`（inline-block＋nowrap＋超過一行才省略號）**：真實資料有「刷卡」，不包會斷在「沒填誰｜付」中間。別拆掉。
+      - CSS 前綴 `sx-／mt-／mchip／kid-to／cus-／bx-／split-`；**不可以用 `tr-`（移動灰條）、`sp-`（`.sp-plan`）**；分隔線「第一列」一律 `:first-child`，不用 `:first-of-type`。沒有新顏色變數。
+      - ⚠️ **已知風險（跨版本）**：還停在 v3.18 以前的手機（舊 `cleanExpense` 不認得這四個 key、舊 `parseTrip` 不收 `mates/settle`）只要存一次這趟旅程，**分帳資料會整段被洗掉**。跟 v3.14 外幣上線時同一種風險，靠「有新版本」提示＋兩個人都更新後再開始分帳。
+      - **測試**：`node tools/split-test.js`（零相依；四份真實旅程 round-trip＋前後端逐字對照 10 組邊界＋計算對答案＋1,000 趟亂數恆等式）。server.js 為此多 export 了 `parseTrip／serializeTrip／cleanExpense`（被 require 時照舊不開 port）。
     - **`plan`（v3.5）＝這筆只是「預計要花」、還沒付**；缺值＝已付。**真值刻意是 `plan` 不是 `paid`**：既有資料全是「已經花掉的」，用「缺值＝已付」才做得到零遷移（跟 `kind`/`bag`/`day` 同一招）。`plan:false` 不寫。
     - **「預計」與「已付」是同一筆的兩個狀態、不是兩份清單**（Benson 拍板）：先記「訂房 3200・預計」，真的付了在編輯裡切成「已經付了」，**不用重打一次**。實測切換後總額不變、金額只是從「還沒付」搬到「已付」。
     - ⚠️ **`spentOf` 的語意在 v3.5 收窄成「只算已付」**（首頁旅程卡也用它——還沒花的錢不叫花費）。新增 `planOf`（還沒付）與 `needOf`＝`spentOf+planOf`（**這趟要準備多少**）。**預算的比較對象是 `needOf` 不是 `spentOf`**，否則規劃期把住宿車票都排進去了，畫面還是說「還可以花 20,000」。
@@ -229,7 +244,8 @@ UI/UX 以 `demo/index.html`（UX demo v3.1，Benson 拍板）為準，**勿自�
 ## PWA 鐵律（recipe-book 血淚，全部已做，別退步）
 - 所有資源、manifest `start_url`/`scope`、SW scope **一律相對路徑**（Pages 在 `/travel-book/` 子路徑）。
 - SW：`skipWaiting()`＋activate 清舊快取＋`clients.claim()`；`/api/data` network-first、寫入 network-only、殼 cache-first。
-- ⚠️ **`keyring-unlock.js` 走 network-first，刻意不跟 app shell 一起 cache-first**（2026-08-21 加）：它的正本在 keyring repo、由 CI 自動同步過來，**更新時不會跳這裡的 cache 版本號**；若走 cache-first，手機會永遠停在第一次快取到的那一版，模組的修正永遠到不了使用者手上。它仍在 `SHELL` 預先快取，所以離線時一定拿得到快取、不會落到 `offlineJson()`。**別為了「統一策略」把它併回 app shell。****改前端記得把 sw.js 的 cache 版本號 +1**（`travel-shell-vN`，目前 **v25**；**版本號是「比已經上線的那個大」不是「比我開工時看到的大」**——v2.7 這輪就撞到：開工時檔案是 v15，做到一半另一條線先用掉 v16 並推上線了，只好跳 v17；**`SHELL_CACHE` 與 `DATA_CACHE` 兩個都要跳，別只跳一個**）**並同步 `APP_VER`**（見下方「版本與更新」）。
+- ⚠️ **`keyring-unlock.js` 走 network-first，刻意不跟 app shell 一起 cache-first**（2026-08-21 加）：它的正本在 keyring repo、由 CI 自動同步過來，**更新時不會跳這裡的 cache 版本號**；若走 cache-first，手機會永遠停在第一次快取到的那一版，模組的修正永遠到不了使用者手上。它仍在 `SHELL` 預先快取，所以離線時一定拿得到快取、不會落到 `offlineJson()`。**別為了「統一策略」把它併回 app shell。****改前端記得把 sw.js 的 cache 版本號 +1**（`travel-shell-vN`，目前 **v39**（v3.19 旅伴分帳）；**版本號是「比已經上線的那個大」不是「比我開工時看到的大」**——v2.7 這輪就撞到：開工時檔案是 v15，做到一半另一條線先用掉 v16 並推上線了，只好跳 v17；**`SHELL_CACHE` 與 `DATA_CACHE` 兩個都要跳，別只跳一個**）**並同步 `APP_VER`**（見下方「版本與更新」）。
+- ⚠️⚠️ **「已上線」看 `origin/main` 的 `docs/`，不是 `public/`**，而且**一律改 `public/` 再跑 build，絕不只改 `docs/`**（2026-11-16 QA 退件）：v3.17（`fixFixedBars`，iPhone 底部分頁列卡在中間）與 v3.18（`fixDayChips`＋天數列 `scrollbar-width:thin`）當初只改了 `docs/`，`public/` 停在 3.16／v36 ⇒ 下一個人跑 build.js 就把兩個線上修正整段洗掉、版本還倒退撞號。**這筆 docs-only 的債已在 v3.19 清掉**（兩段已搬回 `public/`，build 後 public 與 docs 逐檔相同）。`tools/split-test.js` 有一條守這件事：public 與 docs 逐檔相同、`APP_VER`／兩個 cache 版本對得上、那三個關鍵字都在。開工前先 `git diff origin/main:public origin/main:docs` 看一眼，不是空的就先處理。
 - input/textarea/select `font-size ≥ 16px`（iOS 防自動放大）；觸控目標 ≥ 44px；Enter 送出全部走原生 `<form>` + `type=submit`。
 - 換 icon 後 iOS 已安裝的 PWA 要移除主畫面重加才會換。
 

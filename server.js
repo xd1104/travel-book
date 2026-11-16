@@ -245,7 +245,105 @@ function cleanExpense(e) {
     o.fx = Number(e.fx);
     if (e.card) o.card = true;
   }
+  // v3.19 旅伴分帳（DESIGN.md 附錄 G3）：payer,split,shares,kidTo 接在 card 後面，空值不寫 ⇒ 舊資料零遷移。
+  // split 與 shares 互斥：兩個都有時留 shares。壞參照在 normalizeExpenseRefs 處理。public/app.js mirror。
+  if (e.payer) o.payer = String(e.payer);
+  const sh = cleanShares(e.shares);
+  if (!sh && Array.isArray(e.split)) {
+    const sp = uniqStr(e.split);
+    if (sp.length) o.split = sp;
+  }
+  if (sh) o.shares = sh;
+  const kt = cleanKidTo(e.kidTo);
+  if (kt) o.kidTo = kt;
   return o;
+}
+/* ---- 分帳的資料層小工具（public/app.js mirror，改要一起改） ---- */
+function uniqStr(a) {
+  const out = [];
+  for (let x of (Array.isArray(a) ? a : [])) { x = String(x == null ? '' : x); if (x && !out.includes(x)) out.push(x); }
+  return out;
+}
+// 各填金額：只留 >0 的人；金額收到 0.01；全空 ⇒ null（不寫）
+function cleanShares(s) {
+  if (!s || typeof s !== 'object' || Array.isArray(s)) return null;
+  const o = {}; let any = false;
+  for (const k of Object.keys(s)) {
+    const v = Math.round(Number(s[k]) * 100) / 100;
+    if (k && v > 0) { o[k] = v; any = true; }
+  }
+  return any ? o : null;
+}
+function cleanKidTo(k) {
+  if (!k || typeof k !== 'object' || Array.isArray(k)) return null;
+  const o = {}; let any = false;
+  for (const kid of Object.keys(k)) {
+    const L = uniqStr(k[kid]);
+    if (kid && L.length) { o[kid] = L; any = true; }
+  }
+  return any ? o : null;
+}
+// 旅伴（frontmatter `mates`）：key 順序 id,name,kid,to；kid 只在 true 時寫、to 只有小孩寫
+function cleanMate(m) {
+  m = m || {};
+  const o = { id: String(m.id || ''), name: String(m.name || '').trim() };
+  if (m.kid) { o.kid = true; const to = uniqStr(m.to); if (to.length) o.to = to; }
+  return o;
+}
+// 旅伴 normalize（冪等）：沒 id／沒名字丟掉、id 重複留第一個、小孩的 to 只留還在的大人
+function normalizeMates(list) {
+  const seen = {}, L = [];
+  for (const m of (Array.isArray(list) ? list : [])) {
+    const c = cleanMate(m);
+    if (!c.id || !c.name || seen[c.id]) continue;
+    seen[c.id] = 1; L.push(c);
+  }
+  const adults = L.filter((m) => !m.kid).map((m) => m.id);
+  for (const m of L) {
+    if (!m.kid) continue;
+    const to = (m.to || []).filter((id) => adults.includes(id));
+    if (to.length) m.to = to; else delete m.to;
+  }
+  return L;
+}
+// 「已轉」紀錄（frontmatter `settle`）：key 順序 from,to,amount,at
+function cleanSettle(s) {
+  s = s || {};
+  return { from: String(s.from || ''), to: String(s.to || ''), amount: Math.round(Number(s.amount) || 0), at: String(s.at || '') };
+}
+// ⚠️ 旅伴是空的時候不刪任何參照（寧可留著也不要無聲丟掉）
+function normalizeSettle(list, mates) {
+  const ids = (mates || []).map((m) => m.id);
+  return (Array.isArray(list) ? list : []).map(cleanSettle).filter((s) => {
+    if (!(s.amount > 0) || !s.from || !s.to || s.from === s.to) return false;
+    return !ids.length || (ids.includes(s.from) && ids.includes(s.to));
+  });
+}
+// 花費裡的旅伴參照 normalize（壞參照 fallback；冪等；順序照旅伴順序）。沒有旅伴時原樣返回。
+function normalizeExpenseRefs(e, mates) {
+  if (!mates || !mates.length) return e;
+  const order = mates.map((m) => m.id);
+  const adults = mates.filter((m) => !m.kid).map((m) => m.id);
+  const kids = mates.filter((m) => m.kid).map((m) => m.id);
+  if (e.payer && !adults.includes(e.payer)) delete e.payer;
+  if (e.split) {
+    const sp = order.filter((id) => e.split.includes(id));
+    if (sp.length) e.split = sp; else delete e.split;
+  }
+  if (e.shares) {
+    const sh = {}; let any = false;
+    for (const id of order) if (e.shares[id] > 0) { sh[id] = e.shares[id]; any = true; }
+    if (any) e.shares = sh; else delete e.shares;
+  }
+  if (e.kidTo) {
+    const kt = {}; let anyK = false;
+    for (const k of kids) {
+      const L = adults.filter((a) => (e.kidTo[k] || []).includes(a));
+      if (L.length) { kt[k] = L; anyK = true; }
+    }
+    if (anyK) e.kidTo = kt; else delete e.kidTo;
+  }
+  return e;
 }
 /* 打包項目（v2.9 起多了 kind／bag 兩個選填欄位＝「包」）
  * key 順序固定 id,text,done,zone,kind,bag；空值不寫 ⇒ 舊資料（沒有 kind/bag）零遷移、序列化後逐字不變 */
@@ -325,6 +423,10 @@ function serializeTrip(t) {
     L.push('fxRate: ' + fmNumber(t.fxRate));
     L.push('fxBudget: ' + fmNumber(t.fxBudget));
   }
+  // v3.19 旅伴分帳：單行 JSON，空陣列不寫 ⇒ 沒設旅伴的旅程逐字不變（public/app.js mirror）
+  const mates = normalizeMates(t.mates), settle = normalizeSettle(t.settle, mates);
+  if (mates.length) L.push('mates: ' + JSON.stringify(mates));
+  if (settle.length) L.push('settle: ' + JSON.stringify(settle));
   L.push('createdAt: ' + fmString(t.createdAt || new Date().toISOString()));
   L.push('updatedAt: ' + fmString(t.updatedAt || new Date().toISOString()));
   L.push('---');
@@ -344,7 +446,7 @@ function serializeTrip(t) {
   }
   L.push('## 花費');
   L.push('');
-  for (const e of t.expenses || []) L.push('- ' + JSON.stringify(cleanExpense(e)));
+  for (const e of t.expenses || []) L.push('- ' + JSON.stringify(normalizeExpenseRefs(cleanExpense(e), mates)));
   L.push('');
   L.push('## 打包');
   L.push('');
@@ -371,7 +473,7 @@ function parseFrontmatterLine(line) {
 function parseTrip(id, text) {
   const t = {
     id, name: '', dest: '', emoji: '🧳', theme: 'sunset', start: '', days: 1, budget: 0,
-    fxCur: '', fxRate: 0, fxBudget: 0,
+    fxCur: '', fxRate: 0, fxBudget: 0, mates: [], settle: [],
     createdAt: '', updatedAt: '', itinerary: {}, expenses: [], packing: [], notes: '',
   };
   text = String(text).replace(/\r\n/g, '\n'); // 容忍 CRLF（Windows checkout/pull 後）
@@ -423,6 +525,10 @@ function parseTrip(id, text) {
     }
   }
   t.packing = normalizePacking(t.packing);
+  // v3.19 旅伴分帳：收斂型別＋壞參照（public/app.js mirror）
+  t.mates = normalizeMates(t.mates);
+  t.settle = normalizeSettle(t.settle, t.mates);
+  t.expenses = t.expenses.map((e) => normalizeExpenseRefs(e, t.mates));
   t.notes = notesBuf.join('\n').trim();
   if (!(t.days >= 1)) t.days = 1;
   return t;
@@ -934,4 +1040,6 @@ if (require.main === module) {
 /*    會分岔的實作。這個專案已經有「前後端兩套 parser 要一起改」的債，  */
 /*    不要再加第三套。                                                  */
 /* ------------------------------------------------------------------ */
-module.exports = { scanAllAddrs, backfillTripAddrs, expandMapUrl, TRIPS_DIR, DATA_DIR };
+module.exports = { scanAllAddrs, backfillTripAddrs, expandMapUrl, TRIPS_DIR, DATA_DIR,
+  // v3.19：給 tools/split-test.js 做前後端逐字對照（被 require 時不開 port、不 build、不 sync）
+  parseTrip, serializeTrip, cleanExpense };

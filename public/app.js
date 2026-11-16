@@ -42,7 +42,7 @@ function splashReady(){
 /* ============ 常數 ============ */
 /* 版本號的唯一來源：首頁 footer 與「版本」sheet 都讀它。
  * 改前端時跟 sw.js 的 cache 版本號一起 +1（見「版本與更新」段）。 */
-var APP_VER="3.16";
+var APP_VER="3.19";
 
 /* v3.13 分享連結：網址帶 ?share=<旅程 id 開頭> ⇒ 只載入那一趟、直接進旅程頁、全部唯讀。
  * 給家人看行程用：看不到首頁清單和其他旅程，也沒有編輯／解鎖入口。
@@ -444,6 +444,197 @@ function planOf(t){
   var s=0; (t.expenses||[]).forEach(function(e){ if(e.plan) s+=Number(e.amount)||0; }); return s;
 }
 function needOf(t){ return spentOf(t) + planOf(t); }   /* 這趟總共要準備多少 */
+
+/* ==== 分帳核心 BEGIN（純函式；tools/split-test.js 會把這一段原樣切出來測，別在裡面碰 DOM／全域狀態） ====
+ * 規格＝DESIGN.md 附錄 G5，照抄 demo/split.html 的 lr／splitItems／kidTargets／shareOf／settle／minTransfers／greedy。
+ * ・結算即時算、不落資料（只有「已轉」會寫 t.settle）⇒ 同一份檔案兩支手機算出來逐字相同。
+ * ・所有平手一律照旅伴順序；尾數先給付錢的人。 */
+function mateOf(t, id){ var L=(t&&t.mates)||[]; for(var i=0;i<L.length;i++) if(L[i].id===id) return L[i]; return null; }
+function adultsOf(t){ return ((t&&t.mates)||[]).filter(function(m){ return !m.kid; }); }
+function kidsOf(t){ return ((t&&t.mates)||[]).filter(function(m){ return m.kid; }); }
+function isAdult(t, id){ var m=mateOf(t,id); return !!(m && !m.kid); }
+function hasSplit(t){ return !!(t && t.mates && t.mates.length); }
+/* 付錢的人排第一、其餘照旅伴順序 ⇒ 尾數優先給付錢的人 */
+function byPayerFirst(t, ids, payer){
+  var order = t.mates.map(function(m){ return m.id; });
+  return ids.slice().sort(function(a,b){
+    if(a===payer) return -1; if(b===payer) return 1;
+    return order.indexOf(a)-order.indexOf(b);
+  });
+}
+/* 最大餘數法：total（台幣整數）照權重分成整數，加總一定剛好＝total；餘數平手照 items 順序 */
+function lr(total, items){
+  var W = 0; items.forEach(function(x){ W += x.w; });
+  var out = {}, base = 0, rem = [];
+  if(!(W>0)) return out;
+  items.forEach(function(x,i){
+    var ex = total*x.w/W, f = Math.floor(ex+1e-9);
+    out[x.id] = (out[x.id]||0) + f; base += f;
+    rem.push({id:x.id, r:Math.round((ex-f)*1e6), i:i});
+  });
+  rem.sort(function(p,q){ return (q.r-p.r) || (p.i-q.i); });
+  for(var j=0; j<total-base; j++) out[rem[j%rem.length].id] += 1;
+  return out;
+}
+/* 這筆「算誰的」→ 參與的人與權重（shares＝金額當權重、split＝各 1、缺值／壞參照＝全部旅伴各 1） */
+function splitItems(t, e){
+  var items = null;
+  if(e.shares){
+    items = t.mates.filter(function(m){ return Number(e.shares[m.id])>0; })
+      .map(function(m){ return {id:m.id, w:Number(e.shares[m.id])}; });
+  }else if(e.split){
+    items = t.mates.filter(function(m){ return e.split.indexOf(m.id)>=0; }).map(function(m){ return {id:m.id, w:1}; });
+  }
+  if(!items || !items.length) items = t.mates.map(function(m){ return {id:m.id, w:1}; });
+  return items;
+}
+/* 小孩這筆算給誰：這筆的覆寫 → 旅伴設定的預設 → 全部大人 */
+function kidTargets(t, e, kid){
+  var L = ((e.kidTo && e.kidTo[kid.id]) || []).filter(function(id){ return isAdult(t,id); });
+  return L.length ? L : kidDefault(t, kid);
+}
+/* 小孩「平常算給誰」的實際值：旅伴設定的 to（只留還在的大人）→ 空了＝全部大人。
+   ⚠️ 記帳 sheet 的小孩卡預帶、「改回預設」、判斷「這筆跟平常不一樣」、結算頁那行字，全部讀這一支（三處一致；QA Y2）。 */
+function kidDefault(t, kid){
+  var L = ((kid && kid.to) || []).filter(function(id){ return isAdult(t,id); });
+  return L.length ? L.slice() : adultsOf(t).map(function(m){ return m.id; });
+}
+/* 「剩下的給沒填的 N 人平分」：以最小單位（dec＝每 1 元幾個單位：台幣／日圓／韓元 1、其他外幣 100）的**整數**分，
+   除不盡的給第一個。⚠️ 不可以用浮點 floor（US$0.2 分 2 人會變 0.11／0.09；QA N3）。回傳 n 個金額 */
+function fillEven(total, filled, n, dec){
+  var left = Math.round(total*dec) - Math.round(filled*dec), out = [];
+  if(!(n>0) || !(left>0)) return out;
+  var each = Math.floor(left/n), rest = left - each*n;
+  for(var i=0;i<n;i++) out.push((each + (i===0?rest:0))/dec);
+  return out;
+}
+/* 一筆花費 → 每位大人負擔多少台幣（整數）＋其中幫小孩出的；raw＝轉嫁前每個人（含小孩）的份 */
+function shareOf(t, e){
+  var items = splitItems(t,e);
+  var ordered = byPayerFirst(t, items.map(function(x){ return x.id; }), e.payer)
+    .map(function(id){ for(var i=0;i<items.length;i++) if(items[i].id===id) return items[i]; });
+  var raw = lr(Math.round(Number(e.amount)||0), ordered), per = {}, kidPart = {};
+  Object.keys(raw).forEach(function(id){
+    var m = mateOf(t,id);
+    if(!m.kid){ per[id] = (per[id]||0)+raw[id]; return; }
+    var tg = byPayerFirst(t, kidTargets(t,e,m), e.payer);
+    var r2 = lr(raw[id], tg.map(function(a){ return {id:a, w:1}; }));
+    Object.keys(r2).forEach(function(a){ per[a]=(per[a]||0)+r2[a]; kidPart[a]=(kidPart[a]||0)+r2[a]; });
+  });
+  return {per:per, kidPart:kidPart, raw:raw};
+}
+/* 整趟結算。withPlan＝「含預計（試算）」：把 plan:true 且有付款人的也當已付。
+   noPayer＝已付但沒填付款人（琥珀條）；planNoPayer＝試算時沒填付款人的預計（不算，說明句會講）。
+   已轉紀錄（t.settle）不論模式都扣——那是真的發生過的。 */
+function settleOf(t, withPlan){
+  var P = {};
+  adultsOf(t).forEach(function(m){ P[m.id] = {share:0, paid:0, kid:0, sent:0, recv:0}; });
+  var noPayer = [], planOut = [], planNoPayer = [], used = 0;
+  (t.expenses||[]).forEach(function(e){
+    if(e.plan && !withPlan){ planOut.push(e); return; }
+    if(!e.payer || !isAdult(t,e.payer)){ (e.plan ? planNoPayer : noPayer).push(e); return; }
+    var s = shareOf(t,e);
+    P[e.payer].paid += Math.round(Number(e.amount)||0);
+    Object.keys(s.per).forEach(function(id){ P[id].share += s.per[id]; });
+    Object.keys(s.kidPart).forEach(function(id){ P[id].kid += s.kidPart[id]; });
+    used++;
+  });
+  (t.settle||[]).forEach(function(r){
+    if(P[r.from] && P[r.to]){ P[r.from].sent += r.amount; P[r.to].recv += r.amount; }
+  });
+  var bal = {};
+  Object.keys(P).forEach(function(id){ var p=P[id]; bal[id] = p.paid - p.share + p.sent - p.recv; });
+  return { P:P, bal:bal, xfers:minTransfers(t, bal), noPayer:noPayer, planOut:planOut, planNoPayer:planNoPayer, used:used };
+}
+/* 最少轉帳次數（精確解）：次數＝n −「最多能切成幾組各自加總為 0」；位元 DP，n≤12，超過退回貪婪。
+   組內用貪婪（欠最多的給收最多的）。⚠️ 平手一律照旅伴順序 ⇒ 兩支手機輸出逐字相同。 */
+function minTransfers(t, bal){
+  var order = t.mates.map(function(m){ return m.id; });
+  var ids = order.filter(function(id){ return bal[id]; });
+  var n = ids.length; if(!n) return [];
+  if(n>12) return greedyXfer(ids, bal);
+  var N = 1<<n, sum = new Array(N), dp = new Array(N), m, i;
+  sum[0]=0; dp[0]=0;
+  for(m=1;m<N;m++){ for(i=0;i<n;i++) if(m>>i&1) break; sum[m] = sum[m^(1<<i)] + bal[ids[i]]; }
+  for(m=1;m<N;m++){
+    var best = 0;
+    for(i=0;i<n;i++) if(m>>i&1){ var v = dp[m^(1<<i)]; if(v>best) best=v; }
+    dp[m] = best + (sum[m]===0 ? 1 : 0);
+  }
+  var groups = [], cur = []; m = N-1;
+  while(m){
+    var pick = -1;
+    for(i=0;i<n;i++) if(m>>i&1){ if(pick<0 || dp[m^(1<<i)]>dp[m^(1<<pick)]) pick=i; }
+    cur.push(ids[pick]); m ^= (1<<pick);
+    if(sum[m]===0){ groups.push(cur); cur=[]; }
+  }
+  var out = [];
+  groups.forEach(function(g){ out = out.concat(greedyXfer(g, bal)); });
+  return out;
+}
+/* 貪婪：欠最多的給收最多的（平手照 g 的順序＝旅伴順序） */
+function greedyXfer(g, bal){
+  var b = {}; g.forEach(function(id){ b[id]=bal[id]; });
+  var out = [];
+  for(var guard=0; guard<200; guard++){
+    var d=null, c=null;
+    g.forEach(function(id){
+      if(b[id]<0 && (d===null || b[id]<b[d])) d=id;
+      if(b[id]>0 && (c===null || b[id]>b[c])) c=id;
+    });
+    if(d===null || c===null) break;
+    var x = Math.min(-b[d], b[c]);
+    out.push({from:d, to:c, amount:x});
+    b[d]+=x; b[c]-=x;
+  }
+  return out;
+}
+/* 記帳 sheet 的草稿 → 這筆有誰參與（小孩卡要不要出現看這個）
+   d＝{amt:輸入幣別的金額, mode:"all"|"pick"|"custom", pick:[id], shares:{id:金額}, kidTo:{kid:[大人id]}} */
+function splitInvolved(t, d){
+  if(d.mode==="pick") return d.pick.slice();
+  if(d.mode==="custom") return Object.keys(d.shares).filter(function(id){ return d.shares[id]>0 && mateOf(t,id); });
+  return t.mates.map(function(m){ return m.id; });
+}
+/* 擋存檔的條件（附錄 G9「擋存檔四種」中的三種；名字重複在旅伴 sheet）。回傳 "" ＝可以存。
+   各填金額的加總用 0.01 精度比（外幣有小數，例 HK$12.5）。 */
+function splitDraftError(t, d){
+  var err = "";
+  if(d.mode==="pick" && !d.pick.length) err = "至少要選一個人";
+  if(d.mode==="custom"){
+    var tot = 0; Object.keys(d.shares).forEach(function(id){ if(d.shares[id]>0) tot += Number(d.shares[id]); });
+    if(Math.round(tot*100)!==Math.round((Number(d.amt)||0)*100)) err = "各人金額加起來要等於總額";
+  }
+  if(!err){
+    var inv = splitInvolved(t, d);
+    kidsOf(t).forEach(function(k){
+      if(!err && inv.indexOf(k.id)>=0 && !((d.kidTo[k.id]||[]).length)) err = k.name+"這筆至少要算給一個大人";
+    });
+  }
+  return err;
+}
+/* 「可能重複」（Benson 拍板要做；條件見 DESIGN.md 附錄 G11）：兩筆
+   ①「哪一天」相同（都要有填，行前也算一天）②台幣金額相同且 >0 ③都填了付款人、而且是不同人。
+   預計／已付不分（一個人記了預計、另一個人記了實付，也是同一筆）。
+   ok＝已經按過「不是重複」的配對 {"idA|idB":1}（id 小的在前）。回傳 [[a,b],...]，照清單順序。 */
+function dupKey(a, b){ return a<b ? a+"|"+b : b+"|"+a; }
+function dupPairs(t, ok){
+  ok = ok || {};
+  var L = (t.expenses||[]).filter(function(e){
+    return e.payer && isAdult(t,e.payer) && (Math.round(Number(e.amount)||0)>0) && expDayVal(e.day);
+  });
+  var out = [];
+  for(var i=0;i<L.length;i++) for(var j=i+1;j<L.length;j++){
+    var a=L[i], b=L[j];
+    if(expDayVal(a.day)!==expDayVal(b.day)) continue;
+    if(Math.round(Number(a.amount))!==Math.round(Number(b.amount))) continue;
+    if(a.payer===b.payer) continue;
+    if(ok[dupKey(a.id,b.id)]) continue;
+    out.push([a,b]);
+  }
+  return out;
+}
+/* ==== 分帳核心 END ==== */
 function zoneCount(items, z){
   return items.filter(function(i){return i.zone===z;}).length;
 }
@@ -548,7 +739,114 @@ function cleanExpense(e){
     o.fx = Number(e.fx);
     if(e.card) o.card = true;
   }
+  /* v3.19 旅伴分帳（DESIGN.md 附錄 G3）：四個選填 key 接在 card 後面，順序固定 payer,split,shares,kidTo；
+     空值不寫 ⇒ 舊資料零遷移。花費一律存「旅伴 id」不存名字（改名零成本）。
+     ・payer＝誰付的（大人 id）；缺值＝沒填 ⇒ 不算進結算
+     ・split＝「選幾個人」平分（id 陣列，可含小孩）；缺值＝大家平分
+     ・shares＝「各填金額」{id:金額}，金額是這筆**輸入的幣別**（有 fx 就是外幣），只寫 >0 的人；當比例用
+     ・kidTo＝這筆小孩的份算給誰 {小孩id:[大人id]}；只寫跟預設不同的小孩
+     ⚠️ split 與 shares 互斥：兩個都有時留 shares（比較具體的那個）。
+     壞參照（id 對不到旅伴）在 normalizeExpenseRefs 處理，這裡只管型別。server.js mirror，改要一起改。 */
+  if(e.payer) o.payer = String(e.payer);
+  var sh = cleanShares(e.shares);
+  if(!sh && Array.isArray(e.split)){
+    var sp = uniqStr(e.split);
+    if(sp.length) o.split = sp;
+  }
+  if(sh) o.shares = sh;
+  var kt = cleanKidTo(e.kidTo);
+  if(kt) o.kidTo = kt;
   return o;
+}
+/* ---- 分帳的資料層小工具（server.js mirror） ---- */
+function uniqStr(a){
+  var out = [];
+  (Array.isArray(a)?a:[]).forEach(function(x){ x = String(x==null?"":x); if(x && out.indexOf(x)<0) out.push(x); });
+  return out;
+}
+/* 各填金額：只留 >0 的人；金額收到 0.01（外幣小數，例 HK$12.5）；全空 ⇒ null（不寫） */
+function cleanShares(s){
+  if(!s || typeof s!=="object" || Array.isArray(s)) return null;
+  var o = {}, any = false;
+  Object.keys(s).forEach(function(k){
+    var v = Math.round(Number(s[k])*100)/100;
+    if(k && v>0){ o[k] = v; any = true; }
+  });
+  return any ? o : null;
+}
+function cleanKidTo(k){
+  if(!k || typeof k!=="object" || Array.isArray(k)) return null;
+  var o = {}, any = false;
+  Object.keys(k).forEach(function(kid){
+    var L = uniqStr(k[kid]);
+    if(kid && L.length){ o[kid] = L; any = true; }
+  });
+  return any ? o : null;
+}
+/* 旅伴（frontmatter `mates`）：key 順序 id,name,kid,to；kid 只在 true 時寫、to 只有小孩寫 */
+function cleanMate(m){
+  m = m || {};
+  var o = { id:String(m.id||""), name:String(m.name||"").trim() };
+  if(m.kid){ o.kid = true; var to = uniqStr(m.to); if(to.length) o.to = to; }
+  return o;
+}
+/* 旅伴 normalize（必須冪等）：沒 id／沒名字的丟掉、id 重複留第一個、小孩的 to 只留還在的大人 */
+function normalizeMates(list){
+  var seen = {}, L = [];
+  (Array.isArray(list)?list:[]).forEach(function(m){
+    var c = cleanMate(m);
+    if(!c.id || !c.name || seen[c.id]) return;
+    seen[c.id] = 1; L.push(c);
+  });
+  var adults = L.filter(function(m){ return !m.kid; }).map(function(m){ return m.id; });
+  L.forEach(function(m){
+    if(!m.kid) return;
+    var to = (m.to||[]).filter(function(id){ return adults.indexOf(id)>=0; });
+    if(to.length) m.to = to; else delete m.to;
+  });
+  return L;
+}
+/* 「已轉」紀錄（frontmatter `settle`）：key 順序 from,to,amount,at；amount 台幣整數、at＝YYYY-MM-DD */
+function cleanSettle(s){
+  s = s || {};
+  return { from:String(s.from||""), to:String(s.to||""), amount:Math.round(Number(s.amount)||0), at:String(s.at||"") };
+}
+/* ⚠️ 旅伴是空的時候**不刪任何參照**（frontmatter 那行壞掉／舊版 App 沒帶 mates 時，寧可留著也不要無聲丟掉誰付的） */
+function normalizeSettle(list, mates){
+  var ids = (mates||[]).map(function(m){ return m.id; });
+  return (Array.isArray(list)?list:[]).map(cleanSettle).filter(function(s){
+    if(!(s.amount>0) || !s.from || !s.to || s.from===s.to) return false;
+    return !ids.length || (ids.indexOf(s.from)>=0 && ids.indexOf(s.to)>=0);
+  });
+}
+/* 花費裡的旅伴參照 normalize（附錄 G3 的壞參照 fallback；必須冪等；server.js mirror）：
+   payer 不是現在的大人 ⇒ 當沒填；split／shares 對不到的 id 丟掉，丟完空了 ⇒ 大家平分；
+   kidTo 的鍵要是小孩、值只留大人，空了 ⇒ 用預設。順序一律照旅伴順序（兩邊輸出才會逐字相同）。
+   ⚠️ 沒有旅伴時原樣返回（理由同 normalizeSettle）。 */
+function normalizeExpenseRefs(e, mates){
+  if(!mates || !mates.length) return e;
+  var order = mates.map(function(m){ return m.id; });
+  var adults = mates.filter(function(m){ return !m.kid; }).map(function(m){ return m.id; });
+  var kids = mates.filter(function(m){ return m.kid; }).map(function(m){ return m.id; });
+  if(e.payer && adults.indexOf(e.payer)<0) delete e.payer;
+  if(e.split){
+    var sp = order.filter(function(id){ return e.split.indexOf(id)>=0; });
+    if(sp.length) e.split = sp; else delete e.split;
+  }
+  if(e.shares){
+    var sh = {}, any = false;
+    order.forEach(function(id){ if(e.shares[id]>0){ sh[id] = e.shares[id]; any = true; } });
+    if(any) e.shares = sh; else delete e.shares;
+  }
+  if(e.kidTo){
+    var kt = {}, anyK = false;
+    kids.forEach(function(k){
+      var L = adults.filter(function(a){ return (e.kidTo[k]||[]).indexOf(a)>=0; });
+      if(L.length){ kt[k] = L; anyK = true; }
+    });
+    if(anyK) e.kidTo = kt; else delete e.kidTo;
+  }
+  return e;
 }
 /* 打包項目（v2.9 起多了 kind／bag 兩個選填欄位＝「包」）
  * key 順序固定 id,text,done,zone,kind,bag；空值不寫 ⇒ 舊資料（沒有 kind/bag）零遷移、序列化後逐字不變 */
@@ -602,6 +900,10 @@ function serializeTrip(t){
     L.push("fxRate: "+fmNumber(t.fxRate));
     L.push("fxBudget: "+fmNumber(t.fxBudget));
   }
+  /* v3.19 旅伴分帳：單行 JSON，空陣列不寫 ⇒ 沒設旅伴的旅程逐字不變（server.js mirror） */
+  var mates = normalizeMates(t.mates), settle = normalizeSettle(t.settle, mates);
+  if(mates.length) L.push("mates: "+JSON.stringify(mates));
+  if(settle.length) L.push("settle: "+JSON.stringify(settle));
   L.push("createdAt: "+fmString(t.createdAt||new Date().toISOString()));
   L.push("updatedAt: "+fmString(t.updatedAt||new Date().toISOString()));
   L.push("---","","## 行程","");
@@ -615,7 +917,7 @@ function serializeTrip(t){
     L.push("");
   });
   L.push("## 花費","");
-  (t.expenses||[]).forEach(function(e){ L.push("- "+JSON.stringify(cleanExpense(e))); });
+  (t.expenses||[]).forEach(function(e){ L.push("- "+JSON.stringify(normalizeExpenseRefs(cleanExpense(e), mates))); });
   L.push("","## 打包","");
   normalizePacking(t.packing).forEach(function(p){ L.push("- "+JSON.stringify(p)); });
   L.push("","## 備註","");
@@ -635,7 +937,7 @@ function parseFmLine(line){
 }
 function parseTrip(id, text){
   var t={ id:id, name:"", dest:"", emoji:"🧳", theme:"sunset", start:"", days:1, budget:0,
-    fxCur:"", fxRate:0, fxBudget:0,
+    fxCur:"", fxRate:0, fxBudget:0, mates:[], settle:[],
     createdAt:"", updatedAt:"", itinerary:{}, expenses:[], packing:[], notes:"" };
   text=String(text).replace(/\r\n/g,"\n");
   var body=text;
@@ -679,6 +981,10 @@ function parseTrip(id, text){
     else if(section==="pack"){ t.packing.push(cleanPackItem(obj)); }
   });
   t.packing = normalizePacking(t.packing);
+  /* v3.19 旅伴分帳：frontmatter 的值已經被 JSON.parse 過（陣列），這裡收斂型別＋壞參照 */
+  t.mates = normalizeMates(t.mates);
+  t.settle = normalizeSettle(t.settle, t.mates);
+  t.expenses = t.expenses.map(function(e){ return normalizeExpenseRefs(e, t.mates); });
   t.notes=notesBuf.join("\n").trim();
   if(!(t.days>=1)) t.days=1;
   return t;
@@ -1102,6 +1408,8 @@ function normTrip(t){
   if(!Array.isArray(t.expenses)) t.expenses=[];
   if(!Array.isArray(t.packing)) t.packing=[];
   if(t.notes==null) t.notes="";
+  if(!Array.isArray(t.mates)) t.mates=[];     /* v3.19 旅伴分帳 */
+  if(!Array.isArray(t.settle)) t.settle=[];
   /* 舊資料沒分區 -> 歸隨身；v2.9 起順便把包的參照補正（壞掉的 bag 降級成頂層） */
   t.packing = normalizePacking(t.packing);
   return t;
@@ -1109,6 +1417,8 @@ function normTrip(t){
 
 /* ============ UI 狀態 ============ */
 var ui = { screen:"home", tripId:null, tab:"plan", day:1, edit:false, showEnded:false,
+  /* v3.19 旅伴分帳：bx＝花費頁看「花費紀錄｜分帳結算」哪一面、bxPlan＝結算含預計（試算）、bxSheet＝開著的分帳清單 sheet（純瀏覽狀態，不存檔） */
+  bx:"list", bxPlan:false, bxSheet:null,
   /* 打包分頁（v2.9）：open＝哪些包展開著、filter＝只看沒打包的、adding＝就地新增中的容器 */
   pk: { open:{}, filter:{checked:false, carry:false}, adding:null, pending:"" } };
 function curTrip(){
@@ -1124,10 +1434,36 @@ function curList(){
 var appEl = document.getElementById("app");
 function render(keepScroll){
   var y = keepScroll ? window.scrollY : 0;
+  var dcOld = document.querySelector(".day-chips");
+  var dcX = dcOld ? dcOld.scrollLeft : 0;   /* v3.18：天數列重畫後留在原本橫向捲到的位置 */
   appEl.innerHTML = (ui.screen==="home") ? viewHome() : viewTrip();
   window.scrollTo(0, y);
+  fixDayChips(dcX);
   pkAfterRender();   /* 打包的就地新增：render 之後把輸入框的內容與 focus 接回來 */
 }
+
+/* v3.18 電腦版看不到後面的天數（2026-11-10 Benson）：
+ * 天數列是橫向捲動、捲軸又藏起來，手機用手指滑沒問題，電腦用滑鼠滾輪只會上下捲 ⇒ 後面幾天點不到。
+ * ① 滑鼠滾輪在天數列上 → 改成左右捲（只在列真的放不下時才攔，不影響整頁上下捲）
+ * ② 電腦（滑鼠）顯示細捲軸（styles.css）
+ * ③ 重畫後保留橫向位置，並確保選中的那天看得到（原本點 Day 6 之後會跳回最左邊） */
+function fixDayChips(x){
+  var dc = document.querySelector(".day-chips");
+  if(!dc) return;
+  dc.scrollLeft = x || 0;
+  var on = dc.querySelector(".day-chip.on");
+  if(!on) return;
+  var l = on.offsetLeft - dc.offsetLeft, r = l + on.offsetWidth;
+  if(l < dc.scrollLeft) dc.scrollLeft = l - 8;
+  else if(r > dc.scrollLeft + dc.clientWidth) dc.scrollLeft = r - dc.clientWidth + 8;
+}
+document.addEventListener("wheel", function(e){
+  var dc = e.target && e.target.closest ? e.target.closest(".day-chips") : null;
+  if(!dc || dc.scrollWidth <= dc.clientWidth) return;
+  if(Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+  dc.scrollLeft += e.deltaY;
+  e.preventDefault();
+}, { passive:false });
 
 /* ---- 首頁（進行中/未出發 主區 + 旅行回憶歸檔卡） ---- */
 function tripCard(t){
@@ -1836,13 +2172,23 @@ function expRowHtml(e){
   var amtHtml = isFx
     ? fxMoney(t, e.fx)+'<small class="exp-nt">≈ '+money(e.amount)+'</small>'
     : money(e.amount);
+  /* v3.19 旅伴分帳：類別後面接「・黏付」＋非預設時的短語；已付沒填付款人＝琥珀「・沒填誰付」（預計沒付款人不標）。
+     ⚠️ 用字要短：.c 那一欄 375px 下只有約 130px（demo 第一版寫「各算各的」就折成兩行）。 */
+  /* ⚠️ 整段包成 .bx-c（white-space:nowrap）：真實資料有「刷卡」，「餐飲・刷卡・沒填誰付」在 375px 會超過那一欄，
+        不包的話會斷在字中間（「沒填誰｜付」）；包起來要折也只會折在「・」前面、整段一起換行。 */
+  var who = "";
+  if(hasSplit(t)){
+    var pm = e.payer && isAdult(t, e.payer) ? mateOf(t, e.payer) : null;
+    if(pm){ var ss = splitShort(t, e); who = '<span class="bx-c">・<span class="who">'+esc(pm.name)+'付</span>'+(ss ? '・'+ss : "")+'</span>'; }
+    else if(!e.plan) who = '<span class="bx-c">・<span class="nowho">沒填誰付</span></span>';
+  }
   return '<div class="exp-item">'
     + '<button class="exp-open" onclick="openExpenseSheet(\''+e.id+'\')">'
     +   '<span class="exp-top">'
     +     '<span class="exp-emo">'+c.emoji+'</span>'
     +     '<span class="exp-mid"><span class="d">'+esc(e.desc||c.label)+'</span>'
     +       '<span class="c">'+c.label
-    +         (isFx && e.card ? '・刷卡' : "")
+    +         (isFx && e.card ? '・刷卡' : "") + who
     +         (e.plan ? '<span class="plan-pill">預計</span>' : "") + '</span></span>'
     +     '<span class="exp-amt'+(e.plan?" is-plan":"")+'">'+amtHtml+'</span>'
     +   '</span>'
@@ -1858,6 +2204,15 @@ function expRowHtml(e){
 function viewBudget(t){
   /* ⚠️ 預算的比較對象是「要準備多少」（已付＋預計）不是「已付」：
      不然規劃期把住宿車票都排進去了，畫面還是說「還可以花 20,000」。 */
+  /* v3.19 旅伴分帳（附錄 G4.1）：有旅伴才在最上面多一顆「花費紀錄｜分帳結算」（沿用 .seg，頁內切換不是 sheet）；
+     沒旅伴的旅程只多一行 .split-entry，其他一律不變。 */
+  var bxSeg = "";
+  if(hasSplit(t)){
+    bxSeg = '<div class="seg bx-seg">'
+      + '<button type="button" class="'+(ui.bx!=="settle"?"on":"")+'" onclick="bxSetView(\'list\')">花費紀錄</button>'
+      + '<button type="button" class="'+(ui.bx==="settle"?"on":"")+'" onclick="bxSetView(\'settle\')">分帳結算</button></div>';
+    if(ui.bx==="settle") return bxSeg + viewSettle(t);
+  }
   var spent = spentOf(t);
   var over = t.budget>0 && needOf(t)>t.budget;
   var remain = t.budget - needOf(t);
@@ -1898,7 +2253,7 @@ function viewBudget(t){
   var plan = planOf(t), need = spentOf(t) + plan;
   var pctPaid = t.budget>0 ? Math.min(100, spent/t.budget*100) : 0;
   var pctPlan = t.budget>0 ? Math.min(100-pctPaid, plan/t.budget*100) : 0;
-  return '<section class="budget-card">'
+  return bxSeg + '<section class="budget-card">'
     +   '<div class="lbl">這趟要準備</div><div class="big">'+money(need)+'</div>'
     /* 沒設預算就沒有「佔多少」可言，空的灰條不傳達任何東西 ⇒ 整條不出現 */
     +   (t.budget>0
@@ -1917,7 +2272,10 @@ function viewBudget(t){
     +     '<span class="sp-plan">還沒付 <b>'+money(plan)+'</b></span></div>' : "")
     + '</section>'
     + fxWalletHtml(t)
+    /* 沒設旅伴：唯一的入口＝一行淡字（不是卡片、不是珊瑚鈕，不打擾單人旅行；也是舊旅程唯一看得到的改變） */
+    + (hasSplit(t) ? "" : '<button type="button" class="split-entry" onclick="openMatesSheet()"><span>👥 跟誰一起去？設旅伴就能分帳</span><span class="go">設定 ›</span></button>')
     + (sumChips ? '<div class="cat-sums">'+sumChips+'</div>' : "")
+    + (hasSplit(t) ? bxDupBar(t) : "")
     + '<div class="sec-title">花費紀錄</div>' + rows;
 }
 
@@ -1954,6 +2312,539 @@ function fxWalletHtml(t){
     + '<span class="sp-plan">預計 <b>'+fxMoney(t, plan)+'</b></span></div>';
   h += '<div class="fx-foot">只算付現金、八達通的'+info.name+'；刷卡的不算。<span class="nw">匯率 1 '+info.name+'＝NT$ '+Number(t.fxRate)+'</span></div>';
   return h + '</section>';
+}
+
+/* ============================================================================
+   旅伴分帳（v3.19）：規格＝DESIGN.md 附錄 G，視覺與互動＝demo/split.html（Benson 拍板，別自行改設計）
+   ── 計算全在上面的「分帳核心」（純函式）；這裡只有畫面與草稿。
+   ── 結算即時算、不落資料；只有「已轉」寫 t.settle。
+   ── Benson 拍板（附錄 G10）：大字台幣＋外幣小字約數／「誰付的」對不上鑰匙圈就記住這支手機上次選的人／
+      保留「含預計（試算）」／做「已轉」（可撤銷）／做「可能重複」提示（G11）。
+   ============================================================================ */
+/* 外幣「約數」的小數位：日圓／韓元取整數，其他取到 1 位。台幣是真值，外幣一律前面加 ≈ */
+var FX_DEC0 = {JPY:1, KRW:1};
+function ntToFx(t, nt){ var d = FX_DEC0[t.fxCur] ? 0 : 1, p = Math.pow(10,d); return Math.round(nt/Number(t.fxRate)*p)/p; }
+function approxFx(t, nt){ return fxOn(t) ? "≈ "+fxMoney(t, ntToFx(t, Math.abs(nt))) : ""; }
+/* 鑰匙圈解鎖的那個人的名字（本機版／沒解鎖＝""） */
+function krName(){
+  try{ if(KR_ON){ var c = KR.current(); if(c && c.unlocked && c.name) return String(c.name).trim(); } }catch(e){}
+  return "";
+}
+/* 「我」＝鑰匙圈名字跟某位大人的名字完全相同（trim 後）；對不上＝null */
+function meId(t){
+  var n = krName(); if(!n) return null;
+  var a = adultsOf(t).filter(function(m){ return m.name.trim()===n; });
+  return a.length ? a[0].id : null;
+}
+/* 「誰付的」對不上鑰匙圈時，記住這支手機上次選的人（Benson 拍板）。
+   ⚠️ 刻意 per trip：旅伴 id 是每趟各自的 uid，跨趟沒有意義。純裝置偏好、不進資料、try/catch。 */
+var LAST_PAYER_KEY = "travel.lastPayer";
+function lastPayerOf(t){
+  try{ var m = JSON.parse(localStorage.getItem(LAST_PAYER_KEY)||"{}")||{}; var id = m[t.id]; return (id && isAdult(t,id)) ? id : null; }catch(e){ return null; }
+}
+function rememberPayer(t, id){
+  try{ var m = JSON.parse(localStorage.getItem(LAST_PAYER_KEY)||"{}")||{}; m[t.id] = id; localStorage.setItem(LAST_PAYER_KEY, JSON.stringify(m)); }catch(e){}
+}
+/* 「可能重複」按過「不是重複」的配對：純裝置偏好（不進資料、不跨手機），try/catch */
+var DUP_OK_KEY = "travel.dupOk";
+function dupOkMap(){ try{ return JSON.parse(localStorage.getItem(DUP_OK_KEY)||"{}")||{}; }catch(e){ return {}; } }
+function names(t, ids){ return (ids||[]).map(function(id){ var m=mateOf(t,id); return m?m.name:""; }).filter(Boolean).join("、"); }
+function sameSet(a,b){ a=(a||[]).slice().sort(); b=(b||[]).slice().sort(); return a.join()===b.join(); }
+function todayISO(){ var d=new Date(); return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate()); }
+function mdOf(iso){ var m=/^\d{4}-(\d{2})-(\d{2})$/.exec(String(iso||"")); return m ? Number(m[1])+"/"+Number(m[2]) : String(iso||""); }
+/* 「算誰的」講成一句短話（清單用；預設＝大家平分就不講） */
+function splitShort(t, e){
+  if(e.shares) return "各填";
+  if(e.split){
+    var ids = e.split.filter(function(id){ return mateOf(t,id); });
+    if(ids.length===1) return (ids[0]===e.payer ? "自己的" : "算"+mateOf(t,ids[0]).name);
+    if(ids.length && ids.length<t.mates.length) return ids.length+"人分";
+  }
+  return "";
+}
+function bxSetView(v){ ui.bx = v; render(); }
+function bxSetPlan(v){ ui.bxPlan = !!v; render(true); }
+
+/* 「可能重複」琥珀條（清單頁＋結算頁共用；不擋存檔、可忽略） */
+function bxDupBar(t){
+  var P = dupPairs(t, dupOkMap()); if(!P.length) return "";
+  return '<button type="button" class="fix-bar bx-dupbar" onclick="openDupSheet()"><span class="fx-dot"></span>'
+    + '<span class="fx-tx"><b>'+(P.length===1 ? '有 2 筆可能記重複了' : '有 '+P.length+' 組可能記重複了')+'</b>'
+    + '<span>同一天、一樣的金額，但付款人不同。看一下是不是兩個人各記了一次。</span></span>'
+    + '<span class="fx-go">看看</span></button>';
+}
+
+/* ---- 分帳結算（頁內，不是 sheet；附錄 G4.3） ---- */
+function viewSettle(t){
+  var r = settleOf(t, ui.bxPlan), me = meId(t), fx = fxOn(t);
+  var planCnt = t.expenses.filter(function(e){ return e.plan; }).length;
+  if(!planCnt && ui.bxPlan){ ui.bxPlan = false; r = settleOf(t, false); }
+  var h = '<section class="budget-card sx-card">';
+  if(ui.bxPlan){
+    h += '<div class="lbl"><span>照預計全部付完，大概要轉</span><span class="sx-plan-tag">試算</span></div>';
+  }else{
+    h += '<div class="lbl"><span>'+(r.xfers.length ? '轉 '+r.xfers.length+' 筆就結清' : '分帳')+'</span></div>';
+  }
+  if(!r.xfers.length){
+    h += '<div class="sx-zero">'+(r.used ? '都結清了 🎉' : '還沒有可以分的花費')+'</div>'
+      + '<div class="sx-zero-sub">'+(r.used ? '目前沒有人欠誰。之後再記的花費會從這裡接著算。' : '記帳時選「誰付的」，這裡就會算出誰要給誰多少。')+'</div>';
+  }else{
+    h += '<div class="sx-xlist">' + r.xfers.map(function(x, i){
+      var f = mateOf(t,x.from), to = mateOf(t,x.to);
+      return '<div class="sx-xfer">'
+        + '<span class="who">'+esc(f.name)+(x.from===me?'<span class="me">我</span>':'')
+        + '<span class="arr">給</span>'+esc(to.name)+(x.to===me?'<span class="me">我</span>':'')+'</span>'
+        + '<span class="amt"><b>'+money(x.amount)+'</b>'+(fx?'<small>'+approxFx(t,x.amount)+'</small>':'')+'</span>'
+        + (ui.bxPlan ? '' : '<button type="button" class="sx-done" onclick="markPaid('+i+')">已轉</button>')
+        + '</div>';
+    }).join("") + '</div>';
+  }
+  if(planCnt){
+    var planNt = planOf(t);
+    h += '<div class="sx-mode"><div class="pay-seg">'
+      + '<label class="'+(ui.bxPlan?"":"on")+'"><input type="radio" name="sxm" onchange="bxSetPlan(false)"'+(ui.bxPlan?"":" checked")+'>只算已付的</label>'
+      + '<label class="'+(ui.bxPlan?"on":"")+'"><input type="radio" name="sxm" onchange="bxSetPlan(true)"'+(ui.bxPlan?" checked":"")+'>含預計（試算）</label></div>'
+      + '<div class="sx-note">'+(ui.bxPlan
+          ? '把 '+planCnt+' 筆預計（'+money(planNt)+'）當成已經照填的人付掉來算'
+            + (r.planNoPayer.length ? '（其中 '+r.planNoPayer.length+' 筆沒填誰付的，沒算進來）' : '') + '。只是參考，不能按「已轉」。'
+          : '還有 '+planCnt+' 筆預計（'+money(planNt)+'）沒算進來——還沒真的付，誰付也還可能變。')+'</div></div>';
+  }
+  h += '</section>';
+  if(r.noPayer.length){
+    var sum = 0; r.noPayer.forEach(function(e){ sum += Number(e.amount)||0; });
+    h += '<div class="bx-gap"></div><button type="button" class="fix-bar" onclick="openNoPayer()"><span class="fx-dot"></span>'
+      + '<span class="fx-tx"><b>'+r.noPayer.length+' 筆沒填誰付的，沒算進來</b><span>共 '+money(sum)+'。補上「誰付的」就會算進去。</span></span>'
+      + '<span class="fx-go">去補</span></button>';
+  }
+  var dup = bxDupBar(t);
+  if(dup) h += (r.noPayer.length ? '' : '<div class="bx-gap"></div>') + dup;
+  /* 每個人（.mem-card 白卡＋hairline 分列＝首頁「旅行回憶」長清單語言；頭像圓形中性色，不給每個人一個顏色） */
+  h += '<div class="sec-title">每個人'+(ui.bxPlan?'（含預計）':'')+'</div><div class="mem-card">';
+  adultsOf(t).forEach(function(m){
+    var p = r.P[m.id], b = r.bal[m.id];
+    h += '<div class="sx-row"><span class="bx-av">'+esc(firstGrapheme(m.name))+'</span><div class="mid">'
+      + '<div class="nm">'+esc(m.name)+(m.id===me?'<span class="me">我</span>':'')+'</div>'
+      + '<div class="ln">自己的份 <b>'+money(p.share)+'</b></div>'
+      + (kidsOf(t).length && p.kid ? '<div class="ln">其中幫小孩出 <b>'+money(p.kid)+'</b></div>' : '')
+      + '<div class="ln">先墊了 <b>'+money(p.paid)+'</b>'
+      + (p.sent ? '・已轉出 <b>'+money(p.sent)+'</b>' : '') + (p.recv ? '・已收到 <b>'+money(p.recv)+'</b>' : '') + '</div>'
+      + '</div><div class="bal">'
+      + (b>0 ? '<b class="get">+'+money(b)+'</b><span>要收回'+(fx?' '+approxFx(t,b):'')+'</span>'
+        : b<0 ? '<b class="give">−'+money(-b)+'</b><span>要再出'+(fx?' '+approxFx(t,b):'')+'</span>'
+        : '<b>0</b><span>剛好</span>')
+      + '</div></div>';
+  });
+  kidsOf(t).forEach(function(k){
+    var to = names(t, kidDefault(t, k));
+    h += '<div class="sx-row kid"><span class="bx-av kid">'+esc(firstGrapheme(k.name))+'</span><div class="mid">'
+      + '<div class="nm">'+esc(k.name)+'・小孩</div><div class="ln">不分攤；他的份平常算給 '+esc(to)+'（每筆可以改）</div></div></div>';
+  });
+  h += '</div>';
+  /* 已經轉過的（有才出現）：每筆一列＋✕ 撤銷 */
+  if((t.settle||[]).length){
+    h += '<div class="sec-title">已經轉過的</div><div class="mem-card">'
+      + t.settle.map(function(s, i){
+          var a = mateOf(t,s.from), b = mateOf(t,s.to);
+          return '<div class="sx-paid"><span class="tx">'+esc(a?a.name:"?")+' 給 '+esc(b?b.name:"?")+'<small>'+esc(mdOf(s.at))+'</small></span>'
+            + '<span class="am">'+money(s.amount)+'</span><button type="button" class="x-btn" aria-label="撤銷這筆" onclick="undoPaid('+i+')">✕</button></div>';
+        }).join("") + '</div>';
+  }
+  h += '<div class="bx-gap16"></div>'
+    + '<button type="button" class="btn-ghost" onclick="openMatesSheet()">👥 旅伴：'+esc(names(t, t.mates.map(function(m){ return m.id; })))+'</button>'
+    + '<div class="bx-gap"></div>'
+    + '<div class="sx-note">台幣是準的'+(fx ? '；'+fxInfo(t.fxCur).name+'是用匯率 1 '+fxInfo(t.fxCur).name+'＝NT$ '+Number(t.fxRate)+' 換回去的約數（改匯率會跟著變）' : '')+'。'
+    + '除不盡的 1 元由付錢的人吸收。</div>';
+  return h;
+}
+/* 「已轉」＝記一筆轉帳紀錄（差額扣掉它）；toast 給「復原」。試算模式沒有這顆鈕。 */
+function markPaid(i){
+  if(!requireWrite("記下這筆轉帳")) return;
+  var t = curTrip(); if(!t) return;
+  var x = settleOf(t, false).xfers[i]; if(!x) return;
+  var rec = { from:x.from, to:x.to, amount:x.amount, at:todayISO() };
+  t.settle.push(rec);
+  persistTrip(t); render(true);
+  toast("記下來了："+mateOf(t,x.from).name+" 給 "+mateOf(t,x.to).name+" "+money(x.amount), false,
+    {label:"復原", fn:function(){
+      var j = t.settle.indexOf(rec); if(j<0) return;
+      t.settle.splice(j,1); persistTrip(t); render(true);
+    }});
+}
+function undoPaid(i){
+  if(!requireWrite("撤銷這筆轉帳紀錄")) return;
+  var t = curTrip(); if(!t || !t.settle[i]) return;
+  var rec = t.settle.splice(i,1)[0];
+  persistTrip(t); render(true);
+  toast("已撤銷這筆轉帳紀錄", false, {label:"復原", fn:function(){
+    t.settle.splice(Math.min(i, t.settle.length), 0, rec); persistTrip(t); render(true);
+  }});
+}
+/* 「沒填誰付的」清單（點一筆＝開編輯）、「可能重複」清單（兩筆並排＋「不是重複」） */
+function openNoPayer(){
+  var t = curTrip(); if(!t) return;
+  var L = settleOf(t, false).noPayer;
+  openSheet("沒填誰付的", L.length
+    ? '<div class="hint bx-sheet-hint">點一筆補上「誰付的」，存起來就會算進分帳。</div>' + L.map(expRowHtml).join("")
+    : '<div class="hint bx-sheet-hint">都補好了。</div>');
+  ui.bxSheet = "nopayer";
+}
+function openDupSheet(){
+  var t = curTrip(); if(!t) return;
+  var P = dupPairs(t, dupOkMap());
+  openSheet("可能記重複了", P.length
+    ? '<div class="hint bx-sheet-hint">同一天、一樣的金額，付款人卻不同——常見是兩個人各記了一次。是重複就按 ✕ 刪掉其中一筆；不是的話按「不是重複」，這支手機就不再提醒。</div>'
+      + P.map(function(p){
+          return '<div class="bx-dup">' + expRowHtml(p[0]) + expRowHtml(p[1])
+            + '<button type="button" class="bx-dup-ok" onclick="dupIgnore(\''+esc(p[0].id)+'\',\''+esc(p[1].id)+'\')">不是重複，別再提醒</button></div>';
+        }).join("")
+    : '<div class="hint bx-sheet-hint">沒有可能重複的了。</div>');
+  ui.bxSheet = "dup";
+}
+function dupIgnore(a, b){
+  try{ var m = dupOkMap(); m[dupKey(a,b)] = 1; localStorage.setItem(DUP_OK_KEY, JSON.stringify(m)); }catch(e){}
+  render(true); bxRedrawSheet();
+}
+function bxRedrawSheet(){
+  if(ui.bxSheet==="nopayer") openNoPayer();
+  else if(ui.bxSheet==="dup") openDupSheet();
+}
+
+/* ---- 記帳 sheet 的分帳區（只有設了旅伴才出現；附錄 G4.2） ----
+   BX＝草稿：{payer, mode:"all"|"pick"|"custom", pick:[id], shares:{id:輸入幣別金額}, kidTo:{kid:[大人id]}, edit, hint}
+   ⚠️ 打字時只更新數字（bxSync），切模式／勾人才整塊重畫（bxDraw），否則各填金額的 input 會失焦。 */
+var BX = null;
+function bxInit(t, ex){
+  var payer = ex ? (ex.payer && isAdult(t, ex.payer) ? ex.payer : "") : (meId(t) || lastPayerOf(t) || "");
+  BX = { payer: payer,
+         mode: ex && ex.shares ? "custom" : ex && ex.split ? "pick" : "all",
+         pick: ex && ex.split ? ex.split.slice() : t.mates.map(function(m){ return m.id; }),
+         shares: ex && ex.shares ? JSON.parse(JSON.stringify(ex.shares)) : {},
+         kidTo: {}, edit: !!ex };
+  kidsOf(t).forEach(function(k){
+    BX.kidTo[k.id] = (ex && ex.kidTo && ex.kidTo[k.id]) ? ex.kidTo[k.id].slice() : kidDefault(t, k);
+  });
+  /* 沒有預選到人時的說明（有預選＝看得到選了誰，不多話） */
+  BX.hint = "";
+  if(!payer){
+    var kn = krName();
+    BX.hint = ex ? "這筆還沒填誰付的，沒填就不會算進分帳。"
+      : kn ? "鑰匙圈的名字「"+kn+"」對不上任何旅伴，所以沒有幫你先選。"
+      : "選一下是誰付的；沒填就不會算進分帳。";
+  }
+}
+function bxSegOpt(val, label){
+  return '<label class="'+(BX.mode===val?"on":"")+'"><input type="radio" name="bxmode" value="'+val+'"'+(BX.mode===val?" checked":"")
+    + ' onchange="paySegSync(this);BX.mode=this.value;bxDraw()">'+label+'</label>';
+}
+function bxFieldsHtml(t){
+  return '<div class="field"><span class="fl">誰付的</span><div class="mchips">'
+    + adultsOf(t).map(function(m){
+        return '<label class="mchip"><input type="radio" name="bxpayer" value="'+esc(m.id)+'"'+(BX.payer===m.id?" checked":"")
+          + ' onchange="bxPayer(this.value)"><span>'+esc(m.name)+'</span></label>';
+      }).join("")
+    + '</div>'
+    + (BX.hint ? '<div class="hint bx-payer-hint" id="bx-payer-hint">'+esc(BX.hint)+'</div>' : '')
+    + '</div>'
+    + '<div class="field bx-box"><span class="fl">算誰的</span>'
+    + '<div class="pay-seg">' + bxSegOpt("all","大家平分") + bxSegOpt("pick","選幾個人") + bxSegOpt("custom","各填金額") + '</div>'
+    + '<div id="bx-split"></div></div>';
+}
+function bxPayer(v){ BX.payer = v; var h = document.getElementById("bx-payer-hint"); if(h) h.hidden = true; bxSync(); }
+function bxForm(){ return document.getElementById("exf"); }
+/* 目前這筆用的幣別（看表單的「台幣／外幣」切換） */
+function bxIsFx(t){ var f = bxForm(); return !!(fxOn(t) && f && f.cur && f.cur.value); }
+function bxAmt(){ var f = bxForm(); return f ? (Number(f.amount.value)||0) : 0; }
+function bxAmtNt(t){ return bxIsFx(t) ? fxToNt(t, bxAmt()) : Math.round(bxAmt()); }
+function bxFmt(t, n){ return bxIsFx(t) ? fxMoney(t, n) : money(n); }
+function bxDraft(){ return { amt:bxAmt(), mode:BX.mode, pick:BX.pick, shares:BX.shares, kidTo:BX.kidTo }; }
+function bxDraw(){
+  var t = curTrip(), box = document.getElementById("bx-split"); if(!box || !BX) return;
+  var h = '';
+  if(BX.mode==="pick"){
+    h += '<div class="mchips">' + t.mates.map(function(m){
+      return '<label class="mchip"><input type="checkbox" value="'+esc(m.id)+'"'+(BX.pick.indexOf(m.id)>=0?" checked":"")+' onchange="bxTogglePick(this)"><span>'+esc(m.name)+(m.kid?'<small>小孩</small>':'')+'</span></label>';
+    }).join("") + '</div>';
+  }
+  if(BX.mode==="custom"){
+    h += t.mates.map(function(m){
+      var v = BX.shares[m.id];
+      return '<div class="cus-row"><span class="nm">'+esc(m.name)+(m.kid?'<small>小孩</small>':'')+'</span>'
+        + '<input type="number" min="0" step="any" inputmode="decimal" placeholder="0" data-m="'+esc(m.id)+'" value="'+(v>0?v:"")+'" oninput="bxCusInput(this)" aria-label="'+esc(m.name)+'的金額"></div>';
+    }).join("") + '<div class="cus-bar" id="cus-bar"></div><div class="cus-fix" id="cus-fix"></div>';
+  }
+  h += '<div class="split-sum" id="split-sum"></div>';
+  h += kidsOf(t).map(function(k){
+    return '<div class="kid-to" data-kid="'+esc(k.id)+'" hidden><div class="kt-hd">🧒 '+esc(k.name)+'這筆算給<span class="kt-amt" data-kamt="1"></span>'
+      + '<button type="button" class="kt-reset" data-reset="1" onclick="bxKidReset(\''+esc(k.id)+'\')" hidden>改回預設</button></div>'
+      + '<div class="mchips">' + adultsOf(t).map(function(a){
+          return '<label class="mchip"><input type="checkbox" value="'+esc(a.id)+'"'+(BX.kidTo[k.id].indexOf(a.id)>=0?" checked":"")+' onchange="bxKidPick(\''+esc(k.id)+'\',this)"><span>'+esc(a.name)+'</span></label>';
+        }).join("") + '</div>'
+      + '<div class="kt-def" data-kdef="1"></div></div>';
+  }).join("");
+  h += '<div class="split-err" id="split-err" hidden></div>';
+  box.innerHTML = h;
+  bxSync();
+}
+function bxTogglePick(el){
+  var i = BX.pick.indexOf(el.value);
+  if(el.checked && i<0) BX.pick.push(el.value);
+  if(!el.checked && i>=0) BX.pick.splice(i,1);
+  bxSync();
+}
+function bxCusInput(el){ var v = Number(el.value); if(v>0) BX.shares[el.dataset.m] = v; else delete BX.shares[el.dataset.m]; bxSync(); }
+function bxKidPick(kid, el){
+  var L = BX.kidTo[kid], i = L.indexOf(el.value);
+  if(el.checked && i<0) L.push(el.value);
+  if(!el.checked && i>=0) L.splice(i,1);
+  bxSync();
+}
+function bxKidReset(kid){ var t = curTrip(), k = mateOf(t,kid); BX.kidTo[kid] = k ? kidDefault(t, k) : []; bxDraw(); }
+/* 草稿 → 這筆的四個分帳欄位（存檔與小孩卡預覽共用同一支） */
+function bxBuild(t){
+  var e = {};
+  if(BX.payer) e.payer = BX.payer;
+  if(BX.mode==="pick" && BX.pick.length && BX.pick.length<t.mates.length)
+    e.split = t.mates.map(function(m){ return m.id; }).filter(function(id){ return BX.pick.indexOf(id)>=0; });
+  if(BX.mode==="custom"){
+    var s = {}, any = false;
+    t.mates.forEach(function(m){ if(BX.shares[m.id]>0){ s[m.id] = Math.round(BX.shares[m.id]*100)/100; any = true; } });
+    if(any) e.shares = s;
+  }
+  var kt = {}, anyK = false;
+  kidsOf(t).forEach(function(k){
+    if(BX.kidTo[k.id].length && !sameSet(BX.kidTo[k.id], kidDefault(t, k))){ kt[k.id] = t.mates.map(function(m){ return m.id; }).filter(function(id){ return BX.kidTo[k.id].indexOf(id)>=0; }); anyK = true; }
+  });
+  if(anyK) e.kidTo = kt;
+  return e;
+}
+function bxSync(){
+  var t = curTrip(); if(!BX || !t || !document.getElementById("bx-split")) return;
+  var go = document.getElementById("ex-go"), d = bxDraft(), A = d.amt;
+  var err = splitDraftError(t, d), inv = splitInvolved(t, d);
+  var sum = document.getElementById("split-sum");
+  if(BX.mode==="all" || BX.mode==="pick"){
+    var n = inv.length;
+    if(!n) sum.innerHTML = '';
+    else{
+      var dec = bxIsFx(t) && !FX_DEC0[t.fxCur] ? 10 : 1;
+      var who = BX.mode==="all" ? n+" 人平分" : esc(names(t,inv))+(n>1?" 平分":" 一個人出");
+      sum.innerHTML = who + (A>0 ? '，每人 <b>'+bxFmt(t, Math.round(A/n*dec)/dec)+'</b>'
+        + (bxIsFx(t) ? ' <span class="sub">（≈ '+money(Math.round(bxAmtNt(t)/n))+'）</span>' : '') : '');
+    }
+  }else{
+    sum.innerHTML = '';
+    var tot = 0; Object.keys(BX.shares).forEach(function(id){ if(mateOf(t,id)) tot += BX.shares[id]; });
+    tot = Math.round(tot*100)/100;
+    var bar = document.getElementById("cus-bar"), fix = document.getElementById("cus-fix");
+    var diff = Math.round((A - tot)*100)/100;
+    bar.className = "cus-bar"+(diff!==0?" warn":"");
+    bar.innerHTML = '<span>已分 '+bxFmt(t,tot)+'／'+bxFmt(t,A)+'</span>'
+      + (diff===0 ? '<b class="ok">✓ 剛好</b>' : diff>0 ? '<b class="warn">還差 '+bxFmt(t,diff)+'</b>' : '<b class="warn">多了 '+bxFmt(t,-diff)+'</b>');
+    var empties = t.mates.filter(function(m){ return !(BX.shares[m.id]>0); });
+    var fh = '';
+    if(diff>0 && empties.length && tot>0) fh += '<button type="button" onclick="bxCusFill()">剩下的給沒填的 '+empties.length+' 人平分</button>';
+    if(diff!==0 && tot>0) fh += '<button type="button" onclick="bxCusTotal()">總額改成 '+bxFmt(t,tot)+'</button>';
+    fix.innerHTML = fh;
+  }
+  /* 小孩卡：這筆有小孩參與才出現；預帶旅伴設定的預設，改過才出現「改回預設」 */
+  kidsOf(t).forEach(function(k){
+    var blk = sheetLayer.querySelector('.kid-to[data-kid="'+k.id+'"]'); if(!blk) return;
+    var on = inv.indexOf(k.id)>=0;
+    blk.hidden = !on;
+    if(!on) return;
+    var pv = {amount:bxAmtNt(t)}, b = bxBuild(t);
+    if(b.payer) pv.payer = b.payer; if(b.split) pv.split = b.split; if(b.shares) pv.shares = b.shares;
+    pv.kidTo = {}; pv.kidTo[k.id] = BX.kidTo[k.id];
+    var kAmt = shareOf(t, pv).raw[k.id] || 0;
+    blk.querySelector('[data-kamt]').textContent = kAmt ? '（'+money(kAmt)+'）' : '';
+    var changed = !sameSet(BX.kidTo[k.id], kidDefault(t, k));
+    blk.querySelector('[data-reset]').hidden = !changed;
+    blk.querySelector('[data-kdef]').textContent = changed ? '這筆跟平常不一樣；平常算給 '+names(t, kidDefault(t, k)) : '平常就是這樣（在旅伴設定改）';
+  });
+  var ee = document.getElementById("split-err");
+  if(ee){ ee.hidden = !err || BX.mode==="custom"; ee.textContent = err||""; }
+  if(go){ go.disabled = !!err; go.textContent = err && BX.mode==="custom" ? "金額還沒分完" : (BX.edit?"存起來":"記下來"); }
+}
+function bxCusFill(){
+  var t = curTrip(), A = bxAmt(), tot = 0;
+  Object.keys(BX.shares).forEach(function(id){ if(mateOf(t,id)) tot += BX.shares[id]; });
+  var empties = t.mates.filter(function(m){ return !(BX.shares[m.id]>0); });
+  var dec = bxIsFx(t) && !FX_DEC0[t.fxCur] ? 100 : 1;
+  /* 平分到最小單位（整數分配），除不盡的給第一個（外幣到 0.01，日圓／韓元／台幣到 1） */
+  var parts = fillEven(A, tot, empties.length, dec);
+  empties.forEach(function(m,i){ if(parts[i]>0) BX.shares[m.id] = parts[i]; });
+  bxDraw();
+}
+function bxCusTotal(){
+  var t = curTrip(), tot = 0;
+  Object.keys(BX.shares).forEach(function(id){ if(mateOf(t,id)) tot += BX.shares[id]; });
+  var f = bxForm(); if(!f) return;
+  f.amount.value = String(Math.round(tot*100)/100);
+  expAmtInput(f);
+}
+/* 金額欄／幣別切換的共用入口：外幣換算＋分帳數字 */
+function expAmtInput(f){ fxSheetSync(f); bxSync(); }
+/* 存檔時把草稿寫回花費（沒有的 key 一律刪掉 ⇒ 序列化時不寫） */
+function bxApply(t, e){
+  var b = bxBuild(t);
+  ["payer","split","shares","kidTo"].forEach(function(k){ if(b[k]) e[k] = b[k]; else delete e[k]; });
+  if(b.payer) rememberPayer(t, b.payer);
+}
+
+/* ---- 旅伴 sheet（附錄 G4.4） ----
+   MD＝草稿 {list:[{id,name,kid,to,isNew,block}], err}。重畫只換 #mt-body 的內容（不重開 sheet、不重播進場動畫）。 */
+var MD = null;
+function openMatesSheet(){
+  if(!requireWrite("設定旅伴")) return;
+  var t = curTrip(); if(!t) return;
+  MD = { list: t.mates.length ? JSON.parse(JSON.stringify(t.mates))
+           : [{id:uid(), name:krName().slice(0,8), isNew:true}, {id:uid(), name:"", isNew:true}],
+         err:"" };
+  openSheet("旅伴（分帳用）", '<div id="mt-body"></div>');
+  drawMates();
+}
+/* 這個人在花費／轉帳紀錄裡被引用幾次：payer＝付了幾筆、named＝被指名（split／shares／kidTo／已轉）、all＝只出現在「大家平分」 */
+function refsOf(t, id){
+  var r = {payer:0, named:0, all:0};
+  t.expenses.forEach(function(e){
+    if(e.payer===id) r.payer++;
+    if((e.split && e.split.indexOf(id)>=0) || (e.shares && e.shares[id]>0) ||
+       (e.kidTo && Object.keys(e.kidTo).some(function(k){ return k===id || e.kidTo[k].indexOf(id)>=0; }))) r.named++;
+    else if(!e.split && !e.shares && e.payer) r.all++;
+  });
+  (t.settle||[]).forEach(function(s){ if(s.from===id || s.to===id) r.named++; });
+  return r;
+}
+function drawMates(){
+  var box = document.getElementById("mt-body"); if(!box || !MD) return;
+  var L = MD.list;
+  var adults = L.filter(function(m){ return !m.kid && String(m.name||"").trim(); });
+  var h = '<div class="mt-lead">記帳時就能選<b>誰付的</b>、<b>算誰的</b>，「分帳結算」會算出誰要給誰多少。'
+    + '<br>小孩不分攤，他的份算到大人身上（每一筆還可以再改）。</div><div id="mt-list">';
+  L.forEach(function(m, i){
+    h += '<div class="mt-row"><div class="mt-main">'
+      + '<input value="'+esc(m.name)+'" placeholder="名字" maxlength="8" oninput="MD.list['+i+'].name=this.value" onchange="drawMates()" aria-label="名字">'
+      + '<div class="pay-seg">'
+      +   '<label class="'+(m.kid?"":"on")+'"><input type="radio" name="mtkid'+i+'" onchange="mtSetKid('+i+',false)"'+(m.kid?"":" checked")+'>大人</label>'
+      +   '<label class="'+(m.kid?"on":"")+'"><input type="radio" name="mtkid'+i+'" onchange="mtSetKid('+i+',true)"'+(m.kid?" checked":"")+'>小孩</label>'
+      + '</div>'
+      + '<button type="button" class="x-btn" aria-label="移除" onclick="mtDel('+i+')">✕</button></div>';
+    if(m.kid){
+      h += '<div class="mt-kid"><div class="kt-hd">🧒 '+esc(m.name||"這個小孩")+'的份，平常算給</div><div class="mchips">'
+        + (adults.length ? adults.map(function(a){
+            return '<label class="mchip"><input type="checkbox"'+((m.to||[]).indexOf(a.id)>=0?" checked":"")+' onchange="mtKidDefault('+i+',\''+esc(a.id)+'\',this.checked)"><span>'+esc(a.name)+'</span></label>';
+          }).join("") : '<span class="hint mt-none">先加一個大人</span>')
+        + '</div></div>';
+    }
+    if(m.block) h += '<div class="mt-warn">'+m.block+'</div>';
+    h += '</div>';
+  });
+  h += '</div><button type="button" class="mt-add" onclick="mtAdd()"><span class="plus">＋</span>再加一個人</button>'
+    + (MD.err ? '<div class="mt-err">'+esc(MD.err)+'</div>' : '')
+    + '<button type="button" class="btn-primary" onclick="saveMates()">存起來</button>';
+  box.innerHTML = h;
+}
+function mtSetKid(i, v){
+  var t = curTrip(), m = MD.list[i];
+  /* 已經被引用的大人不能改成小孩——比照刪除的擋法（QA Y1）：
+     付過錢（小孩不付錢，normalize 會把那幾筆付款人清掉）、在「已轉」紀錄裡（結算只算大人之間的轉帳，那筆真實轉帳會無聲不計）、
+     被當成別的小孩 kidTo 的對象、或被指名在 split／shares 裡，都擋。 */
+  if(v && !m.isNew){
+    var r = refsOf(t, m.id);
+    if(r.payer || r.named){
+      m.block = '<b>'+esc(m.name)+'</b> 已經'+(r.payer?'付了 '+r.payer+' 筆':'')+(r.payer&&r.named?'、':'')+(r.named?'在 '+r.named+' 筆裡被指定分攤或轉帳':'')
+        + '，不能改成小孩（改了那幾筆會對不起來）。';
+      drawMates(); return;
+    }
+  }
+  m.kid = v; m.block = "";
+  if(v && !m.to) m.to = MD.list.filter(function(x){ return !x.kid && String(x.name||"").trim(); }).map(function(x){ return x.id; });
+  if(!v) delete m.to;
+  /* 改成小孩的人，不能再是別的小孩「平常算給」的對象 */
+  if(v) MD.list.forEach(function(x){ if(x.to) x.to = x.to.filter(function(id){ return id!==m.id; }); });
+  drawMates();
+}
+function mtKidDefault(i, aid, on){
+  var m = MD.list[i]; m.to = m.to || [];
+  var j = m.to.indexOf(aid);
+  if(on && j<0) m.to.push(aid);
+  if(!on && j>=0) m.to.splice(j,1);
+}
+function mtAdd(){
+  MD.list.push({id:uid(), name:"", isNew:true}); drawMates();
+  var ins = sheetLayer.querySelectorAll(".mt-main input:not([type])"); if(ins.length) ins[ins.length-1].focus();
+}
+/* 刪掉旅伴（附錄 G2 #6）：他付過錢或被指名分攤 ⇒ 不准刪；只出現在「大家平分」⇒ 可刪＋toast */
+function mtDel(i){
+  var t = curTrip(), m = MD.list[i];
+  if(!m.isNew){
+    var r = refsOf(t, m.id);
+    if(r.payer || r.named){
+      m.block = '<b>'+esc(m.name)+'</b> 已經'+(r.payer?'付了 '+r.payer+' 筆':'')+(r.payer&&r.named?'、':'')+(r.named?'在 '+r.named+' 筆裡被指定分攤':'')
+        + '，不能直接刪（刪了那幾筆會對不起來）。<br>名字打錯的話直接改名字就好。';
+      drawMates(); return;
+    }
+  }
+  MD.list.splice(i,1);
+  MD.list.forEach(function(x){ if(x.to) x.to = x.to.filter(function(id){ return id!==m.id; }); });
+  drawMates();
+  if(!m.isNew){ var a = refsOf(t, m.id).all; if(a) toast("存起來之後，"+a+" 筆「大家平分」會少算他一份"); }
+}
+/* 擋存檔：名字重複／沒有大人／只有一個人／小孩沒勾任何大人。全部清空＝關掉分帳。 */
+function saveMates(){
+  if(!requireWrite("設定旅伴")) return;
+  var t = curTrip(); if(!t || !MD) return;
+  var L = MD.list.filter(function(m){ return String(m.name||"").trim(); }).map(function(m){
+    var o = {id:m.id, name:String(m.name).trim().slice(0,8)}; if(m.kid){ o.kid = true; o.to = (m.to||[]).slice(); } o.isNew = m.isNew; return o;
+  });
+  var seen = {}, dup = null;
+  L.forEach(function(m){ if(seen[m.name]) dup = m.name; seen[m.name] = 1; });
+  var adultIds = L.filter(function(m){ return !m.kid; }).map(function(m){ return m.id; });
+  var err = "";
+  if(dup) err = "有兩個人都叫「"+dup+"」，分不出誰是誰，改一個名字。";
+  else if(L.length && !adultIds.length) err = "至少要有一個大人。";
+  else if(L.length===1) err = "一個人不用分帳；再加一個人，或把他刪掉關掉分帳。";
+  L.forEach(function(m){
+    if(!m.kid) return;
+    m.to = m.to.filter(function(id){ return adultIds.indexOf(id)>=0; });
+    if(!m.to.length && !err) err = m.name+"的份要算給誰？至少勾一個大人。";
+  });
+  /* 名字清空的那一列等於刪掉 ⇒ 被引用的人一樣要擋（不能用「把名字刪光」繞過 mtDel 的檢查） */
+  if(!err) t.mates.forEach(function(om){
+    if(err || L.some(function(m){ return m.id===om.id; })) return;
+    var r = refsOf(t, om.id);
+    if(r.payer || r.named) err = "「"+om.name+"」已經有花費用到他，不能刪掉；名字打錯的話改名字就好。";
+  });
+  if(err){ MD.err = err; drawMates(); return; }
+  var added = L.filter(function(m){ return m.isNew; });
+  L.forEach(function(m){ delete m.isNew; });
+  /* 中途加人（附錄 G2 #7）：已經有「大家平分」的花費 ⇒ 問一次要不要也算他一份，不偷偷改舊帳 */
+  var implicit = t.expenses.filter(function(e){ return !e.split && !e.shares && e.payer; });
+  if(t.mates.length && added.length && implicit.length){
+    var nm = added.map(function(m){ return m.name; }).join("、");
+    MD.pending = L; MD.oldIds = t.mates.map(function(m){ return m.id; });
+    openSheet("之前的花費要算"+esc(nm)+"嗎？",
+      '<div class="hint bx-sheet-hint">已經有 <b>'+implicit.length+'</b> 筆是「大家平分」。</div><div class="bx-choice">'
+      + '<button type="button" class="rec" onclick="commitMates(false)"><b>也算'+esc(nm)+'一份</b><span>他一開始就一起去，只是忘了加。這 '+implicit.length+' 筆會改成 '+L.length+' 個人分。</span></button>'
+      + '<button type="button" onclick="commitMates(true)"><b>只從現在開始算</b><span>他是中途才加入的。之前那 '+implicit.length+' 筆維持原本 '+MD.oldIds.length+' 個人分（會幫你把名單固定下來）。</span></button>'
+      + '</div>');
+    return;
+  }
+  MD.pending = L;
+  commitMates(false);
+}
+function commitMates(freeze){
+  var t = curTrip(); if(!t || !MD || !MD.pending) return;
+  var L = MD.pending, oldIds = MD.oldIds || [], wasOn = hasSplit(t);
+  if(freeze) t.expenses.forEach(function(e){ if(!e.split && !e.shares && e.payer) e.split = oldIds.slice(); });
+  t.mates = L;
+  /* 被刪掉的人留下的已轉紀錄（理論上擋掉了，保險）＋花費裡的壞參照，交給 normalize 收 */
+  t.settle = normalizeSettle(t.settle, t.mates);
+  t.expenses.forEach(function(e){ normalizeExpenseRefs(e, t.mates); });
+  if(!hasSplit(t)) ui.bx = "list";
+  persistTrip(t); closeSheet(); render(true);
+  toast(!L.length ? (wasOn ? "已關掉分帳" : "沒有設定旅伴")
+    : freeze ? "之前的花費維持原本的人數" : (oldIds.length ? "之前的花費也算進新旅伴了" : "旅伴存好了"));
 }
 
 /* ============================================================================
@@ -2489,7 +3380,7 @@ function viewNotes(t){
 }
 
 /* ============ 動作 ============ */
-function openTrip(id){ ui.screen="trip"; ui.tripId=id; ui.tab="plan"; ui.day=1; ui.edit=false; render(); }
+function openTrip(id){ ui.screen="trip"; ui.tripId=id; ui.tab="plan"; ui.day=1; ui.edit=false; ui.bx="list"; ui.bxPlan=false; render(); }
 function goHome(){ if(SHARE_ID) return; ui.screen="home"; render(); }
 function setTab(tab){ ui.tab=tab; ui.edit=false; render(); }
 function setDay(d){ ui.day=d; render(); }
@@ -2895,6 +3786,8 @@ function delExpense(id){
   var t=curTrip();
   t.expenses = t.expenses.filter(function(e){return e.id!==id;});
   persistTrip(t); render(true);
+  /* v3.19：從「沒填誰付的／可能重複」清單裡刪的，清單要跟著更新（不然刪掉的那筆還留在 sheet 上） */
+  if(ui.bxSheet) bxRedrawSheet();
 }
 
 var noteTimer=null;
@@ -2918,6 +3811,7 @@ function openSheet(title, bodyHtml){
      那幾條就地換頁的路徑）。不先收掉的話新舊兩張會疊在一起，
      而且舊那張的 .closing 計時器會在 240ms 後把**新的**這張清掉。 */
   sheetHardClose();
+  ui.bxSheet = null;     /* v3.19：換成別張 sheet 就不是分帳清單了（要的人自己開完再設回去） */
   sheetLayer.innerHTML = '<div class="backdrop" onclick="closeSheet()"></div>'
     + '<div class="sheet"><div class="sheet-head"><h3>'+title+'</h3>'
     + '<button onclick="closeSheet()" aria-label="關閉">✕</button></div>'+bodyHtml+'</div>';
@@ -2943,7 +3837,7 @@ function sheetHardClose(){
   sheetLayer.innerHTML = "";
 }
 function closeSheet(){
-  tplDraft=null; rp=null; pkDraft=null;
+  tplDraft=null; rp=null; pkDraft=null; BX=null; MD=null; ui.bxSheet=null;
   if(sheetLayer.hidden || !sheetLayer.firstChild){ sheetHardClose(); return; }
   if(sheetLayer.classList.contains("closing")) return;   /* 連按不重播 */
   sheetLayer.classList.add("closing");
@@ -3210,8 +4104,11 @@ function openExpenseSheet(editId){
   var opts = Object.keys(ECATS).map(function(k){
     return '<option value="'+k+'"'+(k===curCat?" selected":"")+'>'+ECATS[k].emoji+' '+ECATS[k].label+'</option>';
   }).join("");
+  /* v3.19 旅伴分帳：有設旅伴才多「誰付的／算誰的」兩欄（放在標題後面：預設通常就對，但要看得到才能確認） */
+  var split = hasSplit(t);
+  if(split) bxInit(t, ex); else BX = null;
   openSheet(ex ? "改這筆花費" : "記一筆花費",
-    '<form onsubmit="submitExpense(event)">'
+    '<form id="exf" onsubmit="submitExpense(event)">'
     /* ⚠️ 這個欄位不可以叫 name="id"：HTMLFormElement 本身就有 .id（元素的 HTML id），
        f.id 會拿到那個字串而不是這個 input，編輯會整個失效。 */
     + '<input type="hidden" name="eid" value="'+(ex?esc(ex.id):"")+'">'
@@ -3225,12 +4122,12 @@ function openExpenseSheet(editId){
     + '</div>'
     + (fx
       ? '<div class="pay-seg fx-seg">'
-        + '<label class="'+(curFx?"":"on")+'"><input type="radio" name="cur" value="" onchange="paySegSync(this);fxSheetSync(this.form)"'+(curFx?"":" checked")+'>台幣 NT$</label>'
-        + '<label class="'+(curFx?"on":"")+'"><input type="radio" name="cur" value="1" onchange="paySegSync(this);fxSheetSync(this.form)"'+(curFx?" checked":"")+'>'+fxI.name+' '+fxI.sym+'</label>'
+        + '<label class="'+(curFx?"":"on")+'"><input type="radio" name="cur" value="" onchange="paySegSync(this);expAmtInput(this.form)"'+(curFx?"":" checked")+'>台幣 NT$</label>'
+        + '<label class="'+(curFx?"on":"")+'"><input type="radio" name="cur" value="1" onchange="paySegSync(this);expAmtInput(this.form)"'+(curFx?" checked":"")+'>'+fxI.name+' '+fxI.sym+'</label>'
         + '</div>'
       : '')
     + '<div class="f-row2">'
-    +   '<label class="field"><span class="fl fx-amt-l">金額（'+(curFx?fxI.sym:"NT$")+'）*</span><input type="number" name="amount" required min="0" step="'+(curFx?"any":"1")+'" inputmode="decimal" placeholder="0" value="'+amtVal+'"'+(fx?' oninput="fxSheetSync(this.form)"':'')+'></label>'
+    +   '<label class="field"><span class="fl fx-amt-l">金額（'+(curFx?fxI.sym:"NT$")+'）*</span><input type="number" name="amount" required min="0" step="'+(curFx?"any":"1")+'" inputmode="decimal" placeholder="0" value="'+amtVal+'" oninput="expAmtInput(this.form)"></label>'
     +   '<label class="field"><span class="fl">類別</span><select name="cat">'+opts+'</select></label>'
     + '</div>'
     + (fx
@@ -3243,14 +4140,16 @@ function openExpenseSheet(editId){
     /* 欄位順序＝「這是什麼」先講完，再講 metadata：
        金額／類別 → 標題 → 說明 →（幫他預設好的）哪一天。 */
     + '<label class="field"><span class="fl">標題</span><input name="desc" placeholder="例：鹿野春旅店" autocomplete="off" value="'+(ex?esc(ex.desc):"")+'"></label>'
+    + (split ? bxFieldsHtml(t) : '')
     /* 說明用 textarea 不用 input：他真的會寫一整句（「過年期間每間要補 1200」），
        單行 input 打到一半就看不到前面。 */
     + '<label class="field"><span class="fl">說明<span class="fl-opt">選填</span></span>'
     +   '<textarea name="note" rows="2" placeholder="例：過年期間每間要補 1200">'+(ex?esc(ex.note||""):"")+'</textarea></label>'
     + '<label class="field"><span class="fl">哪一天</span><select name="day">'+expDayOpts(t,curDay)+'</select></label>'
-    + '<button class="btn-primary" type="submit">'+(ex?"存起來":"記下來")+'</button>'
+    + '<button class="btn-primary" type="submit" id="ex-go">'+(ex?"存起來":"記下來")+'</button>'
     + '</form>');
   if(fx){ var fms = document.querySelectorAll('form[onsubmit^="submitExpense"]'); if(fms.length) fxSheetSync(fms[fms.length-1]); }
+  if(split) bxDraw();
 }
 /* 切幣別／打金額時即時更新：標籤、≈台幣換算、付款方式那排要不要出現 */
 function fxSheetSync(f){
@@ -3286,14 +4185,20 @@ function submitExpense(ev){
   var isFx = fxOn(t) && !!(f.cur && f.cur.value);
   var fxAmt = isFx ? amt : 0, isCard = isFx && !!(f.card && f.card.value);
   var nt = isFx ? fxToNt(t, amt) : Math.round(amt);
+  /* v3.19 分帳：各填金額≠總額／選幾個人全沒選／小孩沒算給任何人 ⇒ 不存（送出鈕本來就是灰的，這裡是保險） */
+  var split = hasSplit(t) && BX;
+  if(split && splitDraftError(t, bxDraft())){ bxSync(); return; }
   if(id) t.expenses.forEach(function(e){ if(e.id===id) ex=e; });
   if(ex){
     ex.amount=nt; ex.cat=f.cat.value; ex.desc=f.desc.value.trim();
     ex.note=f.note.value.trim(); ex.day=day; ex.plan=isPlan; ex.fx=fxAmt; ex.card=isCard;
   }else{
-    t.expenses.push({ id:uid(), amount:nt, cat:f.cat.value, desc:f.desc.value.trim(),
-      note:f.note.value.trim(), day:day, plan:isPlan, fx:fxAmt, card:isCard });
+    ex = { id:uid(), amount:nt, cat:f.cat.value, desc:f.desc.value.trim(),
+      note:f.note.value.trim(), day:day, plan:isPlan, fx:fxAmt, card:isCard };
+    t.expenses.push(ex);
   }
+  /* 沒設旅伴的旅程：分帳欄位一個都不碰（舊資料裡如果有，原樣留著——跟 bookingRef 同一個哲學） */
+  if(split) bxApply(t, ex);
   persistTrip(t); closeSheet(); render();
 }
 
@@ -3552,9 +4457,31 @@ document.addEventListener("visibilitychange", function(){
     if(seq!==writeSeq || busyEditing()) return;
     db = migrate(d);
     rebuildCats();
-    render();
+    render(true);   /* v3.17：留在原本捲到的位置（原本 render() 會跳回最上面） */
+    fixFixedBars();
   }).catch(function(){ /* 背景更新失敗就算了，畫面維持原狀 */ });
 });
+
+/* v3.17 iOS 底部分頁列跑到畫面中間（2026-11-10 Benson 截圖）：
+ * iPhone 主畫面 PWA 從背景回來、鍵盤收起、或畫面高度改變後，iOS 有時沒重算
+ * position:fixed 的位置，分頁列和＋鈕會卡在舊的「畫面底部」（約鍵盤收起前的高度），
+ * 下面還看得到行程。本機複現不出來，成因未確認；這裡在這幾個時機逼 iOS 重排一次：
+ * 原地捲動 0px＋讓分頁列和＋鈕重新排版。對正常情況沒有任何可見變化。 */
+function fixFixedBars(){
+  requestAnimationFrame(function(){
+    window.scrollTo(window.scrollX, window.scrollY);
+    var els = document.querySelectorAll(".tabbar, .fab");
+    for(var i=0;i<els.length;i++){ var el=els[i]; el.style.display="none"; void el.offsetHeight; el.style.display=""; }
+  });
+}
+document.addEventListener("visibilitychange", function(){ if(!document.hidden) fixFixedBars(); });
+window.addEventListener("pageshow", fixFixedBars);
+window.addEventListener("orientationchange", function(){ setTimeout(fixFixedBars, 300); });
+document.addEventListener("focusout", function(){ setTimeout(fixFixedBars, 100); });
+if(window.visualViewport){
+  var vvTimer=null;
+  window.visualViewport.addEventListener("resize", function(){ clearTimeout(vvTimer); vvTimer=setTimeout(fixFixedBars, 150); });
+}
 
 /* ============ 版本與更新 ============
  * PWA 的殼是 cache-first，新的 service worker 裝好、activate 之後，
