@@ -10,7 +10,7 @@ fxCur: "HKD"
 fxRate: 4.18
 fxBudget: 3500
 createdAt: "2026-10-07T08:27:03.613Z"
-updatedAt: "2026-11-16T03:26:16.980Z"
+updatedAt: "2026-11-16T03:26:30.353Z"
 ---
 
 ## 行程
@@ -123,7 +123,7 @@ updatedAt: "2026-11-16T03:26:16.980Z"
 - {"id":"xmwip4jm5pc07","amount":1501,"cat":"shop","desc":"優品360","day":2,"fx":359.2,"card":true}
 - {"id":"xmwip7q21woq8","amount":2324,"cat":"food","desc":"甘牌燒鵝","day":2,"fx":556,"card":true}
 - {"id":"xmwip9wz8y7ip","amount":138,"cat":"food","desc":"功夫茶","day":2,"fx":33,"card":true}
-- {"id":"xmwipbssij37b","amount":201,"cat":"shop","desc":"驅風油","note":"屈臣氏","fx":48,"card":true}
+- {"id":"xmwipbssij37b","amount":201,"cat":"shop","desc":"驅風油","note":"屈臣氏","day":2,"fx":48,"card":true}
 
 ## 打包
 
