@@ -6,8 +6,11 @@ theme: "sunset"
 start: "2027-11-27"
 days: 8
 budget: 0
+fxCur: "JPY"
+fxRate: 0
+fxBudget: 0
 createdAt: "2026-09-02T07:18:59.356Z"
-updatedAt: "2026-11-10T10:00:00.000Z"
+updatedAt: "2026-11-17T02:52:36.393Z"
 ---
 
 ## 行程
