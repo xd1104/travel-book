@@ -32,10 +32,12 @@ updatedAt: "2026-11-17T02:53:53.260Z"
 - {"id":"xos110222","title":"喫茶サンシャイン 早餐","time":"08:30","cat":"food","place":"喫茶サンシャイン 大阪駅前第3ビル","note":"・日式老派咖啡館早餐套餐（モーニング）\n・大阪站前第 3 大樓 B2\n・週日 08:00 開（原本 08:00 到，果汁移走後改 08:30，吃完剛好去 grenier 排隊）","stayMinutes":60}
 - {"id":"xos110224","type":"transit","note":"走到阪急 Grand Building（Google 地圖走路 8～9 分、600 公尺）","stayMinutes":10}
 - {"id":"xos110225","title":"grenier 烤布蕾千層酥","time":"09:40","cat":"food","place":"grenier 梅田店","note":"・Dcard 最多人推的梅田甜點\n・10:00 開門，先去排（排隊＋等餐約 20–30 分）\n・阪急 Grand Building 1F","stayMinutes":65}
-- {"id":"xos110239","type":"transit","note":"grenier 走到 EST 1F（Google 地圖走路 1 分，就在隔壁）","stayMinutes":5}
+- {"id":"xos110241","type":"transit","note":"grenier 走到 HEP FIVE（Google 地圖走路 1 分、80 公尺）","stayMinutes":5}
+- {"id":"xos110240","title":"逛 HEP FIVE（上半場）","time":"11:00","cat":"shop","place":"HEP FIVE","note":"・先逛一輪，12:10 出來吃午餐，吃完回來逛下半場\n・HEP FIVE 店家幾點開門還沒查到官方資料，出發前確認（摩天輪 11:00 開）","stayMinutes":70}
+- {"id":"xos110239","type":"transit","note":"HEP FIVE 走到 EST 1F（Google 地圖走路 1 分、80 公尺）","stayMinutes":5}
 - {"id":"xos110227","title":"ねぎ焼 山本（午餐）","time":"12:15","cat":"food","place":"ねぎ焼やまもと 梅田エスト店","note":"・EST 1F（EST 暫定不逛，只來吃午餐）\n・蔥燒（用蔥取代高麗菜的大阪燒）\n・週日 11:30–21:00","stayMinutes":55}
 - {"id":"xos110234","type":"transit","note":"EST 走到 HEP FIVE（Google 地圖走路 1 分、80 公尺，地下通道也通）","stayMinutes":5}
-- {"id":"xos110231","title":"逛 HEP FIVE","time":"13:15","cat":"shop","place":"HEP FIVE","note":"・跟 EST 同一區，地下通道直通，走路 1 分\n・約 170 間店，年輕人潮流服飾\n・台灣人愛逛：吉伊卡哇（magical chiikawa store）、三麗鷗、迪士尼、蠟筆小新、3COINS\n・9F 扭蛋區＋大頭貼（機台數金氏紀錄）\n📌 待定：\n・摩天輪暫定不坐（7F 搭乘，約 ¥1,000、一圈 15 分，11:00–23:00）\n・隔壁 EST 暫定不逛（snidel、Lily Brown、Samantha Vega）\n・阪急三番街暫定不去（KIDDY LAND 角色商品、CHIIKAWA LAND 吉伊卡哇，北館 B1～1F，10:00–21:00，阪急梅田站正下方）","stayMinutes":145}
+- {"id":"xos110231","title":"逛 HEP FIVE（下半場）","time":"13:15","cat":"shop","place":"HEP FIVE","note":"・跟 EST 同一區，地下通道直通，走路 1 分\n・約 170 間店，年輕人潮流服飾\n・台灣人愛逛：吉伊卡哇（magical chiikawa store）、三麗鷗、迪士尼、蠟筆小新、3COINS\n・9F 扭蛋區＋大頭貼（機台數金氏紀錄）\n📌 待定：\n・摩天輪暫定不坐（7F 搭乘，約 ¥1,000、一圈 15 分，11:00–23:00）\n・隔壁 EST 暫定不逛（snidel、Lily Brown、Samantha Vega）\n・阪急三番街暫定不去（KIDDY LAND 角色商品、CHIIKAWA LAND 吉伊卡哇，北館 B1～1F，10:00–21:00，阪急梅田站正下方）","stayMinutes":145}
 - {"id":"xos110235","type":"transit","note":"HEP FIVE 走到新梅田食道街（Google 地圖走路 4 分、270 公尺）","stayMinutes":5}
 - {"id":"xos110228","title":"Hanadako 章魚燒","time":"15:45","cat":"food","place":"はなだこ 新梅田食道街","note":"・新梅田食道街 1F\n・份量大，兩人分一份\n・週日 10:00–21:45","stayMinutes":30}
 - {"id":"xos110229","type":"transit","note":"走到大阪站北邊 Grand Front（Google 地圖走路 5～6 分、約 400 公尺）","stayMinutes":10}
