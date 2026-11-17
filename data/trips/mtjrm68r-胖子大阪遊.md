@@ -24,13 +24,13 @@ updatedAt: "2026-11-17T02:53:53.260Z"
 - {"id":"xos110103","title":"萬野 壽喜燒（午餐）","time":"13:00","cat":"food","place":"すき焼きしゃぶしゃぶ萬野 ルクア大阪店","note":"・LUCUA 10 樓，吃完直接逛\n・一人一鍋，選壽喜燒湯底\n・推薦「和牛綜合」120g ¥3,300（瘦肉＋五花）\n・要菜、飯、甜點要加價改套餐\n・午餐 11:00–16:00","stayMinutes":75}
 - {"id":"xos110110","title":"LUCUA・LUCUA 1100","time":"14:30","cat":"shop","place":"LUCUA osaka","note":"・JR 大阪站旁，兩棟連在一起\n・商店 10:30–20:30（B2 美食街到 23:00）\n・中間可以回飯店辦入住、放戰利品","stayMinutes":270}
 - {"id":"xos110107","title":"百貨地下街 買熟食","time":"19:00","cat":"food","place":"阪神梅田本店","note":"・B1 熟食區很大，招牌烤魷魚（いか焼き）\n・對面阪急 B1 甜點、伴手禮多\n・兩家都 20:00 關門，19:00 前到\n・買完直接回飯店吃，路上便利商店補飲料宵夜\n・🍰 HARBS：大丸梅田 B1 有外帶店（營業時間沒查），6F 內用到 20:00","stayMinutes":60}
+- {"id":"xos110112","type":"transit","note":"阪神百貨走到梅田綜合果汁（Google 地圖走路 1 分、76 公尺）","stayMinutes":5}
+- {"id":"xos110223","title":"梅田綜合果汁","time":"20:05","cat":"food","place":"梅田ミックスジュース","note":"・阪神梅田站地下，站著喝\n・每天 07:00–22:00（Google 地圖）\n・阪神百貨走過去 1 分鐘，買完熟食順路喝","stayMinutes":15}
 
 ### Day 2
 
-- {"id":"xos110222","title":"喫茶サンシャイン 早餐","time":"08:00","cat":"food","place":"喫茶サンシャイン 大阪駅前第3ビル","note":"・日式老派咖啡館早餐套餐（モーニング）\n・大阪站前第 3 大樓 B2\n・週日 08:00 開","stayMinutes":55}
-- {"id":"xos110232","type":"transit","note":"走到阪神梅田站地下（Google 地圖走路 5 分、350 公尺）","stayMinutes":5}
-- {"id":"xos110223","title":"梅田綜合果汁","time":"09:00","cat":"food","place":"梅田ミックスジュース","note":"・阪神梅田站地下街，站著喝\n・週日 07:00 開","stayMinutes":15}
-- {"id":"xos110224","type":"transit","note":"走到阪急 Grand Building（Google 地圖走路 5 分、350 公尺）","stayMinutes":10}
+- {"id":"xos110222","title":"喫茶サンシャイン 早餐","time":"08:30","cat":"food","place":"喫茶サンシャイン 大阪駅前第3ビル","note":"・日式老派咖啡館早餐套餐（モーニング）\n・大阪站前第 3 大樓 B2\n・週日 08:00 開（原本 08:00 到，果汁移走後改 08:30，吃完剛好去 grenier 排隊）","stayMinutes":60}
+- {"id":"xos110224","type":"transit","note":"走到阪急 Grand Building（Google 地圖走路 8～9 分、600 公尺）","stayMinutes":10}
 - {"id":"xos110225","title":"grenier 烤布蕾千層酥","time":"09:40","cat":"food","place":"grenier 梅田店","note":"・Dcard 最多人推的梅田甜點\n・10:00 開門，先去排（排隊＋等餐約 20–30 分）\n・阪急 Grand Building 1F","stayMinutes":65}
 - {"id":"xos110233","type":"transit","note":"grenier 走到 EST（Google 地圖走路 1 分，就在隔壁）","stayMinutes":5}
 - {"id":"xos110226","title":"逛 EST","time":"11:00","cat":"shop","place":"梅田 EST","note":"・10～20 幾歲年輕女生服飾，100 多間\n・知名店：snidel、Lily Brown（日系女裝）、Samantha Vega（包包）\n・FOODHALL 有挽肉マニア 漢堡排\n・商店 11:00–21:00（2025/7 資料）","stayMinutes":75}
