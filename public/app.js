@@ -42,7 +42,7 @@ function splashReady(){
 /* ============ 常數 ============ */
 /* 版本號的唯一來源：首頁 footer 與「版本」sheet 都讀它。
  * 改前端時跟 sw.js 的 cache 版本號一起 +1（見「版本與更新」段）。 */
-var APP_VER="3.20";
+var APP_VER="3.21";
 
 /* v3.13 分享連結：網址帶 ?share=<旅程 id 開頭> ⇒ 只載入那一趟、直接進旅程頁、全部唯讀。
  * 給家人看行程用：看不到首頁清單和其他旅程，也沒有編輯／解鎖入口。
@@ -1210,6 +1210,18 @@ var GitHubStore = {
             out.push(parseFn(f.name.replace(/\.md$/,""), txt));
           }).catch(function(){ /* 單檔壞掉就跳過 */ });
         })).then(function(){ return out; });
+      });
+  },
+  /* v3.21：只列旅程資料夾（1 次 API），比對每個檔的 sha，跟手上不同（含新增／刪除）就回 true */
+  remoteChanged:function(){
+    var self=this;
+    return this._ghFetch(this.apiBase+"/contents/data/trips?ref="+GH.branch, {cache:"no-store"}, this.canWrite())
+      .then(function(res){ return res.json(); })
+      .then(function(files){
+        var mds=(Array.isArray(files)?files:[]).filter(function(f){ return /\.md$/.test(f.name); });
+        var known=Object.keys(self._sha).filter(function(k){ return k.indexOf("data/trips/")===0; });
+        if(known.length!==mds.length) return true;
+        return mds.some(function(f){ return self._sha["data/trips/"+f.name]!==f.sha; });
       });
   },
   loadAll:function(){
@@ -4446,24 +4458,42 @@ bootLoad();
  * 手機畫面還是舊的，一改就會撞衝突。回來時先換成新的，大部分衝突根本不會發生。
  * ⚠️ 他正在編輯（sheet 開著、調整模式、打包就地新增）或還有寫入沒完成時不動，
  *    寧可這次不更新，也不要把他打到一半的東西洗掉；載入途中有人寫入也丟掉結果。 */
-var hiddenAt = 0;
 function busyEditing(){
   return !sheetLayer.hidden || ui.edit || (ui.pk && ui.pk.adding) || pendingWrites>0;
 }
-document.addEventListener("visibilitychange", function(){
-  if(document.hidden){ hiddenAt = Date.now(); return; }
-  var away = hiddenAt ? Date.now()-hiddenAt : 0;
-  hiddenAt = 0;
-  if(!booted || STORE.local || away < 60000 || busyEditing()) return;
+/* v3.21 自動抓新資料（2026-11-17 Benson：「資料改了都要自己手動刷新，很麻煩」）：
+ * v3.12 只在「離開超過 1 分鐘再回來」才更新，App 開著看的時候、或切出去一下就回來，都不會變。
+ * 現在：畫面開著時每 30 秒（沒金鑰的唯讀裝置 120 秒，匿名 API 每小時只有 60 次）
+ * 先只問一次「旅程資料夾裡每個檔的 sha」，跟手上的比，有變才整份重抓。回到 App 也立刻問一次。
+ * 自己剛存的檔 PUT 完 sha 已更新，不會誤判成別人改的。編輯中／寫入未完成一律不動（同 v3.12）。 */
+var lastCheck = 0, checking = false;
+function refreshFromRemote(){
+  if(!booted || STORE.local || checking || busyEditing()) return;
+  if(Date.now()-lastCheck < 10000) return;
+  lastCheck = Date.now(); checking = true;
   var seq = writeSeq;
-  STORE.loadAll().then(function(d){
-    if(seq!==writeSeq || busyEditing()) return;
-    db = migrate(d);
-    rebuildCats();
-    render(true);   /* v3.17：留在原本捲到的位置（原本 render() 會跳回最上面） */
-    fixFixedBars();
-  }).catch(function(){ /* 背景更新失敗就算了，畫面維持原狀 */ });
+  var probe = STORE.remoteChanged ? STORE.remoteChanged() : Promise.resolve(true);
+  probe.then(function(changed){
+    if(!changed || seq!==writeSeq || busyEditing()) return;
+    return STORE.loadAll().then(function(d){
+      if(seq!==writeSeq || busyEditing()) return;
+      db = migrate(d);
+      rebuildCats();
+      render(true);   /* v3.17：留在原本捲到的位置 */
+      fixFixedBars();
+    });
+  }).catch(function(){ /* 背景更新失敗就算了，畫面維持原狀 */ })
+    .then(function(){ checking = false; });
+}
+document.addEventListener("visibilitychange", function(){
+  if(!document.hidden) refreshFromRemote();
 });
+window.addEventListener("focus", refreshFromRemote);
+setInterval(function(){
+  if(document.hidden) return;
+  var every = (STORE.canWrite && STORE.canWrite()) ? 30000 : 120000;
+  if(Date.now()-lastCheck >= every) refreshFromRemote();
+}, 5000);
 
 /* v3.17 iOS 底部分頁列跑到畫面中間（2026-11-10 Benson 截圖）：
  * iPhone 主畫面 PWA 從背景回來、鍵盤收起、或畫面高度改變後，iOS 有時沒重算
