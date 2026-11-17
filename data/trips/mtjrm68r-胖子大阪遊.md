@@ -21,11 +21,15 @@ updatedAt: "2026-11-17T02:53:53.260Z"
 - {"id":"xos110101","title":"抵達關西機場","time":"10:40","cat":"transport","place":"關西國際機場","note":"・暫定廉航小港 ↔ 關西來回（還沒訂）\n・用今年虎航 06:55 → 10:40 估，明年班表會變\n・行李要訂票時在網路先買，機場買貴一倍","stayMinutes":45}
 - {"id":"xos110102","type":"transit","note":"JR 關空快速到大阪站（梅田）\n・車資 ¥1,210\n・時間約 1 小時多（估計，出發前查班次）","stayMinutes":75}
 - {"id":"xos110106","title":"梅田飯店 寄放行李","time":"12:45","cat":"stay","place":"大阪梅田","note":"・飯店待訂\n・還不能入住就先寄放行李，逛完再回來辦","stayMinutes":15}
-- {"id":"xos110103","title":"萬野 壽喜燒（午餐）","time":"13:00","cat":"food","place":"すき焼きしゃぶしゃぶ萬野 ルクア大阪店","note":"・LUCUA 10 樓，吃完直接逛\n・一人一鍋，選壽喜燒湯底\n・推薦「和牛綜合」120g ¥3,300（瘦肉＋五花）\n・要菜、飯、甜點要加價改套餐\n・午餐 11:00–16:00","stayMinutes":75}
-- {"id":"xos110110","title":"LUCUA・LUCUA 1100","time":"14:30","cat":"shop","place":"LUCUA osaka","note":"🛒 LUCUA 1100：\n・3F @cosme（美妝）\n・B1 UNIQLO、GU\n・迪士尼、9F 蔦屋書店\n・1F 手作市場、6F Lycka（飾品）\n🛒 LUCUA：\n・湯姆貓與傑利鼠專賣店（出發前確認還在）\n・8F 3COINS+plus（300 日圓雜貨，大型店）\n・9F Loft（文具、美妝、生活雜貨）\n💳 各櫃自己退稅\n⚠ SHIRO 香氛別在這買（不能退稅）\n⏰ 10:30–20:30","stayMinutes":270}
+- {"id":"xos110113","type":"transit","note":"飯店走到 LUCUA 10F 萬野\n・飯店還沒訂，時間先估 10 分\n・從 JR 大阪站走過去約 5 分（Google 地圖）","stayMinutes":10}
+- {"id":"xos110103","title":"萬野 壽喜燒（午餐）","time":"13:10","cat":"food","place":"すき焼きしゃぶしゃぶ萬野 ルクア大阪店","note":"・LUCUA 10 樓，吃完直接逛\n・一人一鍋，選壽喜燒湯底\n・推薦「和牛綜合」120g ¥3,300（瘦肉＋五花）\n・要菜、飯、甜點要加價改套餐\n・午餐 11:00–16:00","stayMinutes":75}
+- {"id":"xos110114","type":"transit","note":"搭電梯下樓，萬野就在 LUCUA 10F","stayMinutes":5}
+- {"id":"xos110110","title":"LUCUA・LUCUA 1100","time":"14:30","cat":"shop","place":"LUCUA osaka","note":"🛒 LUCUA 1100：\n・3F @cosme（美妝）\n・B1 UNIQLO、GU\n・迪士尼、9F 蔦屋書店\n・1F 手作市場、6F Lycka（飾品）\n🛒 LUCUA：\n・湯姆貓與傑利鼠專賣店（出發前確認還在）\n・8F 3COINS+plus（300 日圓雜貨，大型店）\n・9F Loft（文具、美妝、生活雜貨）\n💳 各櫃自己退稅\n⚠ SHIRO 香氛別在這買（不能退稅）\n⏰ 10:30–20:30","stayMinutes":260}
+- {"id":"xos110115","type":"transit","note":"LUCUA 走到阪神百貨（Google 地圖走路 8～9 分、約 400 公尺）","stayMinutes":10}
 - {"id":"xos110107","title":"百貨地下街 買熟食","time":"19:00","cat":"food","place":"阪神梅田本店","note":"・B1 熟食區很大，招牌烤魷魚（いか焼き）\n・對面阪急 B1 甜點、伴手禮多\n・兩家都 20:00 關門，19:00 前到\n・買完直接回飯店吃，路上便利商店補飲料宵夜\n・🍰 HARBS：大丸梅田 B1 有外帶店（營業時間沒查），6F 內用到 20:00","stayMinutes":60}
 - {"id":"xos110112","type":"transit","note":"阪神百貨走到梅田綜合果汁（Google 地圖走路 1 分、76 公尺）","stayMinutes":5}
 - {"id":"xos110223","title":"梅田綜合果汁","time":"20:05","cat":"food","place":"梅田ミックスジュース","note":"・阪神梅田站地下，站著喝\n・每天 07:00–22:00（Google 地圖）\n・阪神百貨走過去 1 分鐘，買完熟食順路喝","stayMinutes":15}
+- {"id":"xos110116","type":"transit","note":"走回飯店（飯店還沒訂，訂了再補時間）","stayMinutes":15}
 
 ### Day 2
 
