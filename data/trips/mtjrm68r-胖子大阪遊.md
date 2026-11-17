@@ -37,15 +37,15 @@ updatedAt: "2026-11-17T02:53:53.260Z"
 - {"id":"xos110224","type":"transit","note":"走到阪急 Grand Building（Google 地圖走路 8～9 分、600 公尺）","stayMinutes":10}
 - {"id":"xos110225","title":"grenier 烤布蕾千層酥","time":"09:40","cat":"food","place":"grenier 梅田店","note":"・Dcard 最多人推的梅田甜點\n・10:00 開門，先去排（排隊＋等餐約 20–30 分）\n・阪急 Grand Building 1F","stayMinutes":65}
 - {"id":"xos110241","type":"transit","note":"grenier 走到 HEP FIVE（Google 地圖走路 1 分、80 公尺）","stayMinutes":5}
-- {"id":"xos110240","title":"逛 HEP FIVE（上半場）","time":"11:00","cat":"shop","place":"HEP FIVE","note":"・逛到 12:10 去吃午餐，吃完再回來\n・⚠ 開門時間出發前確認","stayMinutes":70}
+- {"id":"xos110240","title":"逛 HEP FIVE（上半場）","time":"11:00","cat":"shop","place":"HEP FIVE","note":"🎫 先去 B1 免稅櫃台領折價券（出示護照，滿 ¥3,000 折 ¥500，每人每天一次，Grand Front 也能用）\n・時間不夠先逛 3F～4F（日系平價女裝最多）\n・逛到 12:10 去吃午餐，吃完再回來\n⚠ 開門時間出發前確認","stayMinutes":70}
 - {"id":"xos110239","type":"transit","note":"HEP FIVE 走到 EST 1F（Google 地圖走路 1 分、80 公尺）","stayMinutes":5}
 - {"id":"xos110227","title":"ねぎ焼 山本（午餐）","time":"12:15","cat":"food","place":"ねぎ焼やまもと 梅田エスト店","note":"・EST 1F（EST 暫定不逛，只來吃午餐）\n・蔥燒（用蔥取代高麗菜的大阪燒）\n・週日 11:30–21:00","stayMinutes":55}
 - {"id":"xos110234","type":"transit","note":"EST 走到 HEP FIVE（Google 地圖走路 1 分、80 公尺，地下通道也通）","stayMinutes":5}
-- {"id":"xos110231","title":"逛 HEP FIVE（下半場）","time":"13:15","cat":"shop","place":"HEP FIVE","note":"🛒 吉伊卡哇、三麗鷗、迪士尼、蠟筆小新、3COINS\n🛒 9F 扭蛋＋大頭貼\n📌 待定：摩天輪、隔壁 EST、阪急三番街","stayMinutes":145}
+- {"id":"xos110231","title":"逛 HEP FIVE（下半場）","time":"13:15","cat":"shop","place":"HEP FIVE","note":"🛒 吉伊卡哇、三麗鷗、迪士尼、蠟筆小新、3COINS\n🛒 4F Lattice（平價飾品，網友推）\n🛒 9F 扭蛋＋大頭貼\n⚠ 便宜衣服看一下產地標，網友買到淘寶貨\n📌 待定：摩天輪、隔壁 EST、阪急三番街","stayMinutes":145}
 - {"id":"xos110235","type":"transit","note":"HEP FIVE 走到新梅田食道街（Google 地圖走路 4 分、270 公尺）","stayMinutes":5}
 - {"id":"xos110228","title":"Hanadako 章魚燒","time":"15:45","cat":"food","place":"はなだこ 新梅田食道街","note":"・新梅田食道街 1F\n・份量大，兩人分一份\n・週日 10:00–21:45","stayMinutes":30}
 - {"id":"xos110229","type":"transit","note":"走到大阪站北邊 Grand Front（Google 地圖走路 5～6 分、約 400 公尺）","stayMinutes":10}
-- {"id":"xos110230","title":"逛 Grand Front","time":"16:30","cat":"shop","place":"グランフロント大阪","note":"🛒 無印良品 關西最大（北館 2～4F）\n🛒 北館 2F 伊織 今治毛巾（伴手禮）\n🍰 HARBS：隔壁大丸 6F\n⏰ 11:00–21:00","stayMinutes":145}
+- {"id":"xos110230","title":"逛 Grand Front","time":"16:30","cat":"shop","place":"グランフロント大阪","note":"🛒 無印良品 關西最大（北館 2～4F）\n🛒 北館 2F 伊織 今治毛巾（伴手禮）\n🛒 5F mont-bell（這家可以退稅）\n🎄 北館 1F 聖誕樹（11 月底應該有，往年都有）\n🌳 南館 9F 空中花園（免費）\n🍰 HARBS：隔壁大丸 6F｜🧋 B1 春水堂\n🎫 用 HEP FIVE 領的折價券\n⏰ 11:00–21:00","stayMinutes":145}
 - {"id":"xos110236","type":"transit","note":"Grand Front 走到大阪站 INNOGATE（Google 地圖走路 3～4 分、約 250 公尺）","stayMinutes":5}
 - {"id":"xos110221","title":"鴨與蔥 拉麵（晚餐）","time":"19:00","cat":"food","place":"Ramen Kamo to Negi Osaka Umeda Branch","note":"・大阪站 INNOGATE 大阪 3 樓\n・鴨湯拉麵\n・開到 23:00","stayMinutes":60}
 
