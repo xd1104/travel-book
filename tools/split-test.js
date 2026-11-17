@@ -63,9 +63,12 @@ for (const f of files) {
   eq(fe, raw, f + '：前端逐字不變');
   eq(be, raw, f + '：後端逐字不變');
   eq(fe, be, f + '：前後端輸出相同');
-  ok(!/^mates:|^settle:/m.test(fe), f + '：沒有旅伴 ⇒ 不多 mates／settle 行');
-  const p = FE.parseTrip(id, raw);
-  ok(Array.isArray(p.mates) && !p.mates.length && Array.isArray(p.settle) && !p.settle.length, f + '：parse 出 mates/settle 空陣列');
+  /* 真實資料已經有設過旅伴的旅程（他開始用了），只有原檔沒有 mates 的才驗「不多長行」 */
+  if (!/^mates:/m.test(raw)) {
+    ok(!/^mates:|^settle:/m.test(fe), f + '：沒有旅伴 ⇒ 不多 mates／settle 行');
+    const p = FE.parseTrip(id, raw);
+    ok(Array.isArray(p.mates) && !p.mates.length && Array.isArray(p.settle) && !p.settle.length, f + '：parse 出 mates/settle 空陣列');
+  }
 }
 console.log('  （' + files.length + ' 份真實旅程）');
 

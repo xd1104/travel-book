@@ -42,7 +42,7 @@ function splashReady(){
 /* ============ 常數 ============ */
 /* 版本號的唯一來源：首頁 footer 與「版本」sheet 都讀它。
  * 改前端時跟 sw.js 的 cache 版本號一起 +1（見「版本與更新」段）。 */
-var APP_VER="3.19";
+var APP_VER="3.20";
 
 /* v3.13 分享連結：網址帶 ?share=<旅程 id 開頭> ⇒ 只載入那一趟、直接進旅程頁、全部唯讀。
  * 給家人看行程用：看不到首頁清單和其他旅程，也沒有編輯／解鎖入口。
@@ -2697,6 +2697,8 @@ var MD = null;
 function openMatesSheet(){
   if(!requireWrite("設定旅伴")) return;
   var t = curTrip(); if(!t) return;
+  if(!Array.isArray(t.mates)) t.mates = [];
+  if(!Array.isArray(t.settle)) t.settle = [];
   MD = { list: t.mates.length ? JSON.parse(JSON.stringify(t.mates))
            : [{id:uid(), name:krName().slice(0,8), isNew:true}, {id:uid(), name:"", isNew:true}],
          err:"" };
@@ -4304,6 +4306,7 @@ function submitTrip(ev){
     start:f.start.value, days:Math.min(30, Math.max(1, Number(f.days.value)||1)),
     budget:Number(f.budget.value)||0,
     fxCur:f.fxCur.value, fxRate:Number(f.fxRate.value)||0, fxBudget:Number(f.fxBudget.value)||0,
+    mates:[], settle:[],   /* v3.20：新建的旅程沒走 migrate，少這兩格會讓「設旅伴」點了沒反應 */
     createdAt:new Date().toISOString(),
     itinerary:{}, expenses:[], packing:packing, notes:""
   };
