@@ -22,7 +22,7 @@ updatedAt: "2026-11-17T02:53:53.260Z"
 - {"id":"xos110102","type":"transit","note":"JR 關空快速到大阪站（梅田）\n・車資 ¥1,210\n・時間約 1 小時多（估計，出發前查班次）","stayMinutes":75}
 - {"id":"xos110106","title":"梅田飯店 寄放行李","time":"12:45","cat":"stay","place":"大阪梅田","note":"・飯店待訂\n・還不能入住就先寄放行李，逛完再回來辦","stayMinutes":15}
 - {"id":"xos110103","title":"萬野 壽喜燒（午餐）","time":"13:00","cat":"food","place":"すき焼きしゃぶしゃぶ萬野 ルクア大阪店","note":"・LUCUA 10 樓，吃完直接逛\n・一人一鍋，選壽喜燒湯底\n・推薦「和牛綜合」120g ¥3,300（瘦肉＋五花）\n・要菜、飯、甜點要加價改套餐\n・午餐 11:00–16:00","stayMinutes":75}
-- {"id":"xos110110","title":"LUCUA・LUCUA 1100","time":"14:30","cat":"shop","place":"LUCUA osaka","note":"・JR 大阪站旁，兩棟連在一起，有空橋相通\n・商店 10:30–20:30（B2 美食街到 23:00）\n・LUCUA 1100（西館，偏年輕、價格較平）：\n　3F @cosme 旗艦（美妝，關門前排很長，自助結帳多）\n　B1 UNIQLO、GU｜迪士尼主題店｜9F 蔦屋書店\n　1F 手作市場、6F Lycka（平價可愛飾品）｜6F mont-bell、KEEN\n　香氛櫃很多：Aux Paradis、the perfume oil factory\n・LUCUA（東館）：只看湯姆貓與傑利鼠專賣店\n　（Dcard 寫 2024/3 開幕，官方資料查不到，出發前確認還在不在）\n・⚠ SHIRO 香氛別在 1100 買（網友說不能退稅，心齋橋大丸可以）\n・各櫃獨立退稅，部分品牌 95 折\n・旁邊 LUCUA SOUTH（原大丸 10～16F）：角色商品樓層\n・中間可以回飯店辦入住、放戰利品","stayMinutes":270}
+- {"id":"xos110110","title":"LUCUA・LUCUA 1100","time":"14:30","cat":"shop","place":"LUCUA osaka","note":"🛒 LUCUA 1100：\n・3F @cosme（美妝）\n・B1 UNIQLO、GU\n・迪士尼、9F 蔦屋書店\n・1F 手作市場、6F Lycka（飾品）\n🛒 LUCUA：湯姆貓與傑利鼠專賣店（出發前確認還在）\n💳 各櫃自己退稅\n⚠ SHIRO 香氛別在這買（不能退稅）\n⏰ 10:30–20:30","stayMinutes":270}
 - {"id":"xos110107","title":"百貨地下街 買熟食","time":"19:00","cat":"food","place":"阪神梅田本店","note":"・B1 熟食區很大，招牌烤魷魚（いか焼き）\n・對面阪急 B1 甜點、伴手禮多\n・兩家都 20:00 關門，19:00 前到\n・買完直接回飯店吃，路上便利商店補飲料宵夜\n・🍰 HARBS：大丸梅田 B1 有外帶店（營業時間沒查），6F 內用到 20:00","stayMinutes":60}
 - {"id":"xos110112","type":"transit","note":"阪神百貨走到梅田綜合果汁（Google 地圖走路 1 分、76 公尺）","stayMinutes":5}
 - {"id":"xos110223","title":"梅田綜合果汁","time":"20:05","cat":"food","place":"梅田ミックスジュース","note":"・阪神梅田站地下，站著喝\n・每天 07:00–22:00（Google 地圖）\n・阪神百貨走過去 1 分鐘，買完熟食順路喝","stayMinutes":15}
@@ -33,15 +33,15 @@ updatedAt: "2026-11-17T02:53:53.260Z"
 - {"id":"xos110224","type":"transit","note":"走到阪急 Grand Building（Google 地圖走路 8～9 分、600 公尺）","stayMinutes":10}
 - {"id":"xos110225","title":"grenier 烤布蕾千層酥","time":"09:40","cat":"food","place":"grenier 梅田店","note":"・Dcard 最多人推的梅田甜點\n・10:00 開門，先去排（排隊＋等餐約 20–30 分）\n・阪急 Grand Building 1F","stayMinutes":65}
 - {"id":"xos110241","type":"transit","note":"grenier 走到 HEP FIVE（Google 地圖走路 1 分、80 公尺）","stayMinutes":5}
-- {"id":"xos110240","title":"逛 HEP FIVE（上半場）","time":"11:00","cat":"shop","place":"HEP FIVE","note":"・先逛一輪，12:10 出來吃午餐，吃完回來逛下半場\n・HEP FIVE 店家幾點開門還沒查到官方資料，出發前確認（摩天輪 11:00 開）","stayMinutes":70}
+- {"id":"xos110240","title":"逛 HEP FIVE（上半場）","time":"11:00","cat":"shop","place":"HEP FIVE","note":"・逛到 12:10 去吃午餐，吃完再回來\n・⚠ 開門時間出發前確認","stayMinutes":70}
 - {"id":"xos110239","type":"transit","note":"HEP FIVE 走到 EST 1F（Google 地圖走路 1 分、80 公尺）","stayMinutes":5}
 - {"id":"xos110227","title":"ねぎ焼 山本（午餐）","time":"12:15","cat":"food","place":"ねぎ焼やまもと 梅田エスト店","note":"・EST 1F（EST 暫定不逛，只來吃午餐）\n・蔥燒（用蔥取代高麗菜的大阪燒）\n・週日 11:30–21:00","stayMinutes":55}
 - {"id":"xos110234","type":"transit","note":"EST 走到 HEP FIVE（Google 地圖走路 1 分、80 公尺，地下通道也通）","stayMinutes":5}
-- {"id":"xos110231","title":"逛 HEP FIVE（下半場）","time":"13:15","cat":"shop","place":"HEP FIVE","note":"・跟 EST 同一區，地下通道直通，走路 1 分\n・約 170 間店，年輕人潮流服飾\n・台灣人愛逛：吉伊卡哇（magical chiikawa store）、三麗鷗、迪士尼、蠟筆小新、3COINS\n・9F 扭蛋區＋大頭貼（機台數金氏紀錄）\n📌 待定：\n・摩天輪暫定不坐（7F 搭乘，約 ¥1,000、一圈 15 分，11:00–23:00）\n・隔壁 EST 暫定不逛（snidel、Lily Brown、Samantha Vega）\n・阪急三番街暫定不去（KIDDY LAND 角色商品、CHIIKAWA LAND 吉伊卡哇，北館 B1～1F，10:00–21:00，阪急梅田站正下方）","stayMinutes":145}
+- {"id":"xos110231","title":"逛 HEP FIVE（下半場）","time":"13:15","cat":"shop","place":"HEP FIVE","note":"🛒 吉伊卡哇、三麗鷗、迪士尼、蠟筆小新、3COINS\n🛒 9F 扭蛋＋大頭貼\n📌 待定：摩天輪、隔壁 EST、阪急三番街","stayMinutes":145}
 - {"id":"xos110235","type":"transit","note":"HEP FIVE 走到新梅田食道街（Google 地圖走路 4 分、270 公尺）","stayMinutes":5}
 - {"id":"xos110228","title":"Hanadako 章魚燒","time":"15:45","cat":"food","place":"はなだこ 新梅田食道街","note":"・新梅田食道街 1F\n・份量大，兩人分一份\n・週日 10:00–21:45","stayMinutes":30}
 - {"id":"xos110229","type":"transit","note":"走到大阪站北邊 Grand Front（Google 地圖走路 5～6 分、約 400 公尺）","stayMinutes":10}
-- {"id":"xos110230","title":"逛 Grand Front","time":"16:30","cat":"shop","place":"グランフロント大阪","note":"・生活雜貨、選貨店\n・知名店：無印良品 關西最大店（北館 2～4F）\n・北館 2F 伊織：今治毛巾，富士山、櫻花圖案，適合當伴手禮\n・南館 B1 美食街 Umekita Cellar\n・商店 11:00–21:00\n・🍰 HARBS：旁邊大丸梅田 6F 內用（11:00–20:00），B1 外帶；阪急三番街 B1 也有","stayMinutes":145}
+- {"id":"xos110230","title":"逛 Grand Front","time":"16:30","cat":"shop","place":"グランフロント大阪","note":"🛒 無印良品 關西最大（北館 2～4F）\n🛒 北館 2F 伊織 今治毛巾（伴手禮）\n🍰 HARBS：隔壁大丸 6F\n⏰ 11:00–21:00","stayMinutes":145}
 - {"id":"xos110236","type":"transit","note":"Grand Front 走到大阪站 INNOGATE（Google 地圖走路 3～4 分、約 250 公尺）","stayMinutes":5}
 - {"id":"xos110221","title":"鴨與蔥 拉麵（晚餐）","time":"19:00","cat":"food","place":"Ramen Kamo to Negi Osaka Umeda Branch","note":"・大阪站 INNOGATE 大阪 3 樓\n・鴨湯拉麵\n・開到 23:00","stayMinutes":60}
 
