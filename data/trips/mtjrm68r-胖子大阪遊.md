@@ -11,7 +11,7 @@ fxRate: 0
 fxBudget: 0
 mates: [{"id":"xmwk3kscxp4ao","name":"肚"},{"id":"xmwk3kscx56he","name":"黏"}]
 createdAt: "2026-09-02T07:18:59.356Z"
-updatedAt: "2026-11-17T02:53:14.249Z"
+updatedAt: "2026-11-17T02:53:44.248Z"
 ---
 
 ## 行程
@@ -98,6 +98,7 @@ updatedAt: "2026-11-17T02:53:14.249Z"
 
 ## 花費
 
+- {"id":"xmwk3lspp0p5w","amount":1000,"cat":"food","desc":"","day":"pre","payer":"xmwk3kscxp4ao"}
 
 ## 打包
 
