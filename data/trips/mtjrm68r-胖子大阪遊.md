@@ -22,7 +22,7 @@ updatedAt: "2026-11-17T02:53:53.260Z"
 - {"id":"xos110102","type":"transit","note":"JR 關空快速到大阪站（梅田）\n・車資 ¥1,210\n・時間約 1 小時多（估計，出發前查班次）","stayMinutes":75}
 - {"id":"xos110106","title":"梅田飯店 寄放行李","time":"12:45","cat":"stay","place":"大阪梅田","note":"・飯店待訂\n・還不能入住就先寄放行李，逛完再回來辦","stayMinutes":15}
 - {"id":"xos110103","title":"萬野 壽喜燒（午餐）","time":"13:00","cat":"food","place":"すき焼きしゃぶしゃぶ萬野 ルクア大阪店","note":"・LUCUA 10 樓，吃完直接逛\n・一人一鍋，選壽喜燒湯底\n・推薦「和牛綜合」120g ¥3,300（瘦肉＋五花）\n・要菜、飯、甜點要加價改套餐\n・午餐 11:00–16:00","stayMinutes":75}
-- {"id":"xos110110","title":"LUCUA・LUCUA 1100","time":"14:30","cat":"shop","place":"LUCUA osaka","note":"・JR 大阪站旁，兩棟連在一起\n・商店 10:30–20:30（B2 美食街到 23:00）\n・中間可以回飯店辦入住、放戰利品","stayMinutes":270}
+- {"id":"xos110110","title":"LUCUA・LUCUA 1100","time":"14:30","cat":"shop","place":"LUCUA osaka","note":"・JR 大阪站旁，兩棟連在一起\n・商店 10:30–20:30（B2 美食街到 23:00）\n・LUCUA 1100（西館）知名店：@cosme OSAKA（500 多個彩妝品牌）、伊勢丹選物（isetan cosmetics、Urban Market）、迪士尼商品店、UNIQLO、GU\n・LUCUA 1100 9F 梅田蔦屋書店：整層樓，書＋雜貨，書牆很好拍\n・LUCUA（東館）：年輕男女服飾，有大阪／關西限定款；B2 バルチカ、LUCUA FOOD HALL 小吃\n・旁邊 LUCUA SOUTH（原大丸 10～16F）：2026/4 新開，好幾層角色商品店\n・中間可以回飯店辦入住、放戰利品","stayMinutes":270}
 - {"id":"xos110107","title":"百貨地下街 買熟食","time":"19:00","cat":"food","place":"阪神梅田本店","note":"・B1 熟食區很大，招牌烤魷魚（いか焼き）\n・對面阪急 B1 甜點、伴手禮多\n・兩家都 20:00 關門，19:00 前到\n・買完直接回飯店吃，路上便利商店補飲料宵夜\n・🍰 HARBS：大丸梅田 B1 有外帶店（營業時間沒查），6F 內用到 20:00","stayMinutes":60}
 - {"id":"xos110112","type":"transit","note":"阪神百貨走到梅田綜合果汁（Google 地圖走路 1 分、76 公尺）","stayMinutes":5}
 - {"id":"xos110223","title":"梅田綜合果汁","time":"20:05","cat":"food","place":"梅田ミックスジュース","note":"・阪神梅田站地下，站著喝\n・每天 07:00–22:00（Google 地圖）\n・阪神百貨走過去 1 分鐘，買完熟食順路喝","stayMinutes":15}
