@@ -23,7 +23,7 @@ updatedAt: "2026-11-17T02:53:53.260Z"
 - {"id":"xos110106","title":"梅田飯店 寄放行李","time":"12:45","cat":"stay","place":"大阪梅田","note":"・飯店待訂\n・還不能入住就先寄放行李，逛完再回來辦","stayMinutes":15}
 - {"id":"xos110103","title":"萬野 壽喜燒（午餐）","time":"13:00","cat":"food","place":"すき焼きしゃぶしゃぶ萬野 ルクア大阪店","note":"・LUCUA 10 樓，吃完直接逛\n・一人一鍋，選壽喜燒湯底\n・推薦「和牛綜合」120g ¥3,300（瘦肉＋五花）\n・要菜、飯、甜點要加價改套餐\n・午餐 11:00–16:00","stayMinutes":75}
 - {"id":"xos110110","title":"LUCUA・LUCUA 1100","time":"14:30","cat":"shop","place":"LUCUA osaka","note":"・JR 大阪站旁，兩棟連在一起\n・商店 10:30–20:30（B2 美食街到 23:00）\n・中間可以回飯店辦入住、放戰利品","stayMinutes":270}
-- {"id":"xos110107","title":"百貨地下街 買熟食","time":"19:00","cat":"food","place":"阪神梅田本店","note":"・B1 熟食區很大，招牌烤魷魚（いか焼き）\n・對面阪急 B1 甜點、伴手禮多\n・兩家都 20:00 關門，19:00 前到\n・買完直接回飯店吃，路上便利商店補飲料宵夜","stayMinutes":60}
+- {"id":"xos110107","title":"百貨地下街 買熟食","time":"19:00","cat":"food","place":"阪神梅田本店","note":"・B1 熟食區很大，招牌烤魷魚（いか焼き）\n・對面阪急 B1 甜點、伴手禮多\n・兩家都 20:00 關門，19:00 前到\n・買完直接回飯店吃，路上便利商店補飲料宵夜\n・🍰 HARBS：大丸梅田 B1 有外帶店（營業時間沒查），6F 內用到 20:00","stayMinutes":60}
 
 ### Day 2
 
@@ -36,7 +36,7 @@ updatedAt: "2026-11-17T02:53:53.260Z"
 - {"id":"xos110231","title":"逛 HEP FIVE＋摩天輪","time":"13:15","cat":"shop","place":"HEP FIVE","note":"・跟 EST 同一區，走路 3～5 分\n・學生、年輕人服飾\n・摩天輪約 ¥1,000、轉一圈 15 分","stayMinutes":150}
 - {"id":"xos110228","title":"Hanadako 章魚燒","time":"15:45","cat":"food","place":"はなだこ 新梅田食道街","note":"・新梅田食道街 1F\n・份量大，兩人分一份\n・週日 10:00–21:45","stayMinutes":30}
 - {"id":"xos110229","type":"transit","note":"走到大阪站北邊 Grand Front（約 10 分，估計）","stayMinutes":15}
-- {"id":"xos110230","title":"逛 Grand Front","time":"16:30","cat":"shop","place":"グランフロント大阪","note":"・生活雜貨、選貨店、關西最大無印良品（三層樓）\n・商店 11:00–21:00","stayMinutes":150}
+- {"id":"xos110230","title":"逛 Grand Front","time":"16:30","cat":"shop","place":"グランフロント大阪","note":"・生活雜貨、選貨店、關西最大無印良品（三層樓）\n・商店 11:00–21:00\n・🍰 HARBS：旁邊大丸梅田 6F 內用（11:00–20:00），B1 外帶；阪急三番街 B1 也有","stayMinutes":150}
 - {"id":"xos110221","title":"鴨與蔥 拉麵（晚餐）","time":"19:00","cat":"food","place":"Ramen Kamo to Negi Osaka Umeda Branch","note":"・大阪站 INNOGATE 大阪 3 樓\n・鴨湯拉麵\n・開到 23:00","stayMinutes":60}
 
 ### Day 3
@@ -67,7 +67,7 @@ updatedAt: "2026-11-17T02:53:53.260Z"
 - {"id":"xos110608","title":"難波飯店入住","time":"17:15","cat":"stay","place":"大阪難波","note":"飯店待訂","stayMinutes":60}
 - {"id":"xos110609","title":"道頓堀 晚餐","time":"18:15","cat":"food","place":"道頓堀","note":"章魚燒、大阪燒","stayMinutes":90}
 - {"id":"xos110610","title":"法善寺橫丁","time":"19:45","cat":"sight","place":"法善寺橫丁","note":"晚上的石板小巷","stayMinutes":30}
-- {"id":"xos110611","title":"心齋橋 逛街","time":"20:15","cat":"shop","place":"心齋橋筋商店街","note":"藥妝、伴手禮","stayMinutes":90}
+- {"id":"xos110611","title":"心齋橋 逛街","time":"20:15","cat":"shop","place":"心齋橋筋商店街","note":"藥妝、伴手禮\n・🍰 HARBS：心齋橋 PARCO 3F（營業時間沒查，晚上可能已關）","stayMinutes":90}
 
 ### Day 5
 
@@ -80,7 +80,7 @@ updatedAt: "2026-11-17T02:53:53.260Z"
 - {"id":"xos110200","type":"transit","note":"難波 → 大阪城（路線排定後再查）","stayMinutes":30}
 - {"id":"xos110201","title":"大阪城公園","time":"09:00","cat":"sight","place":"大阪城公園","note":"・公園東側銀杏大道（11 月底正黃）\n・天守閣 9:00–18:00，大人 ¥1,200\n・車站走到天守閣約 20 分，穿好走的鞋","stayMinutes":150}
 - {"id":"xos110202","type":"transit","note":"JR 環狀線 大阪城公園站 → 天王寺站（同一條線，約 15 分，估計）","stayMinutes":30}
-- {"id":"xos110205","title":"天王寺 下午 待定","time":"12:00","cat":"other","place":"天王寺","note":"候選：\n・天王寺吃午餐\n・慶澤園賞楓（9:30–17:00，16:30 前入園，¥300，例年 11 月下旬～12 月上旬最美）\n・近鐵百貨、Q's Mall 逛街","stayMinutes":240}
+- {"id":"xos110205","title":"天王寺 下午 待定","time":"12:00","cat":"other","place":"天王寺","note":"候選：\n・天王寺吃午餐\n・慶澤園賞楓（9:30–17:00，16:30 前入園，¥300，例年 11 月下旬～12 月上旬最美）\n・近鐵百貨、Q's Mall 逛街\n・🍰 HARBS：近鐵百貨 Wing 館 3F（11:00–20:00），看夜景前吃下午茶","stayMinutes":240}
 - {"id":"xos110211","title":"阿倍野 HARUKAS 夕陽＋夜景","time":"16:00","cat":"sight","place":"ハルカス300","note":"・日落約 16:49，先看白天再看夕陽、夜景\n・WEB 預售 ¥1,980（現場 ¥2,200）\n・9:00–22:00，21:30 前入場\n・先在網路買票","stayMinutes":120}
 - {"id":"xos110212","title":"阿倍野 晚餐","time":"18:00","cat":"food","place":"あべのハルカスダイニング","note":"・HARUKAS 12～14 樓餐廳街，開到 23:00\n・店家待選（候選：利久牛舌、KYK 炸豬排、京都勝牛、Gosakutei 壽司天婦羅）","stayMinutes":75}
 - {"id":"xos110213","type":"transit","note":"地鐵御堂筋線 天王寺 → 難波（直達，約 10 分，估計）","stayMinutes":20}
