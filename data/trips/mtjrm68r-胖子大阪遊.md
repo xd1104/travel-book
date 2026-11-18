@@ -19,10 +19,10 @@ updatedAt: "2026-11-17T02:53:53.260Z"
 ### Day 1
 
 - {"id":"xos110101","title":"抵達關西機場","time":"10:40","cat":"transport","place":"關西國際機場","note":"・暫定廉航小港 ↔ 關西來回（還沒訂）\n・用今年虎航 06:55 → 10:40 估，明年班表會變\n・行李要訂票時在網路先買，機場買貴一倍","stayMinutes":45}
-- {"id":"xos110102","type":"transit","note":"JR 關空快速到大阪站（梅田）\n・車資 ¥1,210\n・時間約 1 小時多（估計，出發前查班次）","stayMinutes":75}
+- {"id":"xos110102","type":"transit","note":"JR 關空快速到大阪站（梅田）\n・車資 ¥1,210（約 NT$250）\n・時間約 1 小時多（估計，出發前查班次）\n・台幣用 2026/11/18 台銀匯率 0.21 換算","stayMinutes":75}
 - {"id":"xos110106","title":"梅田飯店 寄放行李","time":"12:45","cat":"stay","place":"大阪梅田","note":"・飯店待訂\n・還不能入住就先寄放行李，逛完再回來辦","stayMinutes":15}
 - {"id":"xos110113","type":"transit","note":"飯店走到 LUCUA 10F 萬野\n・飯店還沒訂，時間先估 10 分\n・從 JR 大阪站走過去約 5 分（Google 地圖）","stayMinutes":10}
-- {"id":"xos110103","title":"萬野 壽喜燒（午餐）","time":"13:10","cat":"food","place":"すき焼きしゃぶしゃぶ萬野 ルクア大阪店","note":"・LUCUA 10 樓，吃完直接逛\n・一人一鍋，選壽喜燒湯底\n・推薦「和牛綜合」120g ¥3,300（瘦肉＋五花）\n・要菜、飯、甜點要加價改套餐\n・午餐 11:00–16:00","stayMinutes":75}
+- {"id":"xos110103","title":"萬野 壽喜燒（午餐）","time":"13:10","cat":"food","place":"すき焼きしゃぶしゃぶ萬野 ルクア大阪店","note":"・LUCUA 10 樓，吃完直接逛\n・一人一鍋，選壽喜燒湯底\n・推薦「和牛綜合」120g ¥3,300（約 NT$690）（瘦肉＋五花）\n・要菜、飯、甜點要加價改套餐\n・午餐 11:00–16:00\n・台幣用 2026/11/18 台銀匯率 0.21 換算","stayMinutes":75}
 - {"id":"xos110114","type":"transit","note":"搭電梯下樓，萬野就在 LUCUA 10F","stayMinutes":5}
 - {"id":"xos110110","title":"LUCUA・LUCUA 1100","time":"14:30","cat":"shop","place":"LUCUA osaka","note":"🛒 LUCUA 1100：\n・3F @cosme（美妝）\n・B1 UNIQLO、GU\n・迪士尼、9F 蔦屋書店\n・1F 手作市場、6F Lycka（飾品）\n🛒 LUCUA：\n・湯姆貓與傑利鼠專賣店（出發前確認還在）\n・8F 3COINS+plus（300 日圓雜貨，大型店）\n・9F Loft（文具、美妝、生活雜貨）\n💳 各櫃自己退稅\n⚠ SHIRO 香氛別在這買（不能退稅）\n⏰ 10:30–20:30","stayMinutes":260}
 - {"id":"xos110115","type":"transit","note":"LUCUA 走到阪神百貨（Google 地圖走路 8～9 分、約 400 公尺）","stayMinutes":10}
@@ -37,11 +37,11 @@ updatedAt: "2026-11-17T02:53:53.260Z"
 - {"id":"xos110224","type":"transit","note":"走到阪急 Grand Building（Google 地圖走路 8～9 分、600 公尺）","stayMinutes":10}
 - {"id":"xos110225","title":"grenier 烤布蕾千層酥","time":"09:40","cat":"food","place":"grenier 梅田店","note":"・Dcard 最多人推的梅田甜點\n・10:00 開門，先去排（排隊＋等餐約 20–30 分）\n・阪急 Grand Building 1F","stayMinutes":65}
 - {"id":"xos110241","type":"transit","note":"grenier 走到 HEP FIVE（Google 地圖走路 1 分、80 公尺）","stayMinutes":5}
-- {"id":"xos110240","title":"逛 HEP FIVE（上半場）","time":"11:00","cat":"shop","place":"HEP FIVE","note":"🎫 先領折價券：出示護照，滿 ¥3,000 折 ¥500（網友說在 1F 服務台或 B1 免稅櫃台）\n🛒 3F 甜美女裝：OLIVE des OLIVE、w closet（便宜）、Nice Claup、Ciaopanic\n🛒 4F 平價女裝：INGNI、Mysty Woman、Kastane、Ray Cassin、Chico\n・逛到 12:10 去吃午餐\n⚠ 開門時間出發前確認","stayMinutes":70}
+- {"id":"xos110240","title":"逛 HEP FIVE（上半場）","time":"11:00","cat":"shop","place":"HEP FIVE","note":"🎫 先領折價券：出示護照，滿 ¥3,000（約 NT$630） 折 ¥500（約 NT$100）（網友說在 1F 服務台或 B1 免稅櫃台）\n🛒 3F 甜美女裝：OLIVE des OLIVE、w closet（便宜）、Nice Claup、Ciaopanic\n🛒 4F 平價女裝：INGNI、Mysty Woman、Kastane、Ray Cassin、Chico\n・逛到 12:10 去吃午餐\n⚠ 開門時間出發前確認\n・台幣用 2026/11/18 台銀匯率 0.21 換算","stayMinutes":70}
 - {"id":"xos110239","type":"transit","note":"HEP FIVE 走到 EST 1F（Google 地圖走路 1 分、80 公尺）","stayMinutes":5}
 - {"id":"xos110227","title":"ねぎ焼 山本（午餐）","time":"12:15","cat":"food","place":"ねぎ焼やまもと 梅田エスト店","note":"・EST 1F（EST 暫定不逛，只來吃午餐）\n・蔥燒（用蔥取代高麗菜的大阪燒）\n・週日 11:30–21:00","stayMinutes":55}
 - {"id":"xos110234","type":"transit","note":"EST 走到 HEP FIVE（Google 地圖走路 1 分、80 公尺，地下通道也通）","stayMinutes":5}
-- {"id":"xos110231","title":"逛 HEP FIVE（下半場）","time":"13:15","cat":"shop","place":"HEP FIVE","note":"🛒 角色：吉伊卡哇、三麗鷗、迪士尼、蠟筆小新\n🛒 4F Lattice（飾品約 ¥300）、4F 3COINS+\n🛒 2F tutuanna（襪子 3 雙 ¥1,000）\n🛒 1F niko and…、BEAMS｜B1 Retro Girl\n🛒 9F 扭蛋＋大頭貼\n⚠ 便宜衣服看一下產地標\n📌 待定：摩天輪、隔壁 EST、阪急三番街","stayMinutes":145}
+- {"id":"xos110231","title":"逛 HEP FIVE（下半場）","time":"13:15","cat":"shop","place":"HEP FIVE","note":"🛒 角色：吉伊卡哇、三麗鷗、迪士尼、蠟筆小新\n🛒 4F Lattice（飾品約 ¥300（約 NT$60））、4F 3COINS+\n🛒 2F tutuanna（襪子 3 雙 ¥1,000（約 NT$210））\n🛒 1F niko and…、BEAMS｜B1 Retro Girl\n🛒 9F 扭蛋＋大頭貼\n⚠ 便宜衣服看一下產地標\n📌 待定：摩天輪、隔壁 EST、阪急三番街\n・台幣用 2026/11/18 台銀匯率 0.21 換算","stayMinutes":145}
 - {"id":"xos110235","type":"transit","note":"HEP FIVE 走到新梅田食道街（Google 地圖走路 4 分、270 公尺）","stayMinutes":5}
 - {"id":"xos110228","title":"Hanadako 章魚燒","time":"15:45","cat":"food","place":"はなだこ 新梅田食道街","note":"・新梅田食道街 1F\n・份量大，兩人分一份\n・週日 10:00–21:45","stayMinutes":30}
 - {"id":"xos110229","type":"transit","note":"走到大阪站北邊 Grand Front（Google 地圖走路 5～6 分、約 400 公尺）","stayMinutes":10}
@@ -52,7 +52,7 @@ updatedAt: "2026-11-17T02:53:53.260Z"
 ### Day 3
 
 - {"id":"xos110301","title":"梅田飯店退房","time":"08:30","cat":"stay","place":"大阪梅田","stayMinutes":15}
-- {"id":"xos110302","type":"transit","note":"JR 新快速 大阪站 → 京都站（約 30 分，¥580）","stayMinutes":45}
+- {"id":"xos110302","type":"transit","note":"JR 新快速 大阪站 → 京都站（約 30 分，¥580（約 NT$120））\n・台幣用 2026/11/18 台銀匯率 0.21 換算","stayMinutes":45}
 - {"id":"xos110303","title":"京都飯店 寄放行李","time":"09:30","cat":"stay","place":"京都","note":"・飯店待訂（建議京都車站附近：只住一晚，隔天行李寄車站）","stayMinutes":15}
 - {"id":"xos110304","type":"transit","note":"JR 奈良線到稻荷站","stayMinutes":25}
 - {"id":"xos110305","title":"伏見稻荷大社","time":"10:10","cat":"sight","place":"伏見稻荷大社","note":"千本鳥居，往上爬人會變少","stayMinutes":120}
@@ -88,23 +88,23 @@ updatedAt: "2026-11-17T02:53:53.260Z"
 ### Day 6
 
 - {"id":"xos110200","type":"transit","note":"難波 → 大阪城（路線排定後再查）","stayMinutes":30}
-- {"id":"xos110201","title":"大阪城公園","time":"09:00","cat":"sight","place":"大阪城公園","note":"・公園東側銀杏大道（11 月底正黃）\n・天守閣 9:00–18:00，大人 ¥1,200\n・車站走到天守閣約 20 分，穿好走的鞋","stayMinutes":150}
+- {"id":"xos110201","title":"大阪城公園","time":"09:00","cat":"sight","place":"大阪城公園","note":"・公園東側銀杏大道（11 月底正黃）\n・天守閣 9:00–18:00，大人 ¥1,200（約 NT$250）\n・車站走到天守閣約 20 分，穿好走的鞋\n・台幣用 2026/11/18 台銀匯率 0.21 換算","stayMinutes":150}
 - {"id":"xos110202","type":"transit","note":"JR 環狀線 大阪城公園站 → 天王寺站（同一條線，約 15 分，估計）","stayMinutes":30}
-- {"id":"xos110205","title":"天王寺 下午 待定","time":"12:00","cat":"other","place":"天王寺","note":"候選：\n・天王寺吃午餐\n・慶澤園賞楓（9:30–17:00，16:30 前入園，¥300，例年 11 月下旬～12 月上旬最美）\n・近鐵百貨、Q's Mall 逛街\n・🍰 HARBS：近鐵百貨 Wing 館 3F（11:00–20:00），看夜景前吃下午茶","stayMinutes":240}
-- {"id":"xos110211","title":"阿倍野 HARUKAS 夕陽＋夜景","time":"16:00","cat":"sight","place":"ハルカス300","note":"・日落約 16:49，先看白天再看夕陽、夜景\n・WEB 預售 ¥1,980（現場 ¥2,200）\n・9:00–22:00，21:30 前入場\n・先在網路買票","stayMinutes":120}
+- {"id":"xos110205","title":"天王寺 下午 待定","time":"12:00","cat":"other","place":"天王寺","note":"候選：\n・天王寺吃午餐\n・慶澤園賞楓（9:30–17:00，16:30 前入園，¥300（約 NT$60），例年 11 月下旬～12 月上旬最美）\n・近鐵百貨、Q's Mall 逛街\n・🍰 HARBS：近鐵百貨 Wing 館 3F（11:00–20:00），看夜景前吃下午茶\n・台幣用 2026/11/18 台銀匯率 0.21 換算","stayMinutes":240}
+- {"id":"xos110211","title":"阿倍野 HARUKAS 夕陽＋夜景","time":"16:00","cat":"sight","place":"ハルカス300","note":"・日落約 16:49，先看白天再看夕陽、夜景\n・WEB 預售 ¥1,980（約 NT$420）（現場 ¥2,200（約 NT$460））\n・9:00–22:00，21:30 前入場\n・先在網路買票\n・台幣用 2026/11/18 台銀匯率 0.21 換算","stayMinutes":120}
 - {"id":"xos110212","title":"阿倍野 晚餐","time":"18:00","cat":"food","place":"あべのハルカスダイニング","note":"・HARUKAS 12～14 樓餐廳街，開到 23:00\n・店家待選（候選：利久牛舌、KYK 炸豬排、京都勝牛、Gosakutei 壽司天婦羅）","stayMinutes":75}
 - {"id":"xos110213","type":"transit","note":"地鐵御堂筋線 天王寺 → 難波（直達，約 10 分，估計）","stayMinutes":20}
 
 ### Day 7
 
 - {"id":"xos110705","type":"transit","note":"① 地鐵御堂筋線 難波 → 千里中央（直通）\n② 轉阪急公車到「勝尾寺」（約 33 分）\n・平日公車少，先查時刻表\n・單程約 1 小時多（估計）","stayMinutes":75}
-- {"id":"xos110706","title":"勝尾寺","time":"09:15","cat":"sight","place":"勝尾寺","note":"・滿寺紅色小達摩，紅葉 11 月中～12 月初\n・大人 ¥500，8:00–17:00\n・入口拿印章明信片，園內 6 個蓋章點\n・逛 1～2 小時","stayMinutes":105}
+- {"id":"xos110706","title":"勝尾寺","time":"09:15","cat":"sight","place":"勝尾寺","note":"・滿寺紅色小達摩，紅葉 11 月中～12 月初\n・大人 ¥500（約 NT$100），8:00–17:00\n・入口拿印章明信片，園內 6 個蓋章點\n・逛 1～2 小時\n・台幣用 2026/11/18 台銀匯率 0.21 換算","stayMinutes":105}
 - {"id":"xos110707","type":"transit","note":"① 阪急公車回千里中央\n② 御堂筋線到梅田，走到中崎町（約 1 小時，估計）","stayMinutes":60}
 - {"id":"xos110708","title":"中崎町 午餐＋咖啡古著","time":"12:00","cat":"shop","place":"中崎町","note":"・老房子改的文青咖啡店、古著店、飾品小店\n・店都藏在小巷，先在 Google 地圖存好再走\n・想吃（還沒定）：\n  路地裏食堂マチュナガ 蛋包飯（週五午餐 11:30–14:00）\n  おにぎりごりちゃん 三角飯糰（07:00–20:30，分店多，去前確認地址）\n  Ourlog Coffee Roasters 南瓜起司蛋糕（10:00–19:00）","stayMinutes":150}
 - {"id":"xos110709","type":"transit","note":"走到天神橋筋商店街（距離沒查，估計 10～15 分）","stayMinutes":15}
 - {"id":"xos110710","title":"天神橋筋商店街","time":"14:45","cat":"shop","place":"天神橋筋商店街","note":"・號稱日本最長的商店街，生活感、平價小吃\n・網友推：鳴門鯛燒、中村可樂餅","stayMinutes":120}
 - {"id":"xos110711","type":"transit","note":"回難波飯店放東西（約 20～30 分，估計，出發前查路線）","stayMinutes":45}
-- {"id":"xos110712","title":"炭火燒肉 大歡（晚餐）","time":"18:30","cat":"food","place":"炭火焼肉 大歓 東心斎橋","note":"・東心齋橋，難波走路可到\n・17:00–24:00，週一休（這天週五 OK）\n・一人約 ¥4,000–9,000\n・先訂位","stayMinutes":90}
+- {"id":"xos110712","title":"炭火燒肉 大歡（晚餐）","time":"18:30","cat":"food","place":"炭火焼肉 大歓 東心斎橋","note":"・東心齋橋，難波走路可到\n・17:00–24:00，週一休（這天週五 OK）\n・一人約 ¥4,000–9,000（約 NT$840–1,890）\n・先訂位\n・台幣用 2026/11/18 台銀匯率 0.21 換算","stayMinutes":90}
 
 ### Day 8
 
@@ -120,6 +120,8 @@ updatedAt: "2026-11-17T02:53:53.260Z"
 
 
 ## 備註
+
+💱 日圓旁的台幣是 2026/11/18 台銀現鈔賣出 0.21 換算，匯率會變
 
 ✈️ 航班（都還沒訂）
 暫定：廉航 小港 ↔ 關西 來回（虎航／樂桃／亞航）
@@ -140,7 +142,7 @@ Day 4～7（二～五）：大阪難波
 ・京都還沒排的：清水寺、二年坂三年坂、南禪寺、哲學之道→銀閣寺、祇園・花見小路・錦市場、永觀堂夜楓（要拿掉哪些之後再談）
 
 🍖 一定要去吃（還沒排哪天）
-・炭火燒肉 大歡（東心齋橋，難波走路可到；Google 4.4；只有晚上 17:00–24:00，週一休；一人約 ¥4,000–9,000）
+・炭火燒肉 大歡（東心齋橋，難波走路可到；Google 4.4；只有晚上 17:00–24:00，週一休；一人約 ¥4,000–9,000（約 NT$840–1,890））
   → 暫排 Day 7 晚上
 ・雞湯拉麵 座銀（鶏soba 座銀）
   → 南船場店（心齋橋旁，離難波近）Google 4.5，每天 10:00–22:00
