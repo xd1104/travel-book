@@ -72,7 +72,8 @@ updatedAt: "2026-11-17T02:53:53.260Z"
 - {"id":"xos110405","title":"嵐山 午餐","time":"11:00","cat":"food","place":"嵐山","note":"店家待選","stayMinutes":60}
 - {"id":"xos110406","type":"transit","note":"到金閣寺","stayMinutes":45}
 - {"id":"xos110407","title":"金閣寺","time":"12:45","cat":"sight","place":"金閣寺","stayMinutes":75}
-- {"id":"xos110409","title":"京都 下午 待定","time":"14:00","cat":"other","place":"京都","note":"京都景點還要再談（要放哪些、拿掉哪些）","stayMinutes":120}
+- {"id":"xos110412","type":"transit","note":"金閣寺 → 清水寺（計程車約 25～30 分，公車要轉車更久；估計）","stayMinutes":45}
+- {"id":"xos110409","title":"清水寺＋二年坂・三年坂（暫定）","time":"14:45","cat":"sight","place":"清水寺","note":"・白天看得到清水舞台和京都市景\n・逛完直接搭計程車回京都車站，時間偏趕\n・京都其他景點還要再談（要放哪些、拿掉哪些）","stayMinutes":75}
 - {"id":"xos110410","type":"transit","note":"① 回京都車站拿行李\n② JR 新快速到大阪站，換地鐵御堂筋線到難波（約 1 小時，估計）","stayMinutes":75}
 - {"id":"xos110608","title":"難波飯店入住","time":"17:15","cat":"stay","place":"大阪難波","note":"飯店待訂","stayMinutes":60}
 - {"id":"xos110609","title":"道頓堀 晚餐","time":"18:15","cat":"food","place":"道頓堀","note":"章魚燒、大阪燒","stayMinutes":90}
