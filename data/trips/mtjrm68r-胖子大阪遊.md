@@ -11,7 +11,7 @@ fxRate: 0
 fxBudget: 0
 mates: [{"id":"xmwk3kscxp4ao","name":"肚"},{"id":"xmwk3kscx56he","name":"黏"}]
 createdAt: "2026-09-02T07:18:59.356Z"
-updatedAt: "2026-11-18T09:03:50.926Z"
+updatedAt: "2026-11-18T09:04:30.701Z"
 ---
 
 ## 行程
@@ -66,19 +66,19 @@ updatedAt: "2026-11-18T09:03:50.926Z"
 
 - {"id":"xos110400","title":"京都飯店退房","time":"07:00","cat":"stay","place":"京都","note":"・大行李寄京都車站投幣置物櫃\n・晚上回車站拿","stayMinutes":20}
 - {"id":"xos110401","type":"transit","note":"JR 嵯峨野線 京都站 → 嵯峨嵐山站","stayMinutes":45}
-- {"id":"xos110402","title":"嵐山竹林小徑","time":"07:45","cat":"sight","place":"嵐山竹林小徑","note":"早上 8 點前人最少","stayMinutes":60}
-- {"id":"xos110403","title":"天龍寺","time":"08:45","cat":"sight","place":"天龍寺","note":"8:30 開門","stayMinutes":60}
+- {"id":"xos110402","title":"嵐山竹林小徑","time":"08:05","cat":"sight","place":"嵐山竹林小徑","note":"早上 8 點前人最少","stayMinutes":60}
+- {"id":"xos110403","title":"天龍寺","time":"09:05","cat":"sight","place":"天龍寺","note":"8:30 開門","stayMinutes":60}
 - {"id":"xos110413","type":"transit","note":"天龍寺走到トロッコ嵯峨站（JR 嵯峨嵐山站旁）","stayMinutes":15}
-- {"id":"xos110414","title":"嵯峨野小火車","time":"10:00","cat":"sight","place":"トロッコ嵯峨駅","note":"・嵯峨 → 龜岡單程約 25 分，看保津峽紅葉，再走到 JR 馬堀站搭回嵯峨嵐山\n・單程 ¥880（約 NT$190，2026/11/18 匯率 0.2108），乘車前 1 個月 00:00 網路開賣，紅葉季很快賣完\n・⚠️ 2027 年換新車，時刻和票價還沒公布，10 點是照現在班表估的","stayMinutes":90}
-- {"id":"xos110404","title":"渡月橋","time":"11:30","cat":"sight","place":"渡月橋","stayMinutes":30}
-- {"id":"xos110405","title":"嵐山 午餐","time":"12:00","cat":"food","place":"嵐山","note":"店家待選","stayMinutes":60}
+- {"id":"xos110414","title":"嵯峨野小火車","time":"10:20","cat":"sight","place":"トロッコ嵯峨駅","note":"・嵯峨 → 龜岡單程約 25 分，看保津峽紅葉，再走到 JR 馬堀站搭回嵯峨嵐山\n・單程 ¥880（約 NT$190，2026/11/18 匯率 0.2108），乘車前 1 個月 00:00 網路開賣，紅葉季很快賣完\n・⚠️ 2027 年換新車，時刻和票價還沒公布，10 點是照現在班表估的","stayMinutes":90}
+- {"id":"xos110404","title":"渡月橋","time":"11:50","cat":"sight","place":"渡月橋","stayMinutes":30}
+- {"id":"xos110405","title":"嵐山 午餐","time":"12:20","cat":"food","place":"嵐山","note":"店家待選","stayMinutes":60}
 - {"id":"xos110406","type":"transit","note":"嵐山 → 清水寺（計程車約 35～40 分，公車更久；估計）","stayMinutes":60}
-- {"id":"xos110409","title":"清水寺＋二年坂・三年坂（暫定）","time":"14:00","cat":"sight","place":"清水寺","note":"・白天看得到清水舞台和京都市景\n・逛完搭計程車回京都車站拿行李\n・京都其他景點還要再談（要放哪些、拿掉哪些）","stayMinutes":120}
+- {"id":"xos110409","title":"清水寺＋二年坂・三年坂（暫定）","time":"14:20","cat":"sight","place":"清水寺","note":"・白天看得到清水舞台和京都市景\n・逛完搭計程車回京都車站拿行李\n・京都其他景點還要再談（要放哪些、拿掉哪些）","stayMinutes":120}
 - {"id":"xos110410","type":"transit","note":"① 回京都車站拿行李\n② JR 新快速到大阪站，換地鐵御堂筋線到難波（約 1 小時，估計）","stayMinutes":75}
-- {"id":"xos110608","title":"難波飯店入住","time":"17:15","cat":"stay","place":"大阪難波","note":"飯店待訂","stayMinutes":60}
-- {"id":"xos110609","title":"道頓堀 晚餐","time":"18:15","cat":"food","place":"道頓堀","note":"章魚燒、大阪燒","stayMinutes":90}
-- {"id":"xos110610","title":"法善寺橫丁","time":"19:45","cat":"sight","place":"法善寺橫丁","note":"晚上的石板小巷","stayMinutes":30}
-- {"id":"xos110611","title":"心齋橋 逛街","time":"20:15","cat":"shop","place":"心齋橋筋商店街","note":"藥妝、伴手禮\n・🍰 HARBS：心齋橋 PARCO 3F（營業時間沒查，晚上可能已關）","stayMinutes":90}
+- {"id":"xos110608","title":"難波飯店入住","time":"17:35","cat":"stay","place":"大阪難波","note":"飯店待訂","stayMinutes":60}
+- {"id":"xos110609","title":"道頓堀 晚餐","time":"18:35","cat":"food","place":"道頓堀","note":"章魚燒、大阪燒","stayMinutes":90}
+- {"id":"xos110610","title":"法善寺橫丁","time":"20:05","cat":"sight","place":"法善寺橫丁","note":"晚上的石板小巷","stayMinutes":30}
+- {"id":"xos110611","title":"心齋橋 逛街","time":"20:35","cat":"shop","place":"心齋橋筋商店街","note":"藥妝、伴手禮\n・🍰 HARBS：心齋橋 PARCO 3F（營業時間沒查，晚上可能已關）","stayMinutes":90}
 
 ### Day 5
 
