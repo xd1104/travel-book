@@ -11,7 +11,7 @@ fxRate: 0
 fxBudget: 0
 mates: [{"id":"xmwk3kscxp4ao","name":"肚"},{"id":"xmwk3kscx56he","name":"黏"}]
 createdAt: "2026-09-02T07:18:59.356Z"
-updatedAt: "2026-11-17T02:53:53.260Z"
+updatedAt: "2026-11-18T09:03:50.926Z"
 ---
 
 ## 行程
@@ -55,10 +55,10 @@ updatedAt: "2026-11-17T02:53:53.260Z"
 - {"id":"xos110302","type":"transit","note":"JR 新快速 大阪站 → 京都站（約 30 分，¥580（約 NT$120））\n・台幣用 2026/11/18 台銀匯率 0.21 換算","stayMinutes":45}
 - {"id":"xos110303","title":"京都飯店 寄放行李","time":"09:30","cat":"stay","place":"京都","note":"・飯店待訂（建議京都車站附近：只住一晚，隔天行李寄車站）","stayMinutes":15}
 - {"id":"xos110304","type":"transit","note":"JR 奈良線 京都站 → 東福寺站（1 站），走路到通天橋約 10 分","stayMinutes":20}
-- {"id":"xos110308","title":"東福寺 賞楓","time":"10:00","cat":"sight","place":"東福寺","note":"通天橋看楓葉\n・早上去人比下午少，週一也比週末好","stayMinutes":90}
+- {"id":"xos110308","title":"東福寺 賞楓","time":"10:05","cat":"sight","place":"東福寺","note":"通天橋看楓葉\n・早上去人比下午少，週一也比週末好","stayMinutes":90}
 - {"id":"xos110307","type":"transit","note":"東福寺 → 稻荷（JR 奈良線 1 站）","stayMinutes":15}
-- {"id":"xos110306","title":"午餐","time":"11:45","cat":"food","place":"伏見稻荷附近","note":"店家待選","stayMinutes":60}
-- {"id":"xos110305","title":"伏見稻荷大社","time":"12:45","cat":"sight","place":"伏見稻荷大社","note":"千本鳥居，下午山腳人多，往上爬人會變少\n・爬累了走到「四ツ辻」看完京都景色就下山","stayMinutes":120}
+- {"id":"xos110306","title":"午餐","time":"11:50","cat":"food","place":"伏見稻荷附近","note":"店家待選","stayMinutes":60}
+- {"id":"xos110305","title":"伏見稻荷大社","time":"12:50","cat":"sight","place":"伏見稻荷大社","note":"千本鳥居，下午山腳人多，往上爬人會變少\n・爬累了走到「四ツ辻」看完京都景色就下山","stayMinutes":120}
 - {"id":"xos110309","title":"京都飯店入住","time":"16:00","cat":"stay","place":"京都","stayMinutes":60}
 - {"id":"xos110310","title":"晚餐","time":"18:00","cat":"food","place":"京都","note":"店家待選","stayMinutes":60}
 
@@ -67,7 +67,7 @@ updatedAt: "2026-11-17T02:53:53.260Z"
 - {"id":"xos110400","title":"京都飯店退房","time":"07:00","cat":"stay","place":"京都","note":"・大行李寄京都車站投幣置物櫃\n・晚上回車站拿","stayMinutes":20}
 - {"id":"xos110401","type":"transit","note":"JR 嵯峨野線 京都站 → 嵯峨嵐山站","stayMinutes":45}
 - {"id":"xos110402","title":"嵐山竹林小徑","time":"07:45","cat":"sight","place":"嵐山竹林小徑","note":"早上 8 點前人最少","stayMinutes":60}
-- {"id":"xos110403","title":"天龍寺","time":"08:45","cat":"sight","place":"天龍寺","stayMinutes":60,"note":"8:30 開門"}
+- {"id":"xos110403","title":"天龍寺","time":"08:45","cat":"sight","place":"天龍寺","note":"8:30 開門","stayMinutes":60}
 - {"id":"xos110413","type":"transit","note":"天龍寺走到トロッコ嵯峨站（JR 嵯峨嵐山站旁）","stayMinutes":15}
 - {"id":"xos110414","title":"嵯峨野小火車","time":"10:00","cat":"sight","place":"トロッコ嵯峨駅","note":"・嵯峨 → 龜岡單程約 25 分，看保津峽紅葉，再走到 JR 馬堀站搭回嵯峨嵐山\n・單程 ¥880（約 NT$190，2026/11/18 匯率 0.2108），乘車前 1 個月 00:00 網路開賣，紅葉季很快賣完\n・⚠️ 2027 年換新車，時刻和票價還沒公布，10 點是照現在班表估的","stayMinutes":90}
 - {"id":"xos110404","title":"渡月橋","time":"11:30","cat":"sight","place":"渡月橋","stayMinutes":30}
