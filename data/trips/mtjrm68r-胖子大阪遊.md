@@ -54,11 +54,11 @@ updatedAt: "2026-11-17T02:53:53.260Z"
 - {"id":"xos110301","title":"梅田飯店退房","time":"08:30","cat":"stay","place":"大阪梅田","stayMinutes":15}
 - {"id":"xos110302","type":"transit","note":"JR 新快速 大阪站 → 京都站（約 30 分，¥580（約 NT$120））\n・台幣用 2026/11/18 台銀匯率 0.21 換算","stayMinutes":45}
 - {"id":"xos110303","title":"京都飯店 寄放行李","time":"09:30","cat":"stay","place":"京都","note":"・飯店待訂（建議京都車站附近：只住一晚，隔天行李寄車站）","stayMinutes":15}
-- {"id":"xos110304","type":"transit","note":"JR 奈良線到稻荷站","stayMinutes":25}
-- {"id":"xos110305","title":"伏見稻荷大社","time":"10:10","cat":"sight","place":"伏見稻荷大社","note":"千本鳥居，往上爬人會變少","stayMinutes":120}
-- {"id":"xos110306","title":"午餐","time":"12:10","cat":"food","place":"伏見稻荷附近","note":"店家待選","stayMinutes":60}
-- {"id":"xos110307","type":"transit","note":"到東福寺","stayMinutes":20}
-- {"id":"xos110308","title":"東福寺 賞楓","time":"13:30","cat":"sight","place":"東福寺","note":"通天橋看楓葉","stayMinutes":90}
+- {"id":"xos110304","type":"transit","note":"JR 奈良線 京都站 → 東福寺站（1 站），走路到通天橋約 10 分","stayMinutes":20}
+- {"id":"xos110308","title":"東福寺 賞楓","time":"10:00","cat":"sight","place":"東福寺","note":"通天橋看楓葉\n・早上去人比下午少，週一也比週末好","stayMinutes":90}
+- {"id":"xos110307","type":"transit","note":"東福寺 → 稻荷（JR 奈良線 1 站）","stayMinutes":15}
+- {"id":"xos110306","title":"午餐","time":"11:45","cat":"food","place":"伏見稻荷附近","note":"店家待選","stayMinutes":60}
+- {"id":"xos110305","title":"伏見稻荷大社","time":"12:45","cat":"sight","place":"伏見稻荷大社","note":"千本鳥居，下午山腳人多，往上爬人會變少\n・爬累了走到「四ツ辻」看完京都景色就下山","stayMinutes":120}
 - {"id":"xos110309","title":"京都飯店入住","time":"16:00","cat":"stay","place":"京都","stayMinutes":60}
 - {"id":"xos110310","title":"晚餐","time":"18:00","cat":"food","place":"京都","note":"店家待選","stayMinutes":60}
 
