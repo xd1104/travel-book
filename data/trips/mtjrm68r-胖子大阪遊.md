@@ -45,7 +45,7 @@ updatedAt: "2026-11-18T09:04:30.701Z"
 - {"id":"xos110235","type":"transit","note":"HEP FIVE 走到新梅田食道街（Google 地圖走路 4 分、270 公尺）","stayMinutes":5}
 - {"id":"xos110228","title":"Hanadako 章魚燒","time":"15:45","cat":"food","place":"はなだこ 新梅田食道街","note":"・新梅田食道街 1F\n・份量大，兩人分一份\n・週日 10:00–21:45","stayMinutes":30}
 - {"id":"xos110229","type":"transit","note":"走到大阪站北邊 Grand Front（Google 地圖走路 5～6 分、約 400 公尺）","stayMinutes":10}
-- {"id":"xos110230","title":"逛 Grand Front","time":"16:30","cat":"shop","place":"グランフロント大阪","note":"🛒 無印良品 關西最大（北館 2～4F）\n🛒 北館 2F 伊織 今治毛巾（伴手禮）\n🛒 5F mont-bell（這家可以退稅）\n🎄 北館 1F 聖誕樹（11 月底應該有，往年都有）\n🌳 南館 9F 空中花園（免費）\n🍰 HARBS：隔壁大丸 6F｜🧋 B1 春水堂\n🎫 用 HEP FIVE 領的折價券\n⏰ 11:00–21:00","stayMinutes":145}
+- {"id":"xos110230","title":"逛 Grand Front","time":"16:30","cat":"shop","place":"グランフロント大阪","note":"🛒 無印良品 關西最大（北館 2～4F）\n🛒 北館 2F 伊織 今治毛巾（伴手禮）\n🛒 5F mont-bell（這家可以退稅）\n🎄 北館 1F 聖誕樹（11 月底應該有，往年都有）\n🎄 順路：梅田藍天大廈聖誕市集（Grand Front 北邊，走路約 10 分，估計；2026 年 11/13～12/25，時間沒查到）\n🌳 南館 9F 空中花園（免費）\n🍰 HARBS：隔壁大丸 6F｜🧋 B1 春水堂\n🎫 用 HEP FIVE 領的折價券\n⏰ 11:00–21:00","stayMinutes":145}
 - {"id":"xos110236","type":"transit","note":"Grand Front 走到大阪站 INNOGATE（Google 地圖走路 3～4 分、約 250 公尺）","stayMinutes":5}
 - {"id":"xos110221","title":"鴨與蔥 拉麵（晚餐）","time":"19:00","cat":"food","place":"Ramen Kamo to Negi Osaka Umeda Branch","note":"・大阪站 INNOGATE 大阪 3 樓\n・鴨湯拉麵\n・開到 23:00","stayMinutes":60}
 
@@ -60,7 +60,12 @@ updatedAt: "2026-11-18T09:04:30.701Z"
 - {"id":"xos110306","title":"午餐","time":"11:50","cat":"food","place":"伏見稻荷附近","note":"店家待選","stayMinutes":60}
 - {"id":"xos110305","title":"伏見稻荷大社","time":"12:50","cat":"sight","place":"伏見稻荷大社","note":"千本鳥居，下午山腳人多，往上爬人會變少\n・爬累了走到「四ツ辻」看完京都景色就下山","stayMinutes":120}
 - {"id":"xos110309","title":"京都飯店入住","time":"16:00","cat":"stay","place":"京都","stayMinutes":60}
-- {"id":"xos110310","title":"晚餐","time":"18:00","cat":"food","place":"京都","note":"店家待選","stayMinutes":60}
+- {"id":"xos110311","type":"transit","note":"京都站 → 祇園（市巴士或計程車約 20 分，估計）","stayMinutes":30}
+- {"id":"xos110310","title":"晚餐","time":"18:00","cat":"food","place":"祇園","note":"店家待選（祇園、花見小路一帶）","stayMinutes":60}
+- {"id":"xos110312","type":"transit","note":"經過八坂神社，走到高台寺約 10 分","stayMinutes":15}
+- {"id":"xos110313","title":"高台寺 夜楓","time":"19:15","cat":"sight","place":"高台寺","note":"・秋季夜間點燈：2026 年是 10/23～12/13，17:00 點燈，21:30 停止入場\n・大人 ¥800（約 NT$170，2026/11/20 台銀匯率 0.2105）\n・2026 年方丈前庭還有光雕投影\n・從出口出去就不能再進場\n・2027 年的日期還沒公布","stayMinutes":75}
+- {"id":"xos110314","title":"花見小路 散步","time":"20:45","cat":"sight","place":"花見小路","note":"・晚上燈籠亮起來很有京都感，可能遇到藝伎\n・有些私人小巷禁止拍照，不要追著藝伎拍","stayMinutes":30}
+- {"id":"xos110315","type":"transit","note":"回京都車站附近飯店（計程車約 15 分，估計）","stayMinutes":20}
 
 ### Day 4
 
@@ -76,9 +81,9 @@ updatedAt: "2026-11-18T09:04:30.701Z"
 - {"id":"xos110409","title":"清水寺＋二年坂・三年坂（暫定）","time":"14:20","cat":"sight","place":"清水寺","note":"・白天看得到清水舞台和京都市景\n・逛完搭計程車回京都車站拿行李\n・京都其他景點還要再談（要放哪些、拿掉哪些）","stayMinutes":120}
 - {"id":"xos110410","type":"transit","note":"① 回京都車站拿行李\n② JR 新快速到大阪站，換地鐵御堂筋線到難波（約 1 小時，估計）","stayMinutes":75}
 - {"id":"xos110608","title":"難波飯店入住","time":"17:35","cat":"stay","place":"大阪難波","note":"飯店待訂","stayMinutes":60}
-- {"id":"xos110609","title":"道頓堀 晚餐","time":"18:35","cat":"food","place":"道頓堀","note":"章魚燒、大阪燒","stayMinutes":90}
+- {"id":"xos110609","title":"道頓堀 晚餐","time":"18:35","cat":"food","place":"道頓堀","note":"章魚燒、大阪燒\n・🥟 順路：551 蓬萊本店（戎橋筋商店街）豬肉包＋蝦燒賣，排隊約 20～40 分","stayMinutes":90}
 - {"id":"xos110610","title":"法善寺橫丁","time":"20:05","cat":"sight","place":"法善寺橫丁","note":"晚上的石板小巷","stayMinutes":30}
-- {"id":"xos110611","title":"心齋橋 逛街","time":"20:35","cat":"shop","place":"心齋橋筋商店街","note":"藥妝、伴手禮\n・🍰 HARBS：心齋橋 PARCO 3F（營業時間沒查，晚上可能已關）","stayMinutes":90}
+- {"id":"xos110611","title":"心齋橋 逛街","time":"20:35","cat":"shop","place":"心齋橋筋商店街","note":"藥妝、伴手禮\n・🍰 HARBS：心齋橋 PARCO 3F（營業時間沒查，晚上可能已關）\n・✨ 順路：御堂筋燈飾（梅田到難波的大馬路，心齋橋就在旁邊；2026 年 11/3～12/31，免費）","stayMinutes":90}
 
 ### Day 5
 
